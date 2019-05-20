@@ -1,0 +1,19 @@
+state,state
+county,county
+subdivision,county subdivision
+subminor,subminor civil division
+tract,tract
+block,block group
+combined_area,combined statistical area
+metro_area,metropolitan statistical area/micropolitan statistical area
+metro_division,metropolitan division
+congress_district,congressional district
+upper_district,state legislative district (upper chamber)
+lower_district,state legislative district (lower chamber)
+elementary_district,school district (elementary)
+secondary_district,school district (secondary)
+unified_district,school district (unified)
+consolidated_area,consolidated city
+place,place
+zipcode,zip code tabulation area
+principal_city,principal city
