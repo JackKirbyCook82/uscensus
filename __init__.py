@@ -8,6 +8,7 @@ Created on Wed Nov 30 2018
 
 from webdata.webreaders import WebReader
 from webdata.webapi import WebAPI
+from utilities.dataframes import dataframe_fromdata
 
 from uscensus.urlapi import USCensus_URLAPI
 
@@ -19,10 +20,26 @@ __license__ = ""
 
 
 _DATEFORMATS = {'geoseries':'{year:04.0f}', 'yearseries':'{year:04.0f}', 'timeseries':'{year:04.0f}-{month:02.0f}'}
+_PARMSKEY = 'parms'
+_WEBKEYS = ('series', 'survey', 'tags', 'preds')
+_HEADERKEYS = ('tags', 'concepts')
 
 
 class USCensus_WebAPI(WebAPI):
     webdatatype = 'json'
+    filedatatype = 'csv'
+
+    @property
+    def parmskey(self): return _PARMSKEY 
+    @property
+    def webkeys(self): return list(_WEBKEYS)
+    @property
+    def headerkeys(self): return list(_HEADERKEYS)
+    @property
+    def scopekeys(self): return [column for column in self.tables.columns if column not in set([self.parmskey, *self.tablekeys, *self.webkeys, *self.headerkeys])]
+
+    def filename(self, tableID, *args, series, geography, date, estimate=None, **kwargs):
+        return '_'.join([tableID.format(estimate), geography.geoid, _DATEFORMATS[series].format(year=date.year, month=date.month), self.filedatatype])
 
     def __init__(self, apikey, *args, **kwargs):        
         self.__urlapi = USCensus_URLAPI(apikey, *args, **kwargs)
@@ -31,18 +48,6 @@ class USCensus_WebAPI(WebAPI):
 
     def __repr__(self): return '{}(apikey={}, repository={})'.format(self.__class__.__name__, self.__urlapi.apikey, self.repository)
     
-    @property
-    def webkeys(self): return ['series', 'survey', 'tags', 'preds']
-    @property
-    def headerkeys(self): return ['tags', 'concepts']
-    @property
-    def parmskey(self): return 'parms'
-    @property
-    def scopekeys(self): return [column for column in self.tables.columns if column not in set([self.parmskey, *self.tablekeys, *self.webkeys, *self.headerkeys])]
-
-    def filename(self, tableID, *args, series, geography, date, estimate=None, **kwargs):
-        return '_'.join([tableID.format(estimate), geography.geoid, _DATEFORMATS[series].format(year=date.year, month=date.month), 'csv'])
-   
     def webparms(self, tableID, *args, **kwargs): return {key:kwargs[key] for key in self.tables.loc[ tableID, self.parmskey]}  
     def webkwargs(self, tableID, *args, **kwargs): return {key:value for key, value in self.tables.loc[tableID].to_dict().items() if key in self.webkeys}       
 
@@ -52,7 +57,17 @@ class USCensus_WebAPI(WebAPI):
         return webdata   
 
     def webdataparser(self, webdata, *args, **kwargs):  
-        pass
+        return dataframe_fromdata(self.webdatatype, webdata, header=0, forceframe=True)
+    
+    def webtableparser(self, webtable, *args, **kwargs):
+        print(webtable)
+    
+    
+    
+    
+    
+    
+    
     
     
     

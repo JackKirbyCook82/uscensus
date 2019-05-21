@@ -22,12 +22,14 @@ __license__ = ""
 _DIR = os.path.dirname(os.path.realpath(__file__))
 _SPACEPROXY = '%20'
 _DATEFORMATS = {'geoseries':'{year:04.0f}', 'yearseries':'{year:04.0f}', 'timeseries':'{year:04.0f}-{month:02.0f}'}
+_GEOFILENAME = 'geography.csv'
+_SURVEYFILENAME = 'surveys.csv'
 
-with open(os.path.join(_DIR, 'geography.csv'), mode='r') as infile:
+with open(os.path.join(_DIR, _GEOFILENAME), mode='r') as infile:
     reader = csv.reader(infile)    
     _GEOGRAPHY = {row[0]:row[1] for row in reader}
     
-with open(os.path.join(_DIR, 'surveys.csv'), mode='r') as infile:
+with open(os.path.join(_DIR, _SURVEYFILENAME), mode='r') as infile:
     reader = csv.reader(infile)
     _SURVEYS = {row[0]:row[1].split(';') for row in reader}
 
