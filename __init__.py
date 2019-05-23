@@ -21,8 +21,10 @@ __license__ = ""
 
 _DATEFORMATS = {'geoseries':'{year:04.0f}', 'yearseries':'{year:04.0f}', 'timeseries':'{year:04.0f}-{month:02.0f}'}
 _PARMSKEY = 'parms'
-_WEBKEYS = ('series', 'survey', 'tags', 'preds')
-_HEADERKEYS = ('tags', 'concepts')
+_WEBKEYS = ('series', 'survey', 'tags', 'preds', 'concepts')
+
+
+_aslist = lambda items: [items] if not isinstance(items, (list, tuple)) else items
 
 
 class USCensus_WebAPI(WebAPI):
@@ -34,9 +36,7 @@ class USCensus_WebAPI(WebAPI):
     @property
     def webkeys(self): return list(_WEBKEYS)
     @property
-    def headerkeys(self): return list(_HEADERKEYS)
-    @property
-    def scopekeys(self): return [column for column in self.tables.columns if column not in set([self.parmskey, *self.tablekeys, *self.webkeys, *self.headerkeys])]
+    def scopekeys(self): return [column for column in self.tables.columns if column not in set([self.parmskey, *self.tablekeys, *self.webkeys])]
 
     def filename(self, tableID, *args, series, geography, date, estimate=None, **kwargs):
         return '_'.join([tableID.format(estimate), geography.geoid, _DATEFORMATS[series].format(year=date.year, month=date.month), self.filedatatype])
@@ -59,13 +59,18 @@ class USCensus_WebAPI(WebAPI):
     def webdataparser(self, webdata, *args, **kwargs):  
         return dataframe_fromdata(self.webdatatype, webdata, header=0, forceframe=True)
     
-    def webtableparser(self, webtable, *args, **kwargs):
+    def webtableparser(self, webtable, *args, geography, date, **kwargs):
+        webtable = self.rename(webtable, *args, **kwargs)
+        webtable = self.consolidate(webtable, *args, **kwargs)
         print(webtable)
-    
-    
-    
-    
-    
+        return
+        
+    def rename(self, webtable, *args, tags, concepts, **kwargs):    
+        assert len(tags) == len(concepts)
+        return webtable.rename({tag:concept for tag, concept in zip(tags, concepts)} , axis='columns')      
+
+    def consolidate(self, webtable, *args, universe, headers, concepts, **kwargs):
+        return webtable.melt(id_vars=[column  for column in webtable.columns if column not in _aslist(concepts)], var_name=headers, value_name=universe)
     
     
     

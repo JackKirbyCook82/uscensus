@@ -78,7 +78,7 @@ class USCensus_URLAPI(URLAPI):
     @keydispatcher('series')
     def parms(self, *args, series, **kwargs): raise ValueError(series)    
     @parms.register('geoseries')
-    def parms_geoseries(self, *args, tags, geography, preds, **kwargs): return _tagsgmt(['NAME', *_aslist(tags)]) + _forgeosgmt(geography) + _ingeosgmt(geography) + _predsgmt(preds) + _keysgmt(self.__apikey)    
+    def parms_geoseries(self, *args, tags, geography, preds, **kwargs): return _tagsgmt(tags) + _forgeosgmt(geography) + _ingeosgmt(geography) + _predsgmt(preds) + _keysgmt(self.__apikey)    
     @parms.register('dateseries')
     def parms_dateseries(self, *args, tags, geography, preds, **kwargs): return _tagsgmt(tags) + _forgeosgmt(geography) + _ingeosgmt(geography) + _datesgmt(kwargs) + _predsgmt(preds) + _keysgmt(self.__apikey)    
     @parms.register('timeseries')
