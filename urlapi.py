@@ -62,6 +62,8 @@ class USCensus_URLAPI(URLAPI):
     
     @property
     def apikey(self): return self.__apikey
+    @property
+    def geography(self): return _GEOGRAPHY
     
     def protocol(self, *args, **kwargs): return _protocolsgmt('https')
     def domain(self, *args, **kwargs): return _domainsgmt('api.census.gov')    
