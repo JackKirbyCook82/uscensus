@@ -21,7 +21,6 @@ __license__ = ""
 
 
 _DATEFORMATS = {'geoseries':'{year:04.0f}', 'yearseries':'{year:04.0f}', 'timeseries':'{year:04.0f}-{month:02.0f}'}
-_PARMSKEY = 'parms'
 _WEBKEYS = ('series', 'survey', 'tags', 'preds', 'concepts')
 
 
@@ -30,7 +29,6 @@ _aslist = lambda items: [items] if not isinstance(items, (list, tuple)) else ite
 
 class USCensus_WebAPI(WebAPI):
     webdatatype = 'json'
-    filedatatype = 'csv'
 
     def __init__(self, apikey, *args, **kwargs):        
         self.__urlapi = USCensus_URLAPI(apikey, *args, **kwargs)
@@ -39,19 +37,22 @@ class USCensus_WebAPI(WebAPI):
 
     def __repr__(self): return '{}(apikey={}, repository={})'.format(self.__class__.__name__, self.__urlapi.apikey, self.repository)
      
+    # KEYS
     @property
     def scopekeys(self): return [column for column in self.tables.columns if column not in set([self.parmskey, *self.tablekeys, *self.webkeys])]
     @property
     def webkeys(self): return list(_WEBKEYS)
 
-    def filename(self, tableID, *args, series, geography, date, estimate=None, **kwargs):
-        return '_'.join([tableID.format(estimate), geography.geoid, _DATEFORMATS[series].format(year=date.year, month=date.month), self.filedatatype])
+    # FILES
+    def filename(self, *args, tableID, series, geography, date, estimate=None, **kwargs):
+        return '_'.join([tableID.format(estimate), geography.geoid, _DATEFORMATS[series].format(year=date.year, month=date.month)])
 
+    # KEYWORDS
+    def webkwargs(self, *args, tableID, **kwargs): return {key:value for key, value in self.tables.loc[tableID].to_dict().items() if key in self.webkeys}       
 
-    def webkwargs(self, tableID, *args, **kwargs): return {key:value for key, value in self.tables.loc[tableID].to_dict().items() if key in self.webkeys}       
-
-    def webreader(self, *args, **kwargs):
-        url = self.__urlapi(*args, **kwargs)  
+    # PROCESSORS
+    def webreader(self, *args, tags, **kwargs):
+        url = self.__urlapi(*args, tags=['NAME', *tags], **kwargs)  
         return self.__webreader(url)   
 
     def webdataparser(self, webdata, *args, **kwargs):  
@@ -68,6 +69,7 @@ class USCensus_WebAPI(WebAPI):
             if key not in webtable.columns: webtable[key] = value
         return webtable
     
+    # UNIQUE PROCESSORS
     def __renameheaders(self, webtable, *args, tags, concepts, **kwargs):    
         assert len(tags) == len(concepts)
         return webtable.rename({tag:concept for tag, concept in zip(tags, concepts)} , axis='columns')      
@@ -78,11 +80,13 @@ class USCensus_WebAPI(WebAPI):
     def __combinegeography(self, webtable, *args, geography, **kwargs):
         geokeys = list(geography.keys())
         apigeokeys = [self.__urlapi.geography[key] for key in geography.keys()]        
-        function = lambda values: str(Geography(**{key:value for key, value in zip(geokeys, values)}))
-        webtable['geography'] = webtable[apigeokeys].apply(function, axis=1)
-        return webtable.drop(apigeokeys, axis=1)
+        geofunction = lambda values: str(Geography(**{key:value for key, value in zip(geokeys, values)}))
+        geonamefunction = lambda value: ' & '.join(['='.join([key, name]) for key, name in zip(geokeys, value.split(', '))])
+        webtable['geography'] = webtable[apigeokeys].apply(geofunction, axis=1)
+        webtable['geographyname'] = webtable['NAME'].apply(geonamefunction)
+        return webtable.drop(['NAME', *apigeokeys], axis=1)
 
-    
+
     
     
     

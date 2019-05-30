@@ -20,7 +20,7 @@ from parsers.valueformatters import ValueFormatter
 from uscensus import USCensus_WebAPI
 
 
-_LINEWIDTH = 75
+_LINEWIDTH = 100
 _DIR = os.path.dirname(os.path.realpath(__file__))
 _aslist = lambda items: [items] if not isinstance(items, (list, tuple)) else items
 
@@ -70,7 +70,7 @@ def test_webapi():
     print(repr(webapi), '\n')
     print(str(webapi), '\n')
     print(webapi.selections, '\n')
-    print(webapi(geography=geography, date=date, estimate=estimate))
+    print(webapi(geography=geography, date=date, estimate=estimate, save=True))
 
     
 
