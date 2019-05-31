@@ -24,7 +24,7 @@ _LINEWIDTH = 100
 _DIR = os.path.dirname(os.path.realpath(__file__))
 _aslist = lambda items: [items] if not isinstance(items, (list, tuple)) else items
 
-pd.set_option("display.max_rows", 30)
+pd.set_option("display.max_rows", 50)
 pd.set_option("display.max_columns", 20)
 np.set_printoptions(linewidth=_LINEWIDTH)
 
@@ -61,7 +61,7 @@ def test_webapi():
     webapi = USCensus_WebAPI(apikey, tables_file=tables_file, tables_parsers=tables_parsers, repository=repository, headers=headers)
     webapi.setitems(universe='households', index='geography', headers='income')
     webapi['tenure'] = 'Owner'
-    webapi['value'] = '<$10K US'
+    #webapi['value'] = '<$10K US'
 
     geography = Geography(**{'state':48, 'county':157, 'subdivision':'*'})
     date = Date(year=2017)   
@@ -69,8 +69,8 @@ def test_webapi():
     
     print(repr(webapi), '\n')
     print(str(webapi), '\n')
-    print(webapi.selections, '\n')
-    print(webapi(geography=geography, date=date, estimate=estimate, save=True))
+    print(webapi.tables, '\n')
+    
 
     
 

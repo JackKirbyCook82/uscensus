@@ -39,16 +39,14 @@ class USCensus_WebAPI(WebAPI):
      
     # KEYS
     @property
-    def scopekeys(self): return [column for column in self.tables.columns if column not in set([self.parmskey, *self.tablekeys, *self.webkeys])]
+    def scopekeys(self): return [column for column in self.tabledata.columns if column not in set([*self.tablekeys, *self.webkeys])]
     @property
     def webkeys(self): return list(_WEBKEYS)
 
     # FILES
-    def filename(self, *args, tableID, series, geography, date, estimate=None, **kwargs):
-        return '_'.join([tableID.format(estimate), geography.geoid, _DATEFORMATS[series].format(year=date.year, month=date.month)])
-
-    # KEYWORDS
-    def webkwargs(self, *args, tableID, **kwargs): return {key:value for key, value in self.tables.loc[tableID].to_dict().items() if key in self.webkeys}       
+    def filename(self, *args, tableID, series, geography, dates, estimate, **kwargs):
+        ### WORKING ###
+        pass
 
     # PROCESSORS
     def webreader(self, *args, tags, **kwargs):
@@ -87,7 +85,5 @@ class USCensus_WebAPI(WebAPI):
         return webtable.drop(['NAME', *apigeokeys], axis=1)
 
 
-    
-    
-    
+
     
