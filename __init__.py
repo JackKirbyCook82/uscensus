@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Nov 30 2018
-@name:   USCensus WebAPI
+@name:   USCensus WebAPI Object
 @author: Jack Kirby cook
 
 """
@@ -10,6 +10,7 @@ from webdata.webreaders import WebReader
 from webdata.webapi import WebAPI
 from utilities.dataframes import dataframe_fromdata
 from variables.geography import Geography
+import pandas as pd
 
 from uscensus.urlapi import USCensus_URLAPI
 
@@ -23,8 +24,7 @@ __license__ = ""
 _DATEFORMATS = {'geoseries':'{year:04.0f}', 'yearseries':'{year:04.0f}', 'timeseries':'{year:04.0f}-{month:02.0f}'}
 _WEBKEYS = ('series', 'survey', 'tags', 'preds', 'concepts')
 
-
-_aslist = lambda items: [items] if not isinstance(items, (list, tuple)) else items
+_aslist = lambda items: [item for item in items] if hasattr(items, '__iter__') and not isinstance(items, str) else [items]
 
 
 class USCensus_WebAPI(WebAPI):
@@ -32,21 +32,20 @@ class USCensus_WebAPI(WebAPI):
 
     def __init__(self, apikey, *args, **kwargs):        
         self.__urlapi = USCensus_URLAPI(apikey, *args, **kwargs)
-        self.__webreader = WebReader(self.webdatatype, *args, **kwargs)        
+        self.__webreader = WebReader(self.webdatatype, *args, **kwargs)      
         super().__init__(*args, **kwargs)
 
     def __repr__(self): return '{}(apikey={}, repository={})'.format(self.__class__.__name__, self.__urlapi.apikey, self.repository)
      
     # KEYS
     @property
-    def scopekeys(self): return [column for column in self.tabledata.columns if column not in set([*self.tablekeys, *self.webkeys])]
+    def scopekeys(self): return [column for column in self.tablesdata.columns if column not in set([*self.tablekeys, *self.webkeys])]
     @property
     def webkeys(self): return list(_WEBKEYS)
 
     # FILES
-    def filename(self, *args, tableID, series, geography, dates, estimate, **kwargs):
-        ### WORKING ###
-        pass
+    def filename(self, *args, tablesID, geography, dates, estimate=5, **kwargs):
+        return '_'.join([str(tablesID).format(estimate), geography.geoid, *[str(date) for date in _aslist(dates)]])
 
     # PROCESSORS
     def webreader(self, *args, tags, **kwargs):
@@ -61,9 +60,10 @@ class USCensus_WebAPI(WebAPI):
         webtable = self.__consolidate(webtable, *args, **kwargs)
         return self.__combinegeography(webtable, *args, **kwargs)
         
-    def webtablescope(self, webtable, *args, geography, estimate=None, date, **kwargs):
+    def webtablescope(self, webtable, *args, geography, estimate, date, **kwargs):
         webtable['date'] = str(date)
-        for key, value in kwargs.items(): 
+        scopekwargs = {key:kwargs[key] for key in self.scopekeys if key in kwargs.keys()}
+        for key, value in scopekwargs.items(): 
             if key not in webtable.columns: webtable[key] = value
         return webtable
     
@@ -83,6 +83,23 @@ class USCensus_WebAPI(WebAPI):
         webtable['geography'] = webtable[apigeokeys].apply(geofunction, axis=1)
         webtable['geographyname'] = webtable['NAME'].apply(geonamefunction)
         return webtable.drop(['NAME', *apigeokeys], axis=1)
+
+    # ENGINES
+    def execute(self, *args, geography, dates, estimate=5, **kwargs):
+        tables = {}
+        for date in _aslist(dates):
+            for tableID, values in self.tablequeue.items():
+                tables[(date, tableID)] = self.download(*args, geography=geography, date=date, estimate=estimate, **values, **kwargs)
+        return pd.concat(tables.values(), axis=0)
+
+
+
+
+
+
+
+
+
 
 
 

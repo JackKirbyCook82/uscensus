@@ -33,7 +33,7 @@ with open(os.path.join(_DIR, _SURVEYFILENAME), mode='r') as infile:
     reader = csv.reader(infile)
     _SURVEYS = {row[0]:row[1].split(';') for row in reader}
 
-_aslist = lambda items: [items] if not isinstance(items, (list, tuple)) else items
+_aslist = lambda items: [item for item in items] if hasattr(items, '__iter__') and not isinstance(items, str) else [items]
 _date = lambda kwargs: kwargs['date']
 _enddate = lambda kwargs: kwargs['date'] + kwargs['interval'] * kwargs['period']
 
