@@ -79,9 +79,9 @@ class USCensus_WebAPI(WebAPI):
         geokeys = list(geography.keys())
         apigeokeys = [self.__urlapi.geography[key] for key in geography.keys()]        
         geofunction = lambda values: str(Geography(**{key:value for key, value in zip(geokeys, values)}))
-        geonamefunction = lambda value: ' & '.join(['='.join([key, name]) for key, name in zip(geokeys, value.split(', '))])
+        #geonamefunction = lambda value: ' & '.join(['='.join([key, name]) for key, name in zip(geokeys, value.split(', '))])
         webtable['geography'] = webtable[apigeokeys].apply(geofunction, axis=1)
-        webtable['geographyname'] = webtable['NAME'].apply(geonamefunction)
+        #webtable['geographyname'] = webtable['NAME'].apply(geonamefunction)
         return webtable.drop(['NAME', *apigeokeys], axis=1)
 
     # ENGINES
