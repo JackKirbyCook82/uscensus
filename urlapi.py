@@ -24,10 +24,12 @@ _SPACEPROXY = '%20'
 _DATEFORMATS = {'geoseries':'{year:04.0f}', 'yearseries':'{year:04.0f}', 'timeseries':'{year:04.0f}-{month:02.0f}'}
 _GEOFILENAME = 'geography.csv'
 _SURVEYFILENAME = 'surveys.csv'
+_PROTOCOL = 'https'
+_DOMAIN = 'api.census.gov'
 
 with open(os.path.join(_DIR, _GEOFILENAME), mode='r') as infile:
     reader = csv.reader(infile)    
-    _GEOGRAPHY = {row[0]:row[1] for row in reader}
+    _GEOGRAPHYS = {row[0]:row[1] for row in reader}
     
 with open(os.path.join(_DIR, _SURVEYFILENAME), mode='r') as infile:
     reader = csv.reader(infile)
@@ -38,7 +40,7 @@ _date = lambda kwargs: kwargs['date']
 _enddate = lambda kwargs: kwargs['date'] + kwargs['interval'] * kwargs['period']
 
 _surveyvalues = lambda kwargs: [item.format(kwargs.get('estimate', 5)) for item in _SURVEYS[kwargs['survey']]]
-_geokeys = lambda geography: [_GEOGRAPHY[key].replace(' ', _SPACEPROXY) for key in geography.keys()]
+_geokeys = lambda geography: [_GEOGRAPHYS[key].replace(' ', _SPACEPROXY) for key in geography.keys()]
 _geovalues = lambda geography: [value for value in geography.values()]
 _datevalue = lambda kwargs: _DATEFORMATS[kwargs['series']].format(year=_date(kwargs).year, month=_date(kwargs).month)
 _enddatevalue = lambda kwargs: _DATEFORMATS[kwargs['series']].format(year=_enddate(kwargs).year, month=_enddate(kwargs).month)
@@ -62,11 +64,9 @@ class USCensus_URLAPI(URLAPI):
     
     @property
     def apikey(self): return self.__apikey
-    @property
-    def geography(self): return _GEOGRAPHY
     
-    def protocol(self, *args, **kwargs): return _protocolsgmt('https')
-    def domain(self, *args, **kwargs): return _domainsgmt('api.census.gov')    
+    def protocol(self, *args, **kwargs): return _protocolsgmt(_PROTOCOL)
+    def domain(self, *args, **kwargs): return _domainsgmt(_DOMAIN)    
 
     @keydispatcher('series')
     def path(self, *args, series, **kwargs): raise ValueError(series)    

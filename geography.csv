@@ -1,19 +1,18 @@
-state,state
-county,county
-subdivision,county subdivision
-subminor,subminor civil division
-tract,tract
-block,block group
-combined_area,combined statistical area
-metro_area,metropolitan statistical area/micropolitan statistical area
-metro_division,metropolitan division
-congress_district,congressional district
-upper_district,state legislative district (upper chamber)
-lower_district,state legislative district (lower chamber)
-elementary_district,school district (elementary)
-secondary_district,school district (secondary)
-unified_district,school district (unified)
-consolidated_area,consolidated city
-place,place
-zipcode,zip code tabulation area
-principal_city,principal city
+state,state,STATE
+county,county,COUNTY
+subdivision,county subdivision,COUSUB
+subminor,subminor civil division,SUBBARRIO
+tract,tract,TRACT
+block,block group,BG
+combined_area,combined statistical area,CSA
+metro_area,metropolitan statistical area/micropolitan statistical area,CBSA
+metro_division,metropolitan division,METDIV
+congress_district,congressional district,CD
+upper_district,state legislative district (upper chamber),SLDC
+lower_district,state legislative district (lower chamber),SLDL
+elementary_district,school district (elementary),ELSD
+secondary_district,school district (secondary),SCSD
+unified_district,school district (unified),UNSD
+consolidated_area,consolidated city,CONCITY
+place,place,PLACE
+zipcode,zip code tabulation area,ZCTA5
