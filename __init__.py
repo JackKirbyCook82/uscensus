@@ -20,7 +20,7 @@ from uscensus.urlapi import USCensus_URLAPI
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_WebAPI', 'USCensus_Shapefiles']
+__all__ = ['USCensus_WebAPI', 'USCensus_ShapefileAPI']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
 
@@ -119,13 +119,6 @@ class USCensus_WebAPI(WebRequestAPI):
                 tables[(str(date), tableID)] = self.download(*args, geography=geography, date=date, estimate=estimate, **parms, **kwargs)
         return pd.concat(tables.values(), axis=0)
 
-#########################################################################################################################
-# (1): LOAD or DOWNLOAD DF[geo, name]
-# (2): FTP DOWNLOAD SF(geo) & BaseSF(geo)
-# (3): READ SF(geo) to GeoDF[shape]
-# (4): COMBINE DF[geo, name] with GeoDF[shape]
-# (5): RETURN GeoDF[geo, name, shape] & baseSF(geo)
-
     def geography(self, *args, geography, **kwargs):   
         try: return self.load(*args, tablesID=_GEOTABLEID, dates=[_GEOPARMS['date']], geography=geography, **kwargs)
         except FileNotFoundError:
@@ -135,7 +128,6 @@ class USCensus_WebAPI(WebRequestAPI):
             webtable = self.__splitgeoname(webtable, *args, geography=geography, **kwargs)            
             self.save(webtable, *args, tablesID=_GEOTABLEID, dates=[_GEOPARMS['date']], geography=geography, **kwargs)
             return webtable
-#########################################################################################################################
 
 
 class USCensus_ShapefileAPI(FTPDownloadAPI):
