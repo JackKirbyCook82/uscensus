@@ -6,13 +6,13 @@ tract,tract,TRACT
 block,block group,BG
 combined_area,combined statistical area,CSA
 metro_area,metropolitan statistical area/micropolitan statistical area,CBSA
-metro_division,metropolitan division,METDIV
-congress_district,congressional district,CD
-upper_district,state legislative district (upper chamber),SLDC
-lower_district,state legislative district (lower chamber),SLDL
-elementary_district,school district (elementary),ELSD
-secondary_district,school district (secondary),SCSD
-unified_district,school district (unified),UNSD
-consolidated_area,consolidated city,CONCITY
+metrodiv,metropolitan division,METDIV
+congress,congressional district,CD
+upper,state legislative district (upper chamber),SLDC
+lower,state legislative district (lower chamber),SLDL
+elementary,school district (elementary),ELSD
+secondary,school district (secondary),SCSD
+unified,school district (unified),UNSD
+consolidated,consolidated city,CONCITY
 place,place,PLACE
 zipcode,zip code tabulation area,ZCTA5

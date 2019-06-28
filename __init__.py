@@ -29,13 +29,13 @@ _WEBKEYS = ('series', 'survey', 'tags', 'preds', 'concepts')
 
 _GEOFILE = 'geography.csv'
 _GEOAPIKEYS = {}
-_GEODIRNAMES = {}
+_GEODIRKEYS = {}
 
 with open(os.path.join(_DIR, _GEOFILE), mode='r') as infile:
     reader = csv.reader(infile)   
     for row in reader:      
         _GEOAPIKEYS[row[0]] = row[1]
-        _GEODIRNAMES[row[0]] = row[2]
+        _GEODIRKEYS[row[0]] = row[2]
 
 _aslist = lambda items: [item for item in items] if hasattr(items, '__iter__') and not isinstance(items, str) else [items]
 
@@ -112,28 +112,29 @@ class USCensus_WebAPI(WebRequestAPI):
         return self.download(*args, geography=geography, date=date, estimate=estimate, **kwargs)
 
 
-class USCensus_FTPAPI(FTPDownloadAPI):
+class USCensus_FTPAPI(FTPDownloadAPI): 
     def __init__(self, *args, username='anonymous', password='anonymous', **kwargs): 
         super().__init__(*args, domain='ftp2.census.gov', filetype='zip', username=username, password=password, **kwargs)
     
     def __repr__(self): return '{}(username={}, password={}, repository={})'.format(self.__class__.__name__, self.username, self.password, self.repository)
 
     def serverpath(self, *args, date, geography, **kwargs): 
-        return '/'.join(['geo','tiger','TIGER{date}'.format(date=date.year), _GEODIRNAMES[geography[-1].getkey(-1)]])
+        forgeo = _GEODIRKEYS[geography[-1].getkey(-1)]
+        return '/'.join(['geo','tiger','TIGER{date}'.format(date=date.year), forgeo])
     
     def serverfilenames(self, *args, geography, date, **kwargs):
-        items = ['tl_{year}_us_{forgeo}'.format(year=date.year, forgeo=_GEODIRNAMES[geography.getkey(-1)].lower())]
-        if 'state' in geography.keys(): items.append('tl_{year}_{state}_{forgeo}'.format(state=geography.getvalue('state'), year=date.year, forgeo=_GEODIRNAMES[geography.getkey(-1)].lower()))
-        return items
+        forgeo = _GEODIRKEYS[geography[-1].getkey(-1)].lower()
+        ingeo = geography.get('state', 'us')
+        items = ['tl_{year}_{ingeo}_{forgeo}'.format(year=date.year, ingeo=ingeo, forgeo=forgeo),
+                 'tl_{year}_us_{forgeo}'.format(year=date.year, forgeo=forgeo)]
+        return list(set(items))
         
-    ###############################################################################################################
-    def clientfilename(self, *args, date, geography, **kwargs): 
-        raise Exception('UNDER CONSTRUCTION')
-    ###############################################################################################################
-    
-    
-    
-    
+    def clientfilename(self, *args, geography, **kwargs): 
+        forgeokey = geography.getkey(-1)
+        ingeovalue = geography.get('state', geography.allChar)
+        return 'shapefile_{ingeokey}={ingeovalue}_{forgeokey}'.format(forgeokey=forgeokey, ingeokey='state', ingeovalue=ingeovalue)
+        
+
     
     
     

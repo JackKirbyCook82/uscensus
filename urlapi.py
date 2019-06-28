@@ -24,8 +24,6 @@ _SPACEPROXY = '%20'
 _DATEFORMATS = {'geoseries':'{year:04.0f}', 'yearseries':'{year:04.0f}', 'timeseries':'{year:04.0f}-{month:02.0f}'}
 _GEOFILENAME = 'geography.csv'
 _SURVEYFILENAME = 'surveys.csv'
-_PROTOCOL = 'https'
-_DOMAIN = 'api.census.gov'
 
 with open(os.path.join(_DIR, _GEOFILENAME), mode='r') as infile:
     reader = csv.reader(infile)    
@@ -65,8 +63,8 @@ class USCensus_URLAPI(URLAPI):
     @property
     def apikey(self): return self.__apikey
     
-    def protocol(self, *args, **kwargs): return _protocolsgmt(_PROTOCOL)
-    def domain(self, *args, **kwargs): return _domainsgmt(_DOMAIN)    
+    def protocol(self, *args, **kwargs): return _protocolsgmt('https')
+    def domain(self, *args, **kwargs): return _domainsgmt('api.census.gov')    
 
     @keydispatcher('series')
     def path(self, *args, series, **kwargs): raise ValueError(series)    
