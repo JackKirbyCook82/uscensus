@@ -11,10 +11,11 @@ import csv
 
 from webdata.url import URLAPI, Protocol, Domain, Path, Parms
 from utilities.dispatchers import clskey_singledispatcher as keydispatcher
+from utilities.dataframes import dataframe_fromfile
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_URLAPI']
+__all__ = ['USCensus_URLAPI', 'USCensus_ShapeFile_URLAPI']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
     
@@ -24,11 +25,9 @@ _SPACEPROXY = '%20'
 _DATEFORMATS = {'geoseries':'{year:04.0f}', 'yearseries':'{year:04.0f}', 'timeseries':'{year:04.0f}-{month:02.0f}'}
 _GEOFILENAME = 'geography.csv'
 _SURVEYFILENAME = 'surveys.csv'
+  
+_GEOGRAPHY = dataframe_fromfile(os.path.join(_DIR, _GEOFILENAME), index='geokey', header=0, forceframe=True).to_dict()        
 
-with open(os.path.join(_DIR, _GEOFILENAME), mode='r') as infile:
-    reader = csv.reader(infile)    
-    _GEOGRAPHYS = {row[0]:row[1] for row in reader}
-    
 with open(os.path.join(_DIR, _SURVEYFILENAME), mode='r') as infile:
     reader = csv.reader(infile)
     _SURVEYS = {row[0]:row[1].split(';') for row in reader}
@@ -38,22 +37,25 @@ _date = lambda kwargs: kwargs['date']
 _enddate = lambda kwargs: kwargs['date'] + kwargs['interval'] * kwargs['period']
 
 _surveyvalues = lambda kwargs: [item.format(kwargs.get('estimate', 5)) for item in _SURVEYS[kwargs['survey']]]
-_geokeys = lambda geography: [_GEOGRAPHYS[key].replace(' ', _SPACEPROXY) for key in geography.keys()]
+_geoapikeys = lambda geography: [_GEOGRAPHY['geoapikey'][key].replace(' ', _SPACEPROXY) for key in geography.keys()]
 _geovalues = lambda geography: [value for value in geography.values()]
 _datevalue = lambda kwargs: _DATEFORMATS[kwargs['series']].format(year=_date(kwargs).year, month=_date(kwargs).month)
 _enddatevalue = lambda kwargs: _DATEFORMATS[kwargs['series']].format(year=_enddate(kwargs).year, month=_enddate(kwargs).month)
 
 _protocolsgmt = lambda protocol: Protocol(protocol)
 _domainsgmt = lambda domain: Domain(domain)
+_filesgmt = lambda filename, extension: '.'.join([filename, extension])
 _surveysgmt = lambda kwargs: Path(*_surveyvalues(kwargs))
 _pathsgmt = lambda path: Path(*path)
 _tagsgmt = lambda tags: Parms(get=','.join(tags))
-_forgeosgmt = lambda geography: Parms(**{'for':':'.join([_geokeys(geography)[-1], _geovalues(geography)[-1]])})
-_ingeosgmt = lambda geography: Parms(**{'in':[':'.join([key, value]) for key, value in zip(_geokeys(geography)[:-1], _geovalues(geography)[:-1])]})
+_forgeosgmt = lambda geography: Parms(**{'for':':'.join([_geoapikeys(geography)[-1], _geovalues(geography)[-1]])})
+_ingeosgmt = lambda geography: Parms(**{'in':[':'.join([key, str(value)]) for key, value in zip(_geoapikeys(geography)[:-1], _geovalues(geography)[:-1])]})
 _datesgmt = lambda kwargs: Parms(time=_datevalue(kwargs))
 _timesgmt = lambda kwargs: Parms(time='+'.join(['from', _datevalue(kwargs), 'to', _enddatevalue(kwargs)]))
 _predsgmt = lambda preds: Parms(**preds)
 _keysgmt = lambda key: Parms(key=key)
+_shapedir = lambda geography: _GEOGRAPHY['shapedir'][geography[-1].getkey(-1)]
+_shapefile = lambda geography: _GEOGRAPHY['shapefile'][geography[-1].getkey(-1)]
 
 
 class USCensus_URLAPI(URLAPI):
@@ -62,6 +64,7 @@ class USCensus_URLAPI(URLAPI):
     
     @property
     def apikey(self): return self.__apikey
+    def geoapikey(self, key): return _GEOGRAPHY['geoapikey'][key]
     
     def protocol(self, *args, **kwargs): return _protocolsgmt('https')
     def domain(self, *args, **kwargs): return _domainsgmt('api.census.gov')    
@@ -85,11 +88,17 @@ class USCensus_URLAPI(URLAPI):
     def parms_timeseries(self, *args, tags, geography, preds, **kwargs): return _tagsgmt(tags) + _forgeosgmt(geography) + _ingeosgmt(geography) + _timesgmt(kwargs) + _predsgmt(preds) + _keysgmt(self.__apikey)
 
 
-
-
-
-        
-
+class USCensus_ShapeFile_URLAPI(URLAPI):
+    def __init__(self, filetype, *args, **kwargs): self.__filetype = filetype
+    
+    def shapeapikey(self, key): return _GEOGRAPHY['shapeapikey'][key]
+    
+    def protocol(self, *args, **kwargs): return _protocolsgmt('https')
+    def domain(self, *args, **kwargs): return _domainsgmt('www2.census.gov')    
+    def path(self, *args, date, geography, **kwargs): return _pathsgmt(['geo', 'tiger', 'TIGER{year}'.format(year=str(date.year)), _shapedir(geography), self.file(geography=geography, date=date)])
+    
+    def filename(self, *args, geography, date, **kwargs): return _shapefile(geography).format(year=str(date.year), state=geography.getvalue('state'))
+    def file(self, *args, **kwargs): return _filesgmt(self.filename(*args, **kwargs), self.__filetype)
 
 
 

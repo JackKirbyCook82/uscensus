@@ -1,18 +1,20 @@
-state,state,STATE
-county,county,COUNTY
-subdivision,county subdivision,COUSUB
-subminor,subminor civil division,SUBBARRIO
-tract,tract,TRACT
-block,block group,BG
-combined_area,combined statistical area,CSA
-metro_area,metropolitan statistical area/micropolitan statistical area,CBSA
-metrodiv,metropolitan division,METDIV
-congress,congressional district,CD
-upper,state legislative district (upper chamber),SLDC
-lower,state legislative district (lower chamber),SLDL
-elementary,school district (elementary),ELSD
-secondary,school district (secondary),SCSD
-unified,school district (unified),UNSD
-consolidated,consolidated city,CONCITY
-place,place,PLACE
-zipcode,zip code tabulation area,ZCTA5
+geokey,geoapikey,shapeapikey,shapedir,shapefile
+,,,,
+state,state,statefp,STATE,tl_{year}_us_state
+county,county,countyfp,COUNTY,tl_{year}_us_county
+subdivision,county subdivision,cousubfp,COUSUB,tl_{year}_{state}_cousub
+subminor,subminor civil division,subbarriofp,SUBBARRIO,tl_{year}_{state}_subbarrio
+tract,tract,tractfp,TRACT,tl_{year}_{state}_tract
+block,block group,bgfp,BG,tl_{year}_{state}_bg
+combined_area,combined statistical area,csafp,CSA,tl_{year}_us_csa
+metro_area,metropolitan statistical area/micropolitan statistical area,cbsafp,CBSA,tl_{year}_us_cbsa
+metrodiv,metropolitan division,metdivfp,METDIV,tl_{year}_us_metdiv
+congress,congressional district,cdfp,CD,tl_{year}_us_cd
+upper,state legislative district (upper chamber),sldcfp,SLDC,tl_{year}_{state}_sldc
+lower,state legislative district (lower chamber),sldlfp,SLDL,tl_{year}_{state}_sldl
+elementary,school district (elementary),elsdfp,ELSD,tl_{year}_{state}_elsd
+secondary,school district (secondary),scsdfp,SCSD,tl_{year}_{state}_scsd
+unified,school district (unified),unsdfp,UNSD,tl_{year}_{state}_unsd
+consolidated,consolidated city,concityfp,CONCITY,tl_{year}_{state}_concity
+place,place,placefp,PLACE,tl_{year}_{state}_place
+zipcode,zip code tabulation area,zcta5fp,ZCTA5,tl_{year}_us_zcta5

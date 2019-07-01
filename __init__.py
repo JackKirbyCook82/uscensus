@@ -7,48 +7,41 @@ Created on Wed Nov 30 2018
 """
 
 import os.path
-import csv
+import io
+import zipfile
 
 from webdata.webreaders import WebReader
-from webdata.webapi import WebRequestAPI, FTPDownloadAPI
-from utilities.dataframes import dataframe_fromjson
+from webdata.webapi import WebAPI
+from utilities.dataframes import dataframe_fromjson, geodataframe_fromdir
 from variables.geography import Geography
 
-from uscensus.urlapi import USCensus_URLAPI
+from uscensus.urlapi import USCensus_URLAPI, USCensus_ShapeFile_URLAPI
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_WebAPI', 'USCensus_FTPAPI']
+__all__ = ['USCensus_WebAPI']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
 
 
-_DIR = os.path.dirname(os.path.realpath(__file__))
 _DATEFORMATS = {'geoseries':'%Y', 'yearseries':'%Y', 'timeseries':'%Y-%m'}
 _WEBKEYS = ('series', 'survey', 'tags', 'preds', 'concepts')
-
-_GEOFILE = 'geography.csv'
-_GEOAPIKEYS = {}
-_GEODIRKEYS = {}
-
-with open(os.path.join(_DIR, _GEOFILE), mode='r') as infile:
-    reader = csv.reader(infile)   
-    for row in reader:      
-        _GEOAPIKEYS[row[0]] = row[1]
-        _GEODIRKEYS[row[0]] = row[2]
 
 _aslist = lambda items: [item for item in items] if hasattr(items, '__iter__') and not isinstance(items, str) else [items]
 
 
-class USCensus_WebAPI(WebRequestAPI):
+class USCensus_WebAPI(WebAPI):
     webdatatype = 'json'
+    shapedatatype = 'zip'
 
     def __init__(self, apikey, *args, **kwargs):        
         self.__urlapi = USCensus_URLAPI(apikey, *args, **kwargs)
-        self.__webreader = WebReader(self.webdatatype, *args, **kwargs)      
-        super().__init__(*args, **kwargs)        
+        self.__webreader = WebReader(self.webdatatype, *args, **kwargs)          
+        self.__shapeurlapi = USCensus_ShapeFile_URLAPI(self.shapedatatype)
+        self.__shapewebreader = WebReader(self.shapedatatype, *args, **kwargs)            
+        super().__init__(*args, **kwargs)            
     def __repr__(self): return '{}(apikey={}, repository={})'.format(self.__class__.__name__, self.__urlapi.apikey, self.repository)
-     
+    
     # KEYS
     @property
     def scopekeys(self): return [column for column in self.tablesdata.columns if column not in set([*self.tablekeys, *self.webkeys])]
@@ -58,7 +51,7 @@ class USCensus_WebAPI(WebRequestAPI):
     # FILES
     def filename(self, *args, tableID, geography, date, estimate, **kwargs):
         return tableID.format(estimate=estimate, date=date, geoid=geography.geoid)
-
+        
     # PROCESSORS
     def webreader(self, *args, tags, **kwargs):
         url = self.__urlapi(*args, tags=['NAME', *_aslist(tags)], **kwargs)  
@@ -70,8 +63,10 @@ class USCensus_WebAPI(WebRequestAPI):
     def webtableparser(self, webtable, *args, **kwargs):
         webtable = self.__renameheaders(webtable, *args, **kwargs)
         webtable = self.__consolidate(webtable, *args, **kwargs)
-        webtable = self.__splitgeoname(webtable, *args, **kwargs)  
-        return self.__combinegeography(webtable, *args, **kwargs)
+        webtable = self.__geoname(webtable, *args, **kwargs)  
+        webtable = self.__geography(webtable, *args, **kwargs)
+        webtable = self.__geoid(webtable, *args, **kwargs)
+        return webtable
         
     def webtablescope(self, webtable, *args, geography, estimate, date, **kwargs):
         webtable['date'] = str(date)
@@ -88,18 +83,30 @@ class USCensus_WebAPI(WebRequestAPI):
     def __consolidate(self, webtable, *args, universe, headers, concepts, **kwargs):
         return webtable.melt(id_vars=[column  for column in webtable.columns if column not in _aslist(concepts)], var_name=headers, value_name=universe)
     
-    def __combinegeography(self, webtable, *args, geography, **kwargs):
+    def __geography(self, webtable, *args, geography, **kwargs):
         geokeys = list(geography.keys())
-        apigeokeys = [_GEOAPIKEYS[key] for key in geography.keys()]        
-        geofunction = lambda values: str(Geography(**{key:value for key, value in zip(geokeys, values)}))
-        webtable['geography'] = webtable[apigeokeys].apply(geofunction, axis=1)
-        return webtable.drop(apigeokeys, axis=1)
-
-    def __splitgeoname(self, webtable, *args, geography, **kwargs):
+        geoapikeys = [self.__urlapi.geoapikey(key) for key in geography.keys()]        
+        function = lambda values: str(Geography({key:value for key, value in zip(geokeys, values)}))
+        webtable['geography'] = webtable[geoapikeys].apply(function, axis=1)
+        return webtable.drop(geoapikeys, axis=1)
+    
+    def __geoname(self, webtable, *args, geography, **kwargs):
         geokeys = list(geography.keys())
-        geonamefunction = lambda value: ' & '.join(['='.join([key, name]) for key, name in zip(geokeys, value.split(', '))])
-        webtable['name'] = webtable['NAME'].apply(geonamefunction)
+        function = lambda value: ' & '.join(['='.join([key, name]) for key, name in zip(geokeys, value.split(', '))])
+        webtable['geoname'] = webtable['NAME'].apply(function)
         return webtable.drop('NAME', axis=1)
+
+    def __geoid(self, webtable, *args, geography, **kwargs):
+        function = lambda value: str(Geography.fromstr(value).geoid)
+        webtable['geoid'] = webtable['geography'].apply(function)
+        return webtable
+
+    def __shapegeography(self, shapetable, *args, geography, **kwargs):
+        geokeys = list(geography.keys())
+        shapeapikeys = [self.__shapeurlapi.shapeapikey(key) for key in geography.keys()]     
+        function = lambda values: str(Geography({key:value for key, value in zip(geokeys, values)}))
+        shapetable['geography'] = shapetable[shapeapikeys].apply(function, axis=1)
+        return shapetable.drop(shapeapikeys, axis=1)                
 
     # ENGINES
     def generator(self, *args, tableIDs, dates, **kwargs):
@@ -111,36 +118,22 @@ class USCensus_WebAPI(WebRequestAPI):
     def execute(self, *args, geography, date, estimate=5, **kwargs):
         return self.download(*args, geography=geography, date=date, estimate=estimate, **kwargs)
 
+    def getshapefile(self, *args, redownload=False, **kwargs):
+        directory = self.directory(self.__shapeurlapi.filename(*args, **kwargs))
+        if not os.path.exists(directory) or redownload: 
+            url = self.__shapeurlapi(*args, **kwargs)
+            webdata = self.__shapewebreader(url)
+            content = zipfile.ZipFile(io.BytesIO(webdata))
+            content.extractall(path=directory)
 
-class USCensus_FTPAPI(FTPDownloadAPI): 
-    def __init__(self, *args, username='anonymous', password='anonymous', **kwargs): 
-        super().__init__(*args, domain='ftp2.census.gov', filetype='zip', username=username, password=password, **kwargs)
-    
-    def __repr__(self): return '{}(username={}, password={}, repository={})'.format(self.__class__.__name__, self.username, self.password, self.repository)
-
-    def serverpath(self, *args, date, geography, **kwargs): 
-        forgeo = _GEODIRKEYS[geography[-1].getkey(-1)]
-        return '/'.join(['geo','tiger','TIGER{date}'.format(date=date.year), forgeo])
-    
-    def serverfilenames(self, *args, geography, date, **kwargs):
-        forgeo = _GEODIRKEYS[geography[-1].getkey(-1)].lower()
-        ingeo = geography.get('state', 'us')
-        items = ['tl_{year}_{ingeo}_{forgeo}'.format(year=date.year, ingeo=ingeo, forgeo=forgeo),
-                 'tl_{year}_us_{forgeo}'.format(year=date.year, forgeo=forgeo)]
-        return list(set(items))
-        
-    def clientfilename(self, *args, geography, **kwargs): 
-        forgeokey = geography.getkey(-1)
-        ingeovalue = geography.get('state', geography.allChar)
-        return 'shapefile_{ingeokey}={ingeovalue}_{forgeokey}'.format(forgeokey=forgeokey, ingeokey='state', ingeovalue=ingeovalue)
-        
-
-    
-    
-    
-    
-    
-    
+    def shapes(self, *args, geography, **kwargs):
+        directory = self.directory(self.__shapeurlapi.filename(*args, geography=geography, **kwargs))
+        shapetable = geodataframe_fromdir(directory)
+        shapetable.columns = map(str.lower, shapetable.columns)  
+        shapetable['geoid'] = shapetable['geoid'].apply(str)              
+        shapetable = shapetable.loc[shapetable['geoid'].str.startswith(geography.geoid.replace('X', ''))].reset_index(drop=True)
+        shapetable = self.__shapegeography(shapetable, *args, geography=geography, **kwargs)
+        return shapetable[['geography', 'geoid', 'geometry']]
     
     
     
