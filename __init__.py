@@ -34,13 +34,14 @@ class USCensus_WebAPI(WebAPI):
     webdatatype = 'json'
     shapedatatype = 'zip'
 
-    def __init__(self, apikey, *args, **kwargs):        
+    def __init__(self, apikey, *args, shapefiles_repository, **kwargs):        
         self.__urlapi = USCensus_URLAPI(apikey, *args, **kwargs)
         self.__webreader = WebReader(self.webdatatype, *args, **kwargs)          
         self.__shapeurlapi = USCensus_ShapeFile_URLAPI(self.shapedatatype)
-        self.__shapewebreader = WebReader(self.shapedatatype, *args, **kwargs)            
+        self.__shapewebreader = WebReader(self.shapedatatype, *args, **kwargs)  
+        self.__shapefilesrepository = shapefiles_repository          
         super().__init__(*args, **kwargs)            
-    def __repr__(self): return '{}(apikey={}, repository={})'.format(self.__class__.__name__, self.__urlapi.apikey, self.repository)
+    def __repr__(self): return '{}(apikey={}, tables_repository={}, shapefiles_repository={})'.format(self.__class__.__name__, self.__urlapi.apikey, self.tables_repository, self.shapefiles_repository)
     
     # KEYS
     @property
@@ -49,6 +50,8 @@ class USCensus_WebAPI(WebAPI):
     def webkeys(self): return list(_WEBKEYS)
 
     # FILES
+    @property
+    def shapefiles_repository(self): return self.__shapefilesrepository   
     def filename(self, *args, tableID, geography, date, estimate, **kwargs):
         return tableID.format(estimate=estimate, date=date, geoid=geography.geoid)
         
@@ -119,7 +122,7 @@ class USCensus_WebAPI(WebAPI):
         return self.download(*args, geography=geography, date=date, estimate=estimate, **kwargs)
 
     def getshapefile(self, *args, redownload=False, **kwargs):
-        directory = self.directory(self.__shapeurlapi.filename(*args, **kwargs))
+        directory = self.directory(self.shapefiles_repository, self.__shapeurlapi.filename(*args, **kwargs))
         if not os.path.exists(directory) or redownload: 
             url = self.__shapeurlapi(*args, **kwargs)
             webdata = self.__shapewebreader(url)
@@ -127,7 +130,7 @@ class USCensus_WebAPI(WebAPI):
             content.extractall(path=directory)
 
     def shapes(self, *args, geography, **kwargs):
-        directory = self.directory(self.__shapeurlapi.filename(*args, geography=geography, **kwargs))
+        directory = self.directory(self.shapefiles_repository, self.__shapeurlapi.filename(*args, geography=geography, **kwargs))
         shapetable = geodataframe_fromdir(directory)
         shapetable.columns = map(str.lower, shapetable.columns)  
         shapetable['geoid'] = shapetable['geoid'].apply(str)              
