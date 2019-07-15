@@ -52,7 +52,7 @@ class USCensus_WebAPI(WebAPI):
     # FILES
     @property
     def shapefiles_repository(self): return self.__shapefilesrepository   
-    def filename(self, *args, tableID, geography, date, estimate, **kwargs):
+    def filename(self, *args, tableID, geography, date, estimate=5, **kwargs):
         return tableID.format(estimate=estimate, date=date, geoid=geography.geoid)
         
     # PROCESSORS
@@ -83,8 +83,8 @@ class USCensus_WebAPI(WebAPI):
         assert len(tags) == len(concepts)
         return webtable.rename({tag:concept for tag, concept in zip(tags, concepts)} , axis='columns')      
 
-    def __consolidate(self, webtable, *args, universe, headers, concepts, **kwargs):
-        return webtable.melt(id_vars=[column  for column in webtable.columns if column not in _aslist(concepts)], var_name=headers, value_name=universe)
+    def __consolidate(self, webtable, *args, universe, header, concepts, **kwargs):
+        return webtable.melt(id_vars=[column  for column in webtable.columns if column not in _aslist(concepts)], var_name=header, value_name=universe)
     
     def __geography(self, webtable, *args, geography, **kwargs):
         geokeys = list(geography.keys())
@@ -112,7 +112,7 @@ class USCensus_WebAPI(WebAPI):
         return shapetable.drop(shapeapikeys, axis=1)                
 
     # ENGINES
-    def generator(self, *args, tableIDs, dates, **kwargs):
+    def generator(self, *args, tableIDs, dates, estimate=5, **kwargs):
         for date in _aslist(dates): 
             for tableID, parms in self.tablequeue.items():
                 date.setformat(_DATEFORMATS[parms['series']])
@@ -121,10 +121,10 @@ class USCensus_WebAPI(WebAPI):
     def execute(self, *args, geography, date, estimate=5, **kwargs):
         return self.download(*args, geography=geography, date=date, estimate=estimate, **kwargs)
 
-    def getshapefile(self, *args, redownload=False, **kwargs):
-        directory = self.directory(self.shapefiles_repository, self.__shapeurlapi.filename(*args, **kwargs))
+    def getshapefile(self, *args, geography, date, redownload=False, **kwargs):
+        directory = self.directory(self.shapefiles_repository, self.__shapeurlapi.filename(*args, geography=geography, date=date, **kwargs))
         if not os.path.exists(directory) or redownload: 
-            url = self.__shapeurlapi(*args, **kwargs)
+            url = self.__shapeurlapi(*args, geography=geography, date=date, **kwargs)
             webdata = self.__shapewebreader(url)
             content = zipfile.ZipFile(io.BytesIO(webdata))
             content.extractall(path=directory)
