@@ -129,15 +129,16 @@ class USCensus_WebAPI(WebAPI):
             content = zipfile.ZipFile(io.BytesIO(webdata))
             content.extractall(path=directory)
 
-    def shapes(self, *args, geography, **kwargs):
-        directory = self.directory(self.shapefiles_repository, self.__shapeurlapi.filename(*args, geography=geography, **kwargs))
+    def shapes(self, *args, geography, date, **kwargs):
+        directory = self.directory(self.shapefiles_repository, self.__shapeurlapi.filename(*args, geography=geography, date=date, **kwargs))
         shapetable = geodataframe_fromdir(directory)
         shapetable.columns = map(str.lower, shapetable.columns)  
-        shapetable['geoid'] = shapetable['geoid'].apply(str)              
-        shapetable = shapetable.loc[shapetable['geoid'].str.startswith(geography.geoid.replace('X', ''))].reset_index(drop=True)
         shapetable = self.__shapegeography(shapetable, *args, geography=geography, **kwargs)
-        return shapetable[['geography', 'geoid', 'geometry']]
-    
+        shapetable = shapetable[['geography', 'geometry']]
+        mask = shapetable['geography'].apply(lambda x: Geography.fromstr(x) in geography)
+        shapetable = shapetable[mask]
+        shapetable = shapetable.set_index('geography', drop=True)      
+        return shapetable
     
     
     
