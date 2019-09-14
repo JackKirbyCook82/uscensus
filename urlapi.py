@@ -7,98 +7,86 @@ Created on Wed Nov 30 2018
 """
 
 import os.path
-import csv
+from collections import namedtuple as ntuple
 
-from webdata.url import URLAPI, Protocol, Domain, Path, Parms
-from utilities.dispatchers import clskey_singledispatcher as keydispatcher
+from webdata.url import URLAPI, Protocol, Domain, Path, JSONPath, HTMLPath, CSVPath, Parms
 from utilities.dataframes import dataframe_fromfile
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_URLAPI', 'USCensus_ShapeFile_URLAPI']
+__all__ = ['USCensus_URLAPI', 'USCensus_Geography']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
     
 
 _DIR = os.path.dirname(os.path.realpath(__file__))
 _SPACEPROXY = '%20'
-_DATEFORMATS = {'geoseries':'{year:04.0f}', 'yearseries':'{year:04.0f}', 'timeseries':'{year:04.0f}-{month:02.0f}'}
-_GEOFILENAME = 'geography.csv'
-_SURVEYFILENAME = 'surveys.csv'
-  
-_GEOGRAPHY = dataframe_fromfile(os.path.join(_DIR, _GEOFILENAME), index='geokey', header=0, forceframe=True).to_dict()        
+_GEOGRAPHY = dataframe_fromfile(os.path.join(_DIR, 'geography.csv'), index='geography', header=0, forceframe=True) 
 
-with open(os.path.join(_DIR, _SURVEYFILENAME), mode='r') as infile:
-    reader = csv.reader(infile)
-    _SURVEYS = {row[0]:row[1].split(';') for row in reader}
 
 _aslist = lambda items: [item for item in items] if hasattr(items, '__iter__') and not isinstance(items, str) else [items]
-_date = lambda kwargs: kwargs['date']
-_enddate = lambda kwargs: kwargs['date'] + kwargs['interval'] * kwargs['period']
-
-_surveyvalues = lambda kwargs: [item.format(kwargs.get('estimate', 5)) for item in _SURVEYS[kwargs['survey']]]
-_geoapikeys = lambda geography: [_GEOGRAPHY['geoapikey'][key].replace(' ', _SPACEPROXY) for key in geography.keys()]
-_geovalues = lambda geography: [value for value in geography.values()]
-_datevalue = lambda kwargs: _DATEFORMATS[kwargs['series']].format(year=_date(kwargs).year, month=_date(kwargs).month)
-_enddatevalue = lambda kwargs: _DATEFORMATS[kwargs['series']].format(year=_enddate(kwargs).year, month=_enddate(kwargs).month)
 
 _protocolsgmt = lambda protocol: Protocol(protocol)
 _domainsgmt = lambda domain: Domain(domain)
-_filesgmt = lambda filename, extension: '.'.join([filename, extension])
-_surveysgmt = lambda kwargs: Path(*_surveyvalues(kwargs))
-_pathsgmt = lambda path: Path(*path)
+_pathsgmt = lambda path, filetype=None: {'json':JSONPath, 'html':HTMLPath, 'csv':CSVPath}.get(filetype, Path)(*path)
+
 _tagsgmt = lambda tags: Parms(get=','.join(tags))
-_forgeosgmt = lambda geography: Parms(**{'for':':'.join([_geoapikeys(geography)[-1], _geovalues(geography)[-1]])})
-_ingeosgmt = lambda geography: Parms(**{'in':[':'.join([key, str(value)]) for key, value in zip(_geoapikeys(geography)[:-1], _geovalues(geography)[:-1])]})
-_datesgmt = lambda kwargs: Parms(time=_datevalue(kwargs))
-_timesgmt = lambda kwargs: Parms(time='+'.join(['from', _datevalue(kwargs), 'to', _enddatevalue(kwargs)]))
 _predsgmt = lambda preds: Parms(**preds)
 _keysgmt = lambda key: Parms(key=key)
-_shapedir = lambda geography: _GEOGRAPHY['shapedir'][geography[-1].getkey(-1)]
-_shapefile = lambda geography: _GEOGRAPHY['shapefile'][geography[-1].getkey(-1)]
 
+_forgeosgmt = lambda usgeography: Parms(**{'for':':'.join([usgeography.apigeography.replace(' ', _SPACEPROXY), usgeography.value])})
+_ingeosgmt = lambda usgeographys: Parms(**{'in':[':'.join([usgeography.apigeography.replace(' ', _SPACEPROXY), usgeography.value]) for usgeography in usgeographys]})
+
+_datestr = lambda date, dateformat: dateformat.format(year=date.year, month=date.month)
+_enddatestr = lambda date, interval, period, dateformat: dateformat.format(year=(date + interval * period).year, month=(date + interval * period).month)
+_datesgmt = lambda date, dateformat: Parms(time=_datestr(date, dateformat))
+_timesgmt = lambda date, interval, period, dateformat: Parms(time='+'.join(['from', _datestr(date, dateformat), 'to', _enddatestr(date, interval, period, dateformat)]))
+
+
+USCensus_GeographySgmts = ntuple('USCensus_GeographySgmts', 'geography apigeography shapegeography shapefile shapedir value')
+class USCensus_Geography(USCensus_GeographySgmts):
+    def __new__(cls, geokey, geovalue):
+        geosgmts = _GEOGRAPHY.transpose().to_dict()[geokey]
+        return super().__new__(cls, geokey, geosgmts['uscensus_geography'], geosgmts['shape_geography'], geosgmts['shape_dir'], geosgmts['shape_file'], geovalue)
+          
 
 class USCensus_URLAPI(URLAPI):
-    def __init__(self, apikey, *args, **kwargs): self.__apikey = str(apikey)  
-    def __repr__(self): return '{}(apikey={})'.format(self.__class__.__name__,self.__apikey)
-    
-    @property
-    def apikey(self): return self.__apikey
-    def geoapikey(self, key): return _GEOGRAPHY['geoapikey'][key]
-    
+    def __init__(self, apikey, *args, **kwargs): self.__apikey = str(apikey) 
+    def __repr__(self): return '{}(series={}, survey={}, apikey={})'.format(self.__class__.__name__, self.series, self.survey, self.__apikey)
+
     def protocol(self, *args, **kwargs): return _protocolsgmt('https')
-    def domain(self, *args, **kwargs): return _domainsgmt('api.census.gov')    
-
-    @keydispatcher('series')
-    def path(self, *args, series, **kwargs): raise ValueError(series)    
-    @path.register('geoseries')
-    def path_geoseries(self, *args, date, **kwargs): return _pathsgmt(['data', str(date.year)]) + _surveysgmt(kwargs)    
-    @path.register('dateseries')
-    def path_dateseries(self, *args, **kwargs): return _pathsgmt(['data', 'timeseries']) + _surveysgmt(kwargs)
-    @path.register('timeseries')
-    def path_timeseries(self, *args, **kwargs): return _pathsgmt(['data', 'timeseries']) + _surveysgmt(kwargs)
-
-    @keydispatcher('series')
-    def parms(self, *args, series, **kwargs): raise ValueError(series)    
-    @parms.register('geoseries')
-    def parms_geoseries(self, *args, tags, geography, preds, **kwargs): return _tagsgmt(tags) + _forgeosgmt(geography) + _ingeosgmt(geography) + _predsgmt(preds) + _keysgmt(self.__apikey)    
-    @parms.register('dateseries')
-    def parms_dateseries(self, *args, tags, geography, preds, **kwargs): return _tagsgmt(tags) + _forgeosgmt(geography) + _ingeosgmt(geography) + _datesgmt(kwargs) + _predsgmt(preds) + _keysgmt(self.__apikey)    
-    @parms.register('timeseries')
-    def parms_timeseries(self, *args, tags, geography, preds, **kwargs): return _tagsgmt(tags) + _forgeosgmt(geography) + _ingeosgmt(geography) + _timesgmt(kwargs) + _predsgmt(preds) + _keysgmt(self.__apikey)
-
-
-class USCensus_ShapeFile_URLAPI(URLAPI):
-    def __init__(self, filetype, *args, **kwargs): self.__filetype = filetype
+    def domain(self, *args, **kwargs): return _domainsgmt('api.census.gov')  
+    def path(self, *args, series, survey, query=[], filetype=None, **kwargs): return _pathsgmt(['data', series, *_aslist(survey), *_aslist(query)], filetype)
+    def parms(self, *args, tags=[], geography, preds, **kwargs): 
+        usgeographys = [USCensus_Geography(geokey, geovalue) for geokey, geovalue in geography.items()]
+        return _tagsgmt(tags) + _forgeosgmt(usgeographys[-1]) + _ingeosgmt(usgeographys[:-1]) + _predsgmt(preds) + _keysgmt(self.__apikey)  
+        
+    # REGISTER SUBCLASSES  
+    __registry = {}    
+    @classmethod
+    def registry(cls): return cls.__registry
     
-    def shapeapikey(self, key): return _GEOGRAPHY['shapeapikey'][key]
+    @classmethod
+    def register(cls, series, survey):  
+        def wrapper(subclass):
+            name = subclass.__name__
+            bases = (subclass, cls)
+            newsubclass = type(name, bases, dict(series=series, survey=survey))
+            USCensus_URLAPI.__registry[survey] = newsubclass
+            return newsubclass
+        return wrapper 
     
-    def protocol(self, *args, **kwargs): return _protocolsgmt('https')
-    def domain(self, *args, **kwargs): return _domainsgmt('www2.census.gov')    
-    def path(self, *args, date, geography, **kwargs): return _pathsgmt(['geo', 'tiger', 'TIGER{year}'.format(year=str(date.year)), _shapedir(geography), self.file(geography=geography, date=date)])
-    
-    def filename(self, *args, geography, date, **kwargs): return _shapefile(geography).format(year=str(date.year), state=geography.getvalue('state'))
-    def file(self, *args, **kwargs): return _filesgmt(self.filename(*args, **kwargs), self.__filetype)
+    @classmethod
+    def create(cls, key): return cls.__registry[key]
+
+
+@USCensus_URLAPI.register('geoseries', 'acsdetail')
+class USCensus_ACSDetail_URLAPI:
+    def path(self, *args, date, estimate=5, **kwargs): return super().path(*args, series='{year:04.0f}'.format(year=date.year), survey=['acs', 'acs{estimate}'.format(estimate=estimate)], **kwargs)   
+
+
+
+
 
 
 
