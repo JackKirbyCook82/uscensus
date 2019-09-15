@@ -35,12 +35,12 @@ def merge_geography(dataframe, *args, geography, **kwargs):
     return dataframe
 
 
-def merge_concepts(dataframe, *args, universe, index, header, concepts, **kwargs):
+def merge_concepts(dataframe, *args, universe, index, header, scope, concepts, **kwargs):
     dataframe = dataframe.melt(id_vars=[column for column in dataframe.columns if column not in concepts], var_name=header, value_name=universe)
     return dataframe
 
 
-def merge_scope(dataframe, *args, date, scope, **kwargs):
+def merge_scope(dataframe, *args, universe, index, header, scope, date, **kwargs):
     dataframe['date'] = str(date)
     for key, value in scope.items(): 
         if key not in dataframe.columns: dataframe[key] = value
