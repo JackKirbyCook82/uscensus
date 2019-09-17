@@ -65,13 +65,11 @@ class USCensus_Query(object):
     @property
     def scopekeys(self): return [column for column in self.__tablesdata.columns if column not in set([*self.tablekeys, *self.filekeys, *self.webkeys])]
 
-    def tableIDs(self): return list(self.asdict().keys())
     def tableParms(self, tableID): return {key:value for key, value in self.asdict()[tableID].items() if key in self.tablekeys}
     def scopeParms(self, tableID): return {key:value for key, value in self.asdict()[tableID].items() if key in self.scopekeys}
     def webParms(self, tableID): return {key:value for key, value in self.asdict()[tableID].items() if key in self.webkeys}
     def fileParms(self, tableID): return {key:value for key, value in self.asdict()[tableID].items() if key in self.filekeys}
-    def __call__(self, tableID): return {**self.tableParms(tableID), **self.webParms(tableID), **self.fileParms(tableID), 'scope':self.scopeParms(tableID)}
-    
+
     # SELECTION    
     def setuniverse(self, universe): self.__tableselections[self.tablekeys[0]] = universe
     def setindex(self, index): self.__tableselections[self.tablekeys[1]] = index
@@ -91,9 +89,20 @@ class USCensus_Query(object):
         self.__tableselections = ODict([(key, None) for key in self.tablekeys])
         self.__scopeselections = ODict([(key, None) for key in self.scopekeys])     
         
+    # ENGINE
+    def __len__(self): return len(self.tableIDs())
+    def tableIDs(self): return self.dataframe().index.values
 
+    def __iter__(self): 
+        for tableID in self.tableIDs():
+            yield self(tableID)
         
-        
+    def __call__(self, tableID): 
+        return {**self.tableParms(tableID), 
+                **self.webParms(tableID), 
+                **self.fileParms(tableID), 
+                'scope':self.scopeParms(tableID)}
+            
         
         
         

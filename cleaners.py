@@ -76,6 +76,7 @@ class USCensus_Parser(object):
                           rangeformats={'upper':'${lowernum}ormore', 'center':'${lowernum}to${uppernum}', 'lower':'lessthan${uppernum}'})
 def income_value_parser(strvalue, *args, **kwargs):    
     strvalue = strvalue.replace(" ", "").lower()
+    strvalue = strvalue.replace(",", "").lower()
     numsvalue = rangestr_parser(strvalue, *args, **kwargs)  
     numsvalue = rangenum_parser(numsvalue, *args, **kwargs)
     return numsvalue
@@ -85,6 +86,7 @@ def income_value_parser(strvalue, *args, **kwargs):
                           rangeformats={'upper':'${lowernum}ormore', 'center':'${lowernum}to${uppernum}', 'lower':'lessthan${uppernum}'})
 def rent_parser(strvalue, *args, exactformats, **kwargs):
     strvalue = strvalue.replace(" ", "").lower()
+    strvalue = strvalue.replace(",", "").lower()
     try: numsvalue = rangestr_parser(strvalue, *args, **kwargs)
     except ValueError:
         for rangeformat, rangevalue in exactformats.items():
@@ -98,6 +100,7 @@ def rent_parser(strvalue, *args, exactformats, **kwargs):
                           rangeformats={'upper':'{lowernum}yearsandover', 'center':'{lowernum}to{uppernum}years', 'lower':'under{uppernum}years'})
 def age_parser(strvalue, *args, **kwargs):
     strvalue = strvalue.replace(" ", "").lower()
+    strvalue = strvalue.replace(",", "").lower()
     numsvalue = rangestr_parser(strvalue, *args, **kwargs) 
     numsvalue = rangenum_parser(numsvalue, *args, **kwargs)
     return numsvalue
