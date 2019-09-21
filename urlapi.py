@@ -8,13 +8,14 @@ Created on Wed Nov 30 2018
 
 import os.path
 from collections import namedtuple as ntuple
+import pandas as pd
 
-from webdata.url import URLAPI, Protocol, Domain, Path, JSONPath, HTMLPath, CSVPath, Parms
+from webdata.url import URLAPI, Protocol, Domain, Path, JSONPath, HTMLPath, CSVPath, ZIPPath, Parms
 from utilities.dataframes import dataframe_fromfile
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_URLAPI', 'USCensus_Geography']
+__all__ = ['USCensus_URLAPI', 'USCensus_Geography', 'USCensus_ShapeFile_URLAPI']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
     
@@ -25,10 +26,11 @@ _GEOGRAPHY = dataframe_fromfile(os.path.join(_DIR, 'geography.csv'), index='geog
 
 
 _aslist = lambda items: [item for item in items] if hasattr(items, '__iter__') and not isinstance(items, str) else [items]
+_isnull = lambda value: pd.isnull(value) if not isinstance(value, (list, tuple, dict)) else False
 
 _protocolsgmt = lambda protocol: Protocol(protocol)
 _domainsgmt = lambda domain: Domain(domain)
-_pathsgmt = lambda path, filetype=None: {'json':JSONPath, 'html':HTMLPath, 'csv':CSVPath}.get(filetype, Path)(*path)
+_pathsgmt = lambda path, filetype=None: {'json':JSONPath, 'html':HTMLPath, 'csv':CSVPath, 'zip':ZIPPath}.get(filetype, Path)(*path)
 
 _tagsgmt = lambda tags: Parms(get=','.join(tags))
 _predsgmt = lambda preds: Parms(**preds)
@@ -43,10 +45,10 @@ _datesgmt = lambda date, dateformat: Parms(time=_datestr(date, dateformat))
 _timesgmt = lambda date, interval, period, dateformat: Parms(time='+'.join(['from', _datestr(date, dateformat), 'to', _enddatestr(date, interval, period, dateformat)]))
 
 
-USCensus_GeographySgmts = ntuple('USCensus_GeographySgmts', 'geography apigeography shapegeography shapefile shapedir value')
+USCensus_GeographySgmts = ntuple('USCensus_GeographySgmts', 'geography apigeography shapegeography shapedir shapefile value')
 class USCensus_Geography(USCensus_GeographySgmts):
-    def __new__(cls, geokey, geovalue):
-        geosgmts = _GEOGRAPHY.transpose().to_dict()[geokey]
+    def __new__(cls, geokey, geovalue=None):
+        geosgmts = {key:(value if not _isnull(value) else None) for key, value in _GEOGRAPHY.transpose().to_dict()[geokey].items()}
         return super().__new__(cls, geokey, geosgmts['uscensus_geography'], geosgmts['shape_geography'], geosgmts['shape_dir'], geosgmts['shape_file'], geovalue)
           
 
@@ -84,6 +86,16 @@ class USCensus_URLAPI(URLAPI):
 class USCensus_ACSDetail_URLAPI:
     def path(self, *args, date, estimate=5, **kwargs): return super().path(*args, series='{year:04.0f}'.format(year=date.year), survey=['acs', 'acs{estimate}'.format(estimate=estimate)], **kwargs)   
 
+
+class USCensus_ShapeFile_URLAPI(URLAPI):
+    def protocol(self, *args, **kwargs): return _protocolsgmt('https')
+    def domain(self, *args, **kwargs): return _domainsgmt('www2.census.gov')    
+    def path(self, *args, shape, date, geography, filetype='zip', **kwargs): 
+        usgeography = USCensus_Geography(shape)
+        shapedir = usgeography.shapedir
+        shapefile = usgeography.shapefile.format(year=str(date.year), state=geography.get('state', ''), county=geography.get('county', ''))
+        return _pathsgmt(['geo', 'tiger', 'TIGER{year}'.format(year=str(date.year)), shapedir, shapefile], filetype)
+    
 
 
 

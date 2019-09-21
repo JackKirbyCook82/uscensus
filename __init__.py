@@ -7,15 +7,17 @@ Created on Weds Sept 11 2019
 """
 
 import os.path
+import io
+import zipfile
 import pandas as pd
 
-from utilities.dataframes import dataframe_fromfile, dataframe_tofile, dataframe_fromjson
+from utilities.dataframes import dataframe_fromfile, dataframe_tofile, dataframe_fromjson, geodataframe_fromdir
 
 from uscensus.urlapi import USCensus_Geography
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_WebAPI']
+__all__ = ['USCensus_WebAPI', 'USCensus_ShapeAPI']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
     
@@ -69,22 +71,7 @@ class USCensus_WebAPI(object):
     
     def file(self, filename, *args, geography, date, estimate=5, **kwargs): 
         return os.path.join(self.repository, filename.format(estimate=estimate, date=date, geoid=geography.geoid))
-
-    # ENGINES    
-    def load(self, *args, filename, **kwargs): 
-        file = self.file(filename, *args, **kwargs)
-        return dataframe_fromfile(file, index=None, header=0, forceframe=True)    
-    
-    def save(self, webtable, *args, filename, **kwargs): 
-        file = self.file(filename, *args, **kwargs)
-        dataframe_tofile(file, webtable, index=False, header=True)        
-        
-    def download(self, *args, **kwargs):
-        tags_to_concepts = self.__query(*args, **kwargs)
-        table = self.__request(*args, tags=tags_to_concepts.keys(), **kwargs)
-        table = self.__parser(table, *args, tags_to_concepts=tags_to_concepts, **kwargs)
-        return table
-        
+  
     def __query(self, *args, group, label, **kwargs):
         groupurl = self.urlapi.query(*args, query=['groups', group], filetype='json', **kwargs)
         groupjson = self.webreader(groupurl, *args, **kwargs)
@@ -113,6 +100,20 @@ class USCensus_WebAPI(object):
         dataframe = merge_concepts(dataframe, *args, concepts=tags_to_concepts.values(), **kwargs)
         dataframe = merge_scope(dataframe, *args, **kwargs)
         return dataframe
+
+    def load(self, *args, filename, **kwargs): 
+        file = self.file(filename, *args, **kwargs)
+        return dataframe_fromfile(file, index=None, header=0, forceframe=True)    
+    
+    def save(self, webtable, *args, filename, **kwargs): 
+        file = self.file(filename, *args, **kwargs)
+        dataframe_tofile(file, webtable, index=False, header=True)        
+        
+    def download(self, *args, **kwargs):
+        tags_to_concepts = self.__query(*args, **kwargs)
+        table = self.__request(*args, tags=tags_to_concepts.keys(), **kwargs)
+        table = self.__parser(table, *args, tags_to_concepts=tags_to_concepts, **kwargs)
+        return table
     
     def generator(self, *args, geography, dates, estimate=5, **kwargs):
         for date in dates:
@@ -124,18 +125,96 @@ class USCensus_WebAPI(object):
             yield dataframe
 
     def __call__(self, tableID, *args, **kwargs):
-        dataframes = [dataframe for dataframe in self.generator(*args, **kwargs)]           
-        return pd.concat(dataframes, axis=0)
+        try: 
+            dataframes = [dataframe for dataframe in self.generator(*args, **kwargs)]           
+            dataframe = pd.concat(dataframes, axis=0)
+            print('WebApi Request Success: "{}"\n'.format(tableID)) 
+            return dataframe
+        except Exception as error:
+           print('WebApi Request Success: "{}"\n'.format(tableID)) 
+           raise error
+
+
+class USCensus_ShapeAPI(object):
+    def __init__(self, repository, urlapi, webreader):
+        self.__urlapi = urlapi
+        self.__webreader = webreader
+        self.__repository = repository         
         
+    def __repr__(self): return '{}(repository={})'.format(self.__class__.__name__, self.__repository)    
+    
+    @property
+    def urlapi(self): return self.__urlapi
+    @property
+    def webreader(self): return self.__webreader
+    @property
+    def repository(self): return self.__repository        
+
+    def downloaded(self, shape, *args, **kwargs): return os.path.exists(self.directory(shape, *args, **kwargs))
+    
+    def directory(self, shape, *args, geography, date, **kwargs): 
+        usgeography = USCensus_Geography(shape)
+        directoryname = usgeography.shapefile.format(year=str(date.year), state=geography.get('state', ''), county=geography.get('county', ''))
+        return os.path.join(self.repository, directoryname)
+
+    def __parser(self, shape, geodataframe, *args, geography, **kwargs):
+        GeographyClass = geography.__class__
+        usgeographys = [USCensus_Geography(geokey, geovalue) for geokey, geovalue in geography.items()]           
+        function = lambda values: str(GeographyClass({key:value for key, value in zip(geography.keys(), values)}))
+
+        geodataframe.columns = map(str.lower, geodataframe.columns)          
+        geodataframe['geography'] = geodataframe[[usgeography.shapegeography for usgeography in usgeographys]].apply(function, axis=1)
+
+        geodataframe = geodataframe[['geography', 'geometry']]
+        mask = geodataframe['geography'].apply(lambda x: GeographyClass.fromstr(x) in geography)
+        geodataframe = geodataframe[mask]
+        geodataframe = geodataframe.set_index('geography', drop=True)      
+        return geodataframe
+    
+    def __itemparser(self, shape, shapedataframe, *args, **kwargs):
+        return shapedataframe['geometry']
+    
+    def download(self, shape, *args, **kwargs):
+        url = self.urlapi(*args, shape=shape, **kwargs)
+        shapezipfile = self.webreader(url, *args, **kwargs)
+        shapecontent = zipfile.ZipFile(io.BytesIO(shapezipfile))
+        shapecontent.extractall(path=self.directory(*args, shape=shape, **kwargs))
         
+    def load(self, shape, *args, **kwargs):
+        dataframe = geodataframe_fromdir(self.directory(shape, *args, **kwargs))   
+        return dataframe
+
+    def geotable(self, *args, geography, **kwargs):
+        shape = geography.getkey(-1)
+        if not self.downloaded(shape, *args, geography=geography, **kwargs): self.download(shape, *args, geography=geography, **kwargs)
+        geodataframe = self.load(shape, *args, geography=geography, **kwargs)
+        geodataframe = self.__parser(shape, geodataframe, *args, geography=geography, **kwargs)        
+        return geodataframe
+    
+    def basetable(self, *args, geography, **kwargs):
+        shape = geography.getkey(-2)
+        if not self.downloaded(shape, *args, geography=geography, **kwargs): self.download(shape, *args, geography=geography, **kwargs)
+        basedataframe = self.load(shape, *args, geography=geography[:-1], **kwargs)
+        basedataframe = self.__parser(shape, basedataframe, *args, geography=geography[:-1], **kwargs)
+        return basedataframe
         
-        
-        
-        
-        
-        
-        
-        
+    def itemtable(self, *args, shape, **kwargs):
+        if not self.downloaded(shape, *args, **kwargs): self.download(shape, *args, **kwargs)   
+        shapedataframe = self.load(shape, *args, **kwargs)
+        shapedataframe = self.__itemparser(shape, shapedataframe, *args, **kwargs)
+        return shapedataframe
+    
+    def __call__(self, *args, **kwargs):
+        return self.geotable(*args, **kwargs), self.basetable(*args, **kwargs)
+    
+    def __getitem__(self, shape):        
+        def wrapper(*args, **kwargs): return self.itemtable(*args, shape=shape, **kwargs)
+        return wrapper
+
+
+            
+
+
         
         
         

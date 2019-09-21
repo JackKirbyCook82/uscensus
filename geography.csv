@@ -18,3 +18,13 @@ unified,school district (unified),unsdfp,UNSD,tl_{year}_{state}_unsd
 consolidated,consolidated city,concityfp,CONCITY,tl_{year}_{state}_concity
 place,place,placefp,PLACE,tl_{year}_{state}_place
 zipcode,zip code tabulation area,zcta5fp,ZCTA5,tl_{year}_us_zcta5
+,,,,
+usroads,,primaryroadsfp,PRIMARYROADS,tl_{year}_us_primaryroads
+stateroads,,prisecroadsfp,PRISECROADS,tl_{year}_{state}_prisecroads
+countyroads,,roadsfp,ROADS,tl_{year}_{county}_roads
+rails,,railsfp,RAILS,tl_{year}_us_rails
+,,,,
+landmarks,,arealmfp,AREALM,tl_{year}_{state}_arealm
+water,,areawaterfp,AREAWATER,tl_{year}_{county}_areawater
+coast,,coastlinefp,COASTLINE,tl_{year}_us_coastline
+rivers,,linearwaterfp,LINEARWATER,tl_{year}_{county}_linearwater
