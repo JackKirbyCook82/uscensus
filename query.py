@@ -74,20 +74,16 @@ class USCensus_Query(object):
     def setuniverse(self, universe): self.__tableselections[self.tablekeys[0]] = universe
     def setindex(self, index): self.__tableselections[self.tablekeys[1]] = index
     def setheader(self, header): self.__tableselections[self.tablekeys[2]] = header
-
-    def __getitem__(self, key): 
-        try: return self.__tableselections[key]
-        except KeyError: return self.__scopeselections[key]  
-    def __setitem__(self, key, value): 
-        if key in self.__tableselections.keys(): self.__tableselections[key] = value 
-        else: self.__scopeselections[key] = value
+    def setscope(self, **scope): self.setitems(**scope)
 
     def setitems(self, **kwargs): 
-        for key, value in kwargs.items(): self[key] = value
+        for key, value in kwargs.items(): 
+            if key in self.__tableselections.keys(): self.__tableselections[key] = value 
+            else: self.__scopeselections[key] = value
 
     def reset(self): 
         self.__tableselections = ODict([(key, None) for key in self.tablekeys])
-        self.__scopeselections = ODict([(key, None) for key in self.scopekeys])     
+        self.__scopeselections = ODict([(key, None) for key in self.scopekeys]) 
         
     # ENGINE
     def __len__(self): return len(self.tableIDs())
@@ -95,13 +91,20 @@ class USCensus_Query(object):
 
     def __iter__(self): 
         for tableID in self.tableIDs():
-            yield self(tableID)
+            yield tableID, {**self.tableParms(tableID), **self.webParms(tableID), **self.fileParms(tableID), 'scope':self.scopeParms(tableID)}
+      
+    def __getitem__(self, tableID):
+        return {**self.tableParms(tableID), **self.webParms(tableID), **self.fileParms(tableID), 'scope':self.scopeParms(tableID)}
         
-    def __call__(self, tableID): 
-        return {**self.tableParms(tableID), 
-                **self.webParms(tableID), 
-                **self.fileParms(tableID), 
-                'scope':self.scopeParms(tableID)}
+    def __call__(self, *args, universe=None, index=None, header=None, **scope): 
+        self.reset()
+        self.setuniverse(universe)
+        self.setindex(index)
+        self.setheader(header)
+        self.setscope(**scope)
+        
+        print(self.status, '\n')
+        print(str(self), '\n')
             
         
         

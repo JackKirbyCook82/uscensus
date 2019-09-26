@@ -154,14 +154,15 @@ class USCensus_ShapeAPI(object):
     
     def directory(self, shape, *args, geography, date, **kwargs): 
         usgeography = USCensus_Geography(shape)
-        directoryname = usgeography.shapefile.format(year=str(date.year), state=geography.get('state', ''), county=geography.get('county', ''))
+        try: year = str(date.year)
+        except: year = str(date)
+        directoryname = usgeography.shapefile.format(year=year, state=geography.get('state', ''), county=geography.get('county', ''))
         return os.path.join(self.repository, directoryname)
 
     def __parser(self, shape, geodataframe, *args, geography, **kwargs):
         GeographyClass = geography.__class__
         usgeographys = [USCensus_Geography(geokey, geovalue) for geokey, geovalue in geography.items()]           
         function = lambda values: str(GeographyClass({key:value for key, value in zip(geography.keys(), values)}))
-
         geodataframe.columns = map(str.lower, geodataframe.columns)          
         geodataframe['geography'] = geodataframe[[usgeography.shapegeography for usgeography in usgeographys]].apply(function, axis=1)
 

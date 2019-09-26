@@ -4,7 +4,7 @@ state,state,statefp,STATE,tl_{year}_us_state
 county,county,countyfp,COUNTY,tl_{year}_us_county
 subdivision,county subdivision,cousubfp,COUSUB,tl_{year}_{state}_cousub
 subminor,subminor civil division,subbarriofp,SUBBARRIO,tl_{year}_{state}_subbarrio
-tract,tract,tractfp,TRACT,tl_{year}_{state}_tract
+tract,tract,tractce,TRACT,tl_{year}_{state}_tract
 block,block group,bgfp,BG,tl_{year}_{state}_bg
 combined_area,combined statistical area,csafp,CSA,tl_{year}_us_csa
 metro_area,metropolitan statistical area/micropolitan statistical area,cbsafp,CBSA,tl_{year}_us_cbsa

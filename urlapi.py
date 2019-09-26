@@ -93,8 +93,10 @@ class USCensus_ShapeFile_URLAPI(URLAPI):
     def path(self, *args, shape, date, geography, filetype='zip', **kwargs): 
         usgeography = USCensus_Geography(shape)
         shapedir = usgeography.shapedir
-        shapefile = usgeography.shapefile.format(year=str(date.year), state=geography.get('state', ''), county=geography.get('county', ''))
-        return _pathsgmt(['geo', 'tiger', 'TIGER{year}'.format(year=str(date.year)), shapedir, shapefile], filetype)
+        try: year = str(date.year)
+        except: year = str(date)        
+        shapefile = usgeography.shapefile.format(year=year, state=geography.get('state', ''), county=geography.get('county', ''))
+        return _pathsgmt(['geo', 'tiger', 'TIGER{year}'.format(year=year), shapedir, shapefile], filetype)
     
 
 
