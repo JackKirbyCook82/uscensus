@@ -95,7 +95,7 @@ class USCensus_ShapeFile_URLAPI(URLAPI):
         shapedir = usgeography.shapedir
         try: year = str(date.year)
         except: year = str(date)        
-        shapefile = usgeography.shapefile.format(year=year, state=geography.get('state', ''), county=geography.get('county', ''))
+        shapefile = usgeography.shapefile.format(year=year, state=geography[:1].geoid, county=geography[:2].geoid)
         return _pathsgmt(['geo', 'tiger', 'TIGER{year}'.format(year=year), shapedir, shapefile], filetype)
     
 

@@ -156,7 +156,7 @@ class USCensus_ShapeAPI(object):
         usgeography = USCensus_Geography(shape)
         try: year = str(date.year)
         except: year = str(date)
-        directoryname = usgeography.shapefile.format(year=year, state=geography.get('state', ''), county=geography.get('county', ''))
+        directoryname = usgeography.shapefile.format(year=year, state=geography[:1].geoid, county=geography[:2].geoid)
         return os.path.join(self.repository, directoryname)
 
     def __parser(self, shape, geodataframe, *args, geography, **kwargs):
