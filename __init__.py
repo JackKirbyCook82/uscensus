@@ -25,6 +25,12 @@ __license__ = ""
 _DATEFORMATS = {'geoseries':'%Y', 'yearseries':'%Y', 'timeseries':'%Y-%m'}
 
 
+def data_parser(item):
+    if pd.isnull(item): return item
+    try: return int(float(item)) if not bool(float(item) % 1) else float(item)
+    except ValueError: return str(item)
+
+
 def merge_geography(dataframe, *args, geography, **kwargs):
     GeographyClass = geography.__class__
     usgeographys = [USCensus_Geography(geokey, geovalue) for geokey, geovalue in geography.items()]    
@@ -39,6 +45,7 @@ def merge_geography(dataframe, *args, geography, **kwargs):
 
 def merge_concepts(dataframe, *args, universe, index, header, scope, concepts, **kwargs):
     dataframe = dataframe.melt(id_vars=[column for column in dataframe.columns if column not in concepts], var_name=header, value_name=universe)
+    dataframe[universe] = dataframe[universe].apply(data_parser)
     return dataframe
 
 
