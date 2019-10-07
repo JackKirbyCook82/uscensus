@@ -39,6 +39,7 @@ def rangenum_parser(numsvalue, *args, rounding=_ROUNDING, **kwargs):
 
 
 class USCensus_Parser(object):
+    def __repr__(self): return '{}()'.format(self.__class__.__name__)
     def __init__(self, variables): self.__variables = variables    
     def __getitem__(self, column): return self.registry(column)       
 

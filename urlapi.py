@@ -53,9 +53,9 @@ class USCensus_Geography(USCensus_GeographySgmts):
           
 
 class USCensus_URLAPI(URLAPI):
+    def __repr__(self): return '{}(series={}, survey={}, apikey={})'.format(self.__class__.__name__, self.series, self.survey, self.__apikey)    
     def __init__(self, apikey, *args, **kwargs): self.__apikey = str(apikey) 
-    def __repr__(self): return '{}(series={}, survey={}, apikey={})'.format(self.__class__.__name__, self.series, self.survey, self.__apikey)
-
+        
     def protocol(self, *args, **kwargs): return _protocolsgmt('https')
     def domain(self, *args, **kwargs): return _domainsgmt('api.census.gov')  
     def path(self, *args, series, survey, query=[], filetype=None, **kwargs): return _pathsgmt(['data', series, *_aslist(survey), *_aslist(query)], filetype)
@@ -88,6 +88,8 @@ class USCensus_ACSDetail_URLAPI:
 
 
 class USCensus_ShapeFile_URLAPI(URLAPI):
+    def __repr__(self): return '{}()'.format(self.__class__.__name__)  
+    
     def protocol(self, *args, **kwargs): return _protocolsgmt('https')
     def domain(self, *args, **kwargs): return _domainsgmt('www2.census.gov')    
     def path(self, *args, shape, date, geography, filetype='zip', **kwargs): 

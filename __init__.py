@@ -57,13 +57,13 @@ def merge_scope(dataframe, *args, universe, index, header, scope, date, **kwargs
     
 
 class USCensus_WebAPI(object):
+    def __repr__(self): return '{}(repository={}, saving={})'.format(self.__class__.__name__, self.__repository, self.__saving)    
     def __init__(self, repository, urlapi, webreader, saving=True):
         self.__urlapi = urlapi
         self.__webreader = webreader
         self.__repository = repository
         self.__saving = saving
         
-    def __repr__(self): return '{}(repository={}, saving={})'.format(self.__class__.__name__, self.__repository, self.__saving)    
     @property
     def series(self): return self.__urlapi.series
     @property
@@ -135,21 +135,18 @@ class USCensus_WebAPI(object):
         try: 
             dataframes = [dataframe for dataframe in self.generator(*args, **kwargs)]           
             dataframe = pd.concat(dataframes, axis=0)
-            print('WebApi Request Success: "{}"\n'.format(tableID)) 
             return dataframe
         except Exception as error:
-           print('WebApi Request Success: "{}"\n'.format(tableID)) 
            raise error
 
 
 class USCensus_ShapeAPI(object):
+    def __repr__(self): return '{}(repository={})'.format(self.__class__.__name__, self.__repository)  
     def __init__(self, repository, urlapi, webreader):
         self.__urlapi = urlapi
         self.__webreader = webreader
-        self.__repository = repository         
+        self.__repository = repository       
         
-    def __repr__(self): return '{}(repository={})'.format(self.__class__.__name__, self.__repository)    
-    
     @property
     def urlapi(self): return self.__urlapi
     @property

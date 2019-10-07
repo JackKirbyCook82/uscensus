@@ -35,7 +35,7 @@ class USCensus_Query(object):
     @property
     def status(self): 
         selections = {key:value for key, value in {**self.__tableselections, **self.__scopeselections}.items() if value}
-        return ' '.join([self.__class__.__name__, json.dumps(selections, sort_keys=False, indent=3, separators=(',', ' : '))])  
+        return ' '.join(['USCensus Query', json.dumps(selections, sort_keys=False, indent=3, separators=(',', ' : '))])  
     
     def __repr__(self): return '{}(file={})'.format(self.__class__.__name__, self.__file)    
     def asdict(self): return {tableID:{key:value for key, value in values.items() if not _isnull(value)} for tableID, values in self.__tablesdata.transpose().to_dict().items()}
@@ -43,7 +43,7 @@ class USCensus_Query(object):
     def __str__(self): 
         dataframe = self.dataframe()
         dataframe = dataframe[[*self.tablekeys, *[scopekey for scopekey in self.scopekeys if scopekey in dataframe.columns]]]
-        return '\n'.join([self.__class__.__name__ , str(dataframe)]) 
+        return '\n'.join(['USCensus Query' , str(dataframe)]) 
 
     def dataframe(self):
         dataframe = self.__tablesdata
@@ -102,10 +102,7 @@ class USCensus_Query(object):
         self.setindex(index)
         self.setheader(header)
         self.setscope(**scope)
-        
-        print(self.status, '\n')
-        print(str(self), '\n')
-            
+
         
         
         
