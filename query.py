@@ -8,7 +8,6 @@ Created on Weds Sept 11 2019
 
 import json
 import pandas as pd
-from collections import OrderedDict as ODict
 
 from utilities.dataframes import dataframe_fromfile, dataframe_parser
 
@@ -25,77 +24,56 @@ _isnull = lambda value: pd.isnull(value) if not isinstance(value, (list, tuple, 
 
 class USCensus_Query(object):
     def __init__(self, file, parsers):
-        tabledata = dataframe_fromfile(file, index=None, header=0, forceframe=True)  
-        tabledata = dataframe_parser(tabledata, parsers=parsers, defaultparser=None)
-        tabledata.set_index('tableID', drop=True, inplace=True)
+        data = dataframe_fromfile(file, index=None, header=0, forceframe=True)  
+        data = dataframe_parser(data, parsers=parsers, defaultparser=None)
+        data.set_index('tableID', drop=True, inplace=True)
         self.__file = file
-        self.__tablesdata = tabledata        
+        self.__data = data        
         self.reset()
         
     @property
     def status(self): 
-        selections = {key:value for key, value in {**self.__tableselections, **self.__scopeselections}.items() if value}
+        selections = {key:value for key, value in {'universe':self.__universe, 'index':self.__index, 'header':self.__header, **self.__scope}.items() if value}
         return ' '.join(['USCensus Query', json.dumps(selections, sort_keys=False, indent=3, separators=(',', ' : '))])  
     
     def __repr__(self): return '{}(file={})'.format(self.__class__.__name__, self.__file)    
-    def asdict(self): return {tableID:{key:value for key, value in values.items() if not _isnull(value)} for tableID, values in self.__tablesdata.transpose().to_dict().items()}
+    def asdict(self): return {tableID:{key:value for key, value in values.items() if not _isnull(value)} for tableID, values in self.__data.transpose().to_dict().items()}
        
     def __str__(self): 
         dataframe = self.dataframe()
-        dataframe = dataframe[[*self.tablekeys, *[scopekey for scopekey in self.scopekeys if scopekey in dataframe.columns]]]
+        dataframe = dataframe[['universe', 'index', 'header', 'scope']]
+        dataframe = dataframe['scope'].apply(lambda x: ', '.join(['='.join([key, x[key]]) for key in set(x.keys())]))
         return '\n'.join(['USCensus Query' , str(dataframe)]) 
 
     def dataframe(self):
-        dataframe = self.__tablesdata
-        for key, values in self.__tableselections.items():
-            if values: dataframe = dataframe.query('{key}==@values'.format(key=key))
-        for key, values in self.__scopeselections.items(): 
-            if values: dataframe = dataframe.query('{key}==@values'.format(key=key))
+        dataframe = self.__data
+        if self.__universe: dataframe = dataframe[dataframe['universe'] == self.__universe]
+        if self.__index: dataframe = dataframe[dataframe['index'] == self.__index]
+        if self.__header: dataframe = dataframe[dataframe['header'] == self.__header]
+        for key, value in self.__scope.items(): 
+            if key in dataframe['scope'].keys() and value: dataframe = dataframe[dataframe['scope'][key] == value]
         dataframe = dataframe.dropna(axis=0, how='all').dropna(axis=1, how='all')
         try: dataframe = dataframe.to_frame()
         except: dataframe = dataframe
         return dataframe
-        
-    @property
-    def tablekeys(self): return ['universe', 'index', 'header']
-    @property
-    def webkeys(self): return ['survey', 'group', 'preds', 'label']
-    @property
-    def filekeys(self): return ['filename']
-    @property
-    def scopekeys(self): return [column for column in self.__tablesdata.columns if column not in set([*self.tablekeys, *self.filekeys, *self.webkeys])]
-
-    def tableParms(self, tableID): return {key:value for key, value in self.asdict()[tableID].items() if key in self.tablekeys}
-    def scopeParms(self, tableID): return {key:value for key, value in self.asdict()[tableID].items() if key in self.scopekeys}
-    def webParms(self, tableID): return {key:value for key, value in self.asdict()[tableID].items() if key in self.webkeys}
-    def fileParms(self, tableID): return {key:value for key, value in self.asdict()[tableID].items() if key in self.filekeys}
 
     # SELECTION    
-    def setuniverse(self, universe): self.__tableselections[self.tablekeys[0]] = universe
-    def setindex(self, index): self.__tableselections[self.tablekeys[1]] = index
-    def setheader(self, header): self.__tableselections[self.tablekeys[2]] = header
-    def setscope(self, **scope): self.setitems(**scope)
-
-    def setitems(self, **kwargs): 
-        for key, value in kwargs.items(): 
-            if key in self.__tableselections.keys(): self.__tableselections[key] = value 
-            else: self.__scopeselections[key] = value
+    def setuniverse(self, universe): self.__universe = universe
+    def setindex(self, index): self.__index = index
+    def setheader(self, header): self.__header = header
+    def setscope(self, **scope): self.__scope.update(scope)
 
     def reset(self): 
-        self.__tableselections = ODict([(key, None) for key in self.tablekeys])
-        self.__scopeselections = ODict([(key, None) for key in self.scopekeys]) 
+        self.__universe = None
+        self.__index = None
+        self.__header = None
+        self.__scope = {}
         
     # ENGINE
-    def __len__(self): return len(self.tableIDs())
+    @property
     def tableIDs(self): return self.dataframe().index.values
 
-    def __iter__(self): 
-        for tableID in self.tableIDs():
-            yield tableID, {**self.tableParms(tableID), **self.webParms(tableID), **self.fileParms(tableID), 'scope':self.scopeParms(tableID)}
-      
-    def __getitem__(self, tableID):
-        return {**self.tableParms(tableID), **self.webParms(tableID), **self.fileParms(tableID), 'scope':self.scopeParms(tableID)}
-        
+    def __getitem__(self, tableID): return self.asdict()[tableID]
     def __call__(self, *args, universe=None, index=None, header=None, **scope): 
         self.reset()
         self.setuniverse(universe)

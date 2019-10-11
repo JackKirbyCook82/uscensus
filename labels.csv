@@ -1,0 +1,64 @@
+header,label,concept,rounding
+,,,
+income,${lowernum} or more,>${lowernum}K USD,1000
+income,${lowernum} to ${uppernum},${lowernum}K USD|${uppernum}K USD,1000
+income,Less than ${uppernum},<${uppernum}K USD,1000
+,,,
+value,${lowernum} or more,>${lowernum}K USD,1000
+value,${lowernum} to ${uppernum},${lowernum}K USD|${uppernum}K USD,1000
+value,Less than ${uppernum},<${uppernum} USD,1000
+,,,
+rent,${lowernum} or more,>${lowernum} USD,10
+rent,${lowernum} to ${uppernum},${lowernum} USD|${uppernum} USD,10
+rent,Less than ${uppernum},<${uppernum} USD,10
+rent,No cash rent,$0 USD,
+,,,
+age,{lowernum} years and over',>{lowernum} YRS,1
+age,{lowernum} to {uppernum}years,{lowernum} YRS|{uppernum} YRS,1
+age,Under {uppernum} years,<{uppernum} YRS,1
+,,,
+sex,Male,Male,
+sex,Female,Female,
+,,,
+race,White alone,White,
+race,Black or African American alone,Black,
+race,American Indian and Alaska Native alone,Native,
+race,Asian alone,Asian,
+race,Native Hawaiian and Other Pacific Islander alone,Islander,
+race,Some other race alone,Other,
+race,Two or more races,Mix,
+,,,
+origin,Not Hispanic or Latino,Hispanic,
+origin,Hispanic or Latino,NonHispanic,
+,,,
+tenure,Owner occupied,Owner,
+tenure,Renter occupied,Renter,
+,,,
+mortgage,No second mortgage and no home equity loan,Primary,
+mortgage,With either a second mortgage or home equity loan but not both,Secondary,
+mortgage,Both second mortgage and home equity loan,Tertiary,
+mortgage,Housing units without a mortgage,Unleveraged,
+,,,
+occupancy,Occupied,Occupied,
+occupancy,Vacant,Vacant,
+,,,
+vacancy,For rent,ForRent,
+vacancy,Rented not occupied,RentedEmpty,
+vacancy,For sale only,ForSale,
+vacancy,Sold not occupied,SoldEmpty,
+vacancy,For seasonal recreational or occasional use,Recreational,
+vacancy,For migrant workers,Migrant,
+vacancy,Other vacant,Other,
+,,,
+year,Built {lowernum} or later,>{lowernum},1
+year,Built {lowernum} to {uppernum),{lowernum}|{uppernum},1
+year,Built {uppernum} or earlier,<{uppernum},1
+,,,
+rooms,{num} room,{num} RMS,1
+rooms,{num} rooms,{num} RMS,1
+rooms,{num} or more rooms,>{num} RMS,1
+,,,
+bedrooms,No bedroom,0 BEDRMS,
+bedrooms,{num} bedroom,{num} BEDRMS,1
+bedrooms,{num} bedrooms,{num} BEDRMS,1
+bedrooms,{num} or more bedrooms,>{num} BEDRMS,1

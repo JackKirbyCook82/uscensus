@@ -23,13 +23,15 @@ __license__ = ""
     
 
 _DATEFORMATS = {'geoseries':'%Y', 'yearseries':'%Y', 'timeseries':'%Y-%m'}
+_LABELDELIMITER = '!!'
+_LABELALL = '*'
+_FILENAME = '{tableID}_{survey}_{date}_{geoid}.csv'
 
 
 def data_parser(item):
     if pd.isnull(item): return item
     try: return int(float(item)) if not bool(float(item) % 1) else float(item)
     except ValueError: return str(item)
-
 
 def merge_geography(dataframe, *args, geography, **kwargs):
     GeographyClass = geography.__class__
@@ -42,15 +44,21 @@ def merge_geography(dataframe, *args, geography, **kwargs):
     dataframe = dataframe.drop(geokeys, axis=1)
     return dataframe
 
+def merge_date(dataframe, *args, date, **kwargs):
+    dataframe['date'] = str(date)
+    return dataframe
 
-def merge_concepts(dataframe, *args, universe, index, header, scope, concepts, **kwargs):
-    dataframe = dataframe.melt(id_vars=[column for column in dataframe.columns if column not in concepts], var_name=header, value_name=universe)
+def merge_concepts(dataframe, *args, universe, index, header, concepts, **kwargs):
+    if header: 
+        assert len(concepts) < 1
+        dataframe = dataframe.melt(id_vars=[column for column in dataframe.columns if column not in concepts], var_name=header, value_name=universe)
+    else:      
+        assert len(concepts) == 1
+        dataframe = dataframe.rename({concepts[0]:universe})
     dataframe[universe] = dataframe[universe].apply(data_parser)
     return dataframe
 
-
-def merge_scope(dataframe, *args, universe, index, header, scope, date, **kwargs):
-    dataframe['date'] = str(date)
+def merge_scope(dataframe, *args, scope, **kwargs):    
     for key, value in scope.items(): 
         if key not in dataframe.columns: dataframe[key] = value
     return dataframe
@@ -76,23 +84,24 @@ class USCensus_WebAPI(object):
     @property
     def repository(self): return self.__repository
     
-    def file(self, filename, *args, geography, date, estimate=5, **kwargs): 
-        return os.path.join(self.repository, filename.format(estimate=estimate, date=date, geoid=geography.geoid))
+    def filename(self, *args, tableID, survey, geography, date, estimate=5, **kwargs):
+        return _FILENAME.format(tableID=tableID, survey=survey.format(estimate=estimate), geoid=geography.geoid, date=date)
+    def file(self, *args, **kwargs): 
+        return os.path.join(self.repository, self.filename(*args, **kwargs))
   
-    def __query(self, *args, group, label, **kwargs):
+    def __query(self, *args, group, labels, **kwargs):              
         groupurl = self.urlapi.query(*args, query=['groups', group], filetype='json', **kwargs)
         groupjson = self.webreader(groupurl, *args, **kwargs)
-        groupdata = {key:value['label'].replace('!!', '|') for key, value in groupjson['variables'].items()}
-        groupdata = {key:value for key, value in groupdata.items() if value.startswith(label)}
-        tags = []
-        for tag, concept in groupdata.items(): 
-            if not any([concept in value for key, value in groupdata.items() if key != tag]): 
-                tags.append(tag)
-        groupdata = {tag:concept for tag, concept in groupdata.items() if tag in tags}
-        assert all([concept != list(groupdata.values())[0] for concept in list(groupdata.values())[1:]])
-        groupdata = {tag:concept.split('|')[-1] for tag, concept in groupdata.items()}
-        return groupdata
-      
+        groupdata = {key:tuple(value['label'].split(_LABELDELIMITER)) for key, value in groupjson['variables'].items()}
+        
+        labels = [label.split(_LABELDELIMITER) for label in labels]  
+        directlabels = [label for label in labels if labels[-1] != _LABELALL]
+        alllabels = [label[:-1] for label in labels if labels[-1] == _LABELALL]
+        labels = [*directlabels, *[concept for concept in groupdata.values() if concept[:-1] in alllabels]]
+        
+        tags_to_concepts = {tag:concept[-1] for tag, concept in groupdata.items() if concept in labels}
+        return tags_to_concepts
+    
     def __request(self, *args, tags, preds, **kwargs):
         tagsurl = self.urlapi(*args, tags=['NAME',*tags], preds=preds, **kwargs)
         tagsjson = self.webreader(tagsurl, *args, **kwargs)
@@ -105,15 +114,16 @@ class USCensus_WebAPI(object):
         
         dataframe = merge_geography(dataframe, *args, **kwargs)
         dataframe = merge_concepts(dataframe, *args, concepts=tags_to_concepts.values(), **kwargs)
+        dataframe = merge_date(dataframe, *args, **kwargs)
         dataframe = merge_scope(dataframe, *args, **kwargs)
         return dataframe
 
-    def load(self, *args, filename, **kwargs): 
-        file = self.file(filename, *args, **kwargs)
+    def load(self, *args, **kwargs): 
+        file = self.file(*args, **kwargs)
         return dataframe_fromfile(file, index=None, header=0, forceframe=True)    
     
-    def save(self, webtable, *args, filename, **kwargs): 
-        file = self.file(filename, *args, **kwargs)
+    def save(self, webtable, *args, **kwargs): 
+        file = self.file(*args, **kwargs)
         dataframe_tofile(file, webtable, index=False, header=True)        
         
     def download(self, *args, **kwargs):

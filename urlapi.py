@@ -15,14 +15,14 @@ from utilities.dataframes import dataframe_fromfile
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_URLAPI', 'USCensus_Geography', 'USCensus_ShapeFile_URLAPI']
+__all__ = ['USCensus_Geography', 'USCensus_ACSDetail_URLAPI', 'USCensus_ShapeFile_URLAPI']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
     
 
 _DIR = os.path.dirname(os.path.realpath(__file__))
-_SPACEPROXY = '%20'
 _GEOGRAPHY = dataframe_fromfile(os.path.join(_DIR, 'geography.csv'), index='geography', header=0, forceframe=True) 
+_SPACEPROXY = '%20'
 
 
 _aslist = lambda items: [item for item in items] if hasattr(items, '__iter__') and not isinstance(items, str) else [items]
