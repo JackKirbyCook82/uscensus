@@ -1,4 +1,4 @@
-geography,uscensus_geography,shape_geography,shape_dir,shape_file
+geography,apigeography,shapegeography,shapedir,shapefile
 ,,,,
 state,state,statefp,STATE,tl_{year}_us_state
 county,county,countyfp,COUNTY,tl_{year}_us_county

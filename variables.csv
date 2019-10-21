@@ -1,0 +1,94 @@
+label,concept
+,
+Median gross rent,midrent
+Aggregate gross rent,aggrent
+,
+${lowernum} or more,>${lowernum} USD
+${lowernum} to ${uppernum},${lowernum} USD|${uppernum} USD
+Less than ${uppernum},<${uppernum} USD
+No cash rent,$0 USD
+,
+{lowernum} years and over,>{lowernum} YRS
+{lowernum} to {uppernum} years,{lowernum} YRS|{uppernum} YRS
+Under {uppernum} years,<{uppernum} YRS
+,
+Male,Male
+Female,Female
+,
+White alone,White
+Black or African American alone,Black
+American Indian and Alaska Native alone,Native
+Asian alone,Asian
+Native Hawaiian and Other Pacific Islander alone,Islander
+Some other race alone,Other
+Two or more races,Mix
+,
+Not Hispanic or Latino,Hispanic
+Hispanic or Latino,NonHispanic
+,
+Owner occupied,Owner
+Renter occupied,Renter
+,
+Owner occupied (dollars),Owner
+Renter occupied (dollars),Renter
+,
+Housing units with a mortgage,Primary|Secondary|Tertiary
+Housing units without a mortgage,Unleveraged
+,
+Median value for unit with a mortgage,Primary|Secondary|Tertiary
+Median value for unit without a mortgage,Unleveraged
+,
+Housing units with a mortgage (dollars),Primary|Secondary|Tertiary
+Housing units without a mortgage (dollars),Unleveraged
+,
+No second mortgage and no home equity loan,Primary
+With either a second mortgage or home equity loan but not both,Secondary
+Both second mortgage and home equity loan,Tertiary
+Housing units without a mortgage,Unleveraged
+,
+Occupied,Occupied
+Vacant,Vacant
+,
+For rent,ForRent
+Rented not occupied,RentedEmpty
+For sale only,ForSale
+Sold not occupied,SoldEmpty
+For seasonal recreational or occasional use,Recreational
+For migrant workers,Migrant
+Other vacant,Other
+,
+Built {lowernum} or later,>{lowernum}
+Built {lowernum} to {uppernum),{lowernum}|{uppernum}
+Built {uppernum} or earlier,<{uppernum}
+,
+{num} room,{num} RMS
+{num} rooms,{num} RMS
+{num} or more rooms,>{num} RMS
+,
+No bedroom,0 BEDRMS
+{num} bedroom,{num} BEDRMS
+{num} bedrooms,{num} BEDRMS
+{num} or more bedrooms,>{num} BEDRMS
+,
+state,state
+county,county
+county subdivision,subdivision
+subminor civil division,subminor
+tract,tract
+block group,block
+combined statistical area,combined_area
+metropolitan statistical area/micropolitan statistical area,metro_area
+metropolitan division,metrodiv
+congressional district,congress
+state legislative district (upper chamber),upper
+state legislative district (lower chamber),lower
+school district (elementary),elementary
+school district (secondary),secondary
+school district (unified),unified
+consolidated city,consolidated
+place,place
+zip code tabulation area,zipcode
+,
+time,date
+SEX,sex
+AGE,age
