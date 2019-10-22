@@ -79,6 +79,9 @@ class USCensus_WebAPI(WebAPI):
         variabledata = self.webreader(str(url), *args, **kwargs)
         variabledata =  [USCensus_Variable(tag=key, date=date, **items) for key, items in variabledata['variables'].items()]
         variables = [item for item in variabledata if any([item == label for label in labels])]
+        if not variables: 
+            for item in variabledata: print(str(item))
+            raise ValueError(variables)
         return variables           
 
     def geographyquery(self, *args, geography, **kwargs):
@@ -99,7 +102,7 @@ class USCensus_WebAPI(WebAPI):
 
     def compile_variable(self, dataframe, *args, columns, **kwargs):
         if len(columns) > 1: dataframe = dataframe.melt(id_vars=[column for column in dataframe.columns if column not in columns], var_name='header', value_name='universe')
-        else: dataframe.rename({columns[0]:'universe'}, axis='columns')
+        else: dataframe = dataframe.rename({columns[0]:'universe'}, axis='columns')
         return dataframe
 
     def parser(self, dataframe, *args, universe, header, scope, date, **kwargs):

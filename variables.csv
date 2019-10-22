@@ -41,6 +41,7 @@ Median value for unit without a mortgage,Unleveraged
 Housing units with a mortgage (dollars),Primary|Secondary|Tertiary
 Housing units without a mortgage (dollars),Unleveraged
 ,
+Housing units with a mortgage contract to purchase or similar debt,Primary|Secondary|Tertiary
 No second mortgage and no home equity loan,Primary
 With either a second mortgage or home equity loan but not both,Secondary
 Both second mortgage and home equity loan,Tertiary
