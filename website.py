@@ -43,7 +43,7 @@ _isnull = lambda value: pd.isnull(value) if not isinstance(value, (list, tuple, 
 _findall = lambda char, string: [i for i, c in enumerate(string) if c == char]
 _aslist = lambda items: [item for item in items] if hasattr(items, '__iter__') and not isinstance(items, str) else [items]
 
-    
+
 USCensus_GeographySgmts = ntuple('USCensus_GeographySgmts', 'geography apigeography shapegeography shapedir shapefile value')
 class USCensus_Geography(USCensus_GeographySgmts):
     def __str__(self): 
@@ -67,13 +67,18 @@ class USCensus_Variable(USCensus_VariableSgmts):
         label = tuple(label.format(date=str(date)).split(_LABELDELIMITER))   
         return super().__new__(cls, tag, group, label)
 
+    def commonality(self, label): return _remove_commas(_uncomma_nums(_unspace_nums(label)))
+
     @property
-    def concept(self):     
-        variable = _remove_commas(_unformat_nums(_uncomma_nums(_unspace_nums(self.label[-1]))))
+    def concept(self):  
+        variable = self.commonality(self.label[-1])
+        if variable in _VARIABLES.index.values: pass
+        else: variable = _unformat_nums(variable)
+        
         label = _VARIABLES.loc[variable, 'label'] 
         concept = _VARIABLES.loc[variable, 'concept']
 
-        unformated = parse(label, _remove_commas(_uncomma_nums(_unspace_nums(self.label[-1]))))
+        unformated = parse(label, self.commonality(self.label[-1]))
         concept = concept.format(**unformated.named)
         return concept
     

@@ -69,7 +69,7 @@ class USCensus_Shape_Downloader(object):
         shapecontent.extractall(path=self.directory(*args, shape=shape, **kwargs))    
     
     def __call__(self, shape, *args, date, geography, **kwargs):
-        self.download(shape, *args, date=date, **geography.asdict(), **kwargs)  
+        self.download(shape, *args, date=date, **geography.asdict(), geography=geography, **kwargs)  
 
     
 class USCensus_ShapeAPI(object):   
@@ -89,9 +89,14 @@ class USCensus_ShapeAPI(object):
         directoryname = usgeography.shapefile.format(year=year, **geoids)
         return os.path.join(self.repository, directoryname)       
 
-    def __call__(self, *args, **kwargs): return self.geotable(*args, **kwargs), self.basetable(*args, **kwargs)   
+    def __call__(self, *args, date, geography, **kwargs): 
+        geotable = self.geotable(*args, date=date, geography=geography, **geography.asdict(), **kwargs) 
+        basetable = self.basetable(*args, date=date, geography=geography, **geography.asdict(), **kwargs)   
+        return geotable, basetable
+    
     def __getitem__(self, shape):        
-        def wrapper(*args, **kwargs): return self.itemtable(shape, *args, **kwargs)
+        def wrapper(*args, date, geography, **kwargs): 
+            return self.itemtable(shape, *args, date=date, geography=geography, **geography.asdict(), **kwargs)
         return wrapper
 
     def load(self, shape, *args, **kwargs):

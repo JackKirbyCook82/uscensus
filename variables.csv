@@ -59,7 +59,7 @@ For migrant workers,Migrant
 Other vacant,Other
 ,
 Built {lowernum} or later,>{lowernum}
-Built {lowernum} to {uppernum),{lowernum}|{uppernum}
+Built {lowernum} to {uppernum},{lowernum}|{uppernum}
 Built {uppernum} or earlier,<{uppernum}
 ,
 {num} room,{num} RMS
@@ -93,3 +93,14 @@ zip code tabulation area,zipcode
 time,date
 SEX,sex
 AGE,age
+,
+1 detached,Detached
+1 attached,Attached
+2,Duplex
+3 or 4,Townhouse
+5 to 9,TownhouseComplex
+10 to 19,Apartment
+20 to 49,ApartmentComplex
+50 or more,HighDensity
+Mobile home,MobileHome
+Boat RV van etc.,Vehicle
