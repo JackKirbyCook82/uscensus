@@ -1,16 +1,16 @@
-label,concept
+variable,concept
 ,
 Median gross rent,midrent
 Aggregate gross rent,aggrent
 ,
-${lowernum} or more,>${lowernum} USD
-${lowernum} to ${uppernum},${lowernum} USD|${uppernum} USD
-Less than ${uppernum},<${uppernum} USD
+${} or more,>${} USD
+${} to ${},${} USD|${} USD
+Less than ${},<${} USD
 No cash rent,$0 USD
 ,
-{lowernum} years and over,>{lowernum} YRS
-{lowernum} to {uppernum} years,{lowernum} YRS|{uppernum} YRS
-Under {uppernum} years,<{uppernum} YRS
+{} years and over,>{} YRS
+{} to {} years,{} YRS|{} YRS
+Under {} years,<{} YRS
 ,
 Male,Male
 Female,Female
@@ -35,8 +35,8 @@ Renter occupied (dollars),Renter
 Housing units with a mortgage,Primary|Secondary|Tertiary
 Housing units without a mortgage,Unleveraged
 ,
-Median value for unit with a mortgage,Primary|Secondary|Tertiary
-Median value for unit without a mortgage,Unleveraged
+Median value for units with a mortgage,Primary|Secondary|Tertiary
+Median value for units without a mortgage,Unleveraged
 ,
 Housing units with a mortgage (dollars),Primary|Secondary|Tertiary
 Housing units without a mortgage (dollars),Unleveraged
@@ -58,18 +58,18 @@ For seasonal recreational or occasional use,Recreational
 For migrant workers,Migrant
 Other vacant,Other
 ,
-Built {lowernum} or later,>{lowernum}
-Built {lowernum} to {uppernum},{lowernum}|{uppernum}
-Built {uppernum} or earlier,<{uppernum}
+Built {} or later,>{}
+Built {} to {},{}|{}
+Built {} or earlier,<{}
 ,
-{num} room,{num} RMS
-{num} rooms,{num} RMS
-{num} or more rooms,>{num} RMS
+{} room,{} RMS
+{} rooms,{} RMS
+{} or more rooms,>{} RMS
 ,
 No bedroom,0 BEDRMS
-{num} bedroom,{num} BEDRMS
-{num} bedrooms,{num} BEDRMS
-{num} or more bedrooms,>{num} BEDRMS
+{} bedroom,{} BEDRMS
+{} bedrooms,{} BEDRMS
+{} or more bedrooms,>{} BEDRMS
 ,
 state,state
 county,county
@@ -104,3 +104,13 @@ AGE,age
 50 or more,HighDensity
 Mobile home,MobileHome
 Boat RV van etc.,Vehicle
+,
+Total population,population
+Median age (years),midage
+,
+In labor force,LaborForce
+Not in labor force,NonLaborForce
+Civilian labor force,Civilian
+Armed Forces,Soldier
+Employed,Employed
+Unemployed,Unemployed

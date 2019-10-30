@@ -14,7 +14,7 @@ from uscensus.website import USCensus_Geography
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_ACSDetail_URLAPI']
+__all__ = ['USCensus_ACS_URLAPI']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
     
@@ -44,8 +44,8 @@ class USCensus_URLAPI(URLAPI):
         
     def protocol(self, *args, **kwargs): return 'https'
     def domain(self, *args, **kwargs): return 'api.census.gov'  
-    def path(self, *args, series_sgmt, survey_sgmt, query=None, **kwargs): 
-        return ['data', series_sgmt, *_aslist(survey_sgmt), *_filterempty(_aslist(query))]
+    def path(self, *args, seriessgmt, surveysgmt, query=None, **kwargs): 
+        return ['data', seriessgmt, *_aslist(surveysgmt), *_filterempty(_aslist(query))]
     def parms(self, *args, tags=[], geography, preds, **kwargs): 
         usgeographys = [USCensus_Geography(geokey, geovalue) for geokey, geovalue in geography.items()]
         return ODict(_tags(tags) + _forgeo(usgeographys[-1]) + _ingeos(usgeographys[:-1]) + _preds(preds) + _key(self.__apikey))  
@@ -59,11 +59,12 @@ class USCensus_URLAPI(URLAPI):
         return wrapper 
 
 
-@USCensus_URLAPI.create('geoseries', 'acsdetail')
-class USCensus_ACSDetail_URLAPI:
-    def path(self, *args, date, estimate=5, **kwargs): 
+@USCensus_URLAPI.create('geoseries', 'acs')
+class USCensus_ACS_URLAPI:
+    def path(self, *args, survey, date, estimate=5, **kwargs): 
         date.setformat('%Y')
-        return super().path(*args, series_sgmt=str(date), survey_sgmt=['acs', 'acs{estimate}'.format(estimate=estimate)], **kwargs)   
+        seriessgmt, surveysgmt = str(date), _filterempty(['acs', 'acs{estimate}'.format(estimate=estimate), survey])
+        return super().path(*args, seriessgmt=seriessgmt, surveysgmt=surveysgmt, **kwargs)   
 
 
 
