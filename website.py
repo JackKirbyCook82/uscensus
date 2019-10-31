@@ -13,15 +13,22 @@ import re
 import pandas as pd
 from collections import namedtuple as ntuple
 from parse import parse
+from itertools import product
 
 from utilities.dataframes import dataframe_fromfile, dataframe_parser
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_Geography_WebQuery', 'USCensus_Variable_WebQuery']
+__all__ = ['USCensus_Geography_WebQuery', 'USCensus_Variable_WebQuery', 'USCensus_APIGeography']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
     
+
+_DIR = os.path.dirname(os.path.realpath(__file__))
+_VARIABLE_DELIMITER = '!!'
+_GEOGRAPHY_DELIMITER = '› '
+_ALL = '*'
+
 
 _remove_nums = lambda string: re.sub('\d+', '{}', string)
 _unspace_nums = lambda string: re.sub(r'(\d)\s+(\d)', r'\1\2', string)
@@ -30,41 +37,87 @@ _unspace = lambda string: re.sub(' ', '', string)
 _uncomma = lambda string: re.sub(',', '', string)
 _lowercase = lambda string: string.lower()
 
-_indexparser = lambda string: _lowercase(_uncomma(_uncomma_nums(_unspace_nums(string))))
+_variableparser = lambda string: _lowercase(_uncomma(_uncomma_nums(_unspace_nums(string))))
 _labelparser = lambda string: _lowercase(_uncomma(_uncomma_nums(_unspace_nums(string))))
-
-_DIR = os.path.dirname(os.path.realpath(__file__))
-_GEOGRAPHY = dataframe_fromfile(os.path.join(_DIR, 'geography.csv'), index='geography', header=0, forceframe=True).transpose().to_dict()
-_VARIABLES = dataframe_fromfile(os.path.join(_DIR, 'variables.csv'), index=None, header=0, forceframe=True)
-_VARIABLES = dataframe_parser(_VARIABLES, parsers={'variable':_indexparser}).set_index('variable', drop=True).to_dict()['concept']
-_VARIABLE_DELIMITER = '!!'
-_GEOGRAPHY_DELIMITER = '› '
-_ALL = '*'
 
 _isnull = lambda value: pd.isnull(value) if not isinstance(value, (list, tuple, dict)) else False
 _aslist = lambda items: [item for item in items] if hasattr(items, '__iter__') and not isinstance(items, str) else [items]
 
 
-USCensus_Variable_Sgmts = ntuple('USCensus_Variable_Sgmts', '')
+_GEOGRAPHY = dataframe_fromfile(os.path.join(_DIR, 'geography.csv'), index='geography', header=0, forceframe=True).transpose().to_dict()
+_GEOGRAPHY = {geography:{key:(value if not _isnull(value) else None) for key, value in items.items() } for geography, items in _GEOGRAPHY.items()}
+_VARIABLES = dataframe_fromfile(os.path.join(_DIR, 'variables.csv'), index=None, header=0, forceframe=True)
+_VARIABLES = dataframe_parser(_VARIABLES, parsers={'variable':_variableparser}).set_index('variable', drop=True).to_dict()['concept']
+
+
+USCensus_Variable_Sgmts = ntuple('USCensus_Variable_Sgmts', 'tag, group, label variable')
 class USCensus_Variable(USCensus_Variable_Sgmts): 
     def __str__(self): 
         namestr = self.__class__.__name__
         jsonstr = json.dumps(self._asdict(), sort_keys=False, indent=3, separators=(',', ' : '), default=str)      
         return ' '.join([namestr, jsonstr])    
     
-    def __new__(cls, tag, group, label):
-        pass
+    def __new__(cls, tag, group, date, label):
+        label = tuple(label.format(date=str(date)).split(_VARIABLE_DELIMITER))  
+        return super().__new__(cls, tag, group, label[:-1], label[-1])
     
+    @property
+    def concept(self):
+        variable = self.format_variable(self.variable)       
+        if variable in _VARIABLES.keys(): pass
+        else: variable = _remove_nums(variable)
+        unformated = parse(self.variable, variable)
+        try: concept = _VARIABLES[variable].format(*unformated.fixed)
+        except AttributeError: concept = _VARIABLES[variable]
+        return concept
 
-USCensus_Geography_Sgmts = ntuple('USCensus_Geography_Sgmts', '')
+    def format_label(self, *label): return [_labelparser(item) for item in label]
+    def format_variable(self, variable): return _variableparser(variable)
+
+    def strict_label_match(self, *label): return self.format_label(*label) == self.format_label(*self.label)
+    def set_label_match(self, *label): return set(self.format_label(*label)) == set(self.format_label(*self.label))
+    
+    def within_label_match(self, *label): return all([item in set(self.format_label(*self.label)) for item in set(self.format_label(*label))])
+    def overlap_label_match(self, *label): return all([item in set(self.format_label(*label)) for item in set(self.format_label(*self.label))])
+    
+    def strict_variable_match(self, *variables): return any([self.format_variable(item) == self.format_variable(self.variable) for item in variables])
+    def without_numbers_variable_match(self, *variables): return any([_remove_nums(self.format_variable(item)) == _remove_nums(self.format_label(self.variable)) for item in variables])
+
+    def match(self, label, variable, strict=True, ordered=True, numeric=True):
+        if strict: label_match = self.strict_label_match(*label) if ordered else self.set_label_match(*label)
+        else: label_match = any([self.within_label_match(*label), self.overlap_label_match(*label)])
+        if numeric: variable_match = self.strict_variable_match(*variable)
+        else: variable_match = self.without_numbers_variable_match(*variable)
+        return label_match and variable_match
+        
+
+USCensus_APIGeography_Sgmts = ntuple('USCensus_APIGeography_Sgmts', 'geography apigeography shapegeography shapedir shapefile value')
+class USCensus_APIGeography(USCensus_APIGeography_Sgmts):
+    def __new__(cls, geokey, geovalue=None):
+        geosgmts = {key:(value if not _isnull(value) else None) for key, value in _GEOGRAPHY[geokey].items()}
+        return super().__new__(cls, geography=geokey, **geosgmts, value=geovalue)  
+
+
+USCensus_Geography_Sgmts = ntuple('USCensus_Geography_Sgmts', 'geography required geographylevel')
 class USCensus_Geography(USCensus_Geography_Sgmts): 
     def __str__(self): 
         namestr = self.__class__.__name__
         jsonstr = json.dumps(self._asdict(), sort_keys=False, indent=3, separators=(',', ' : '), default=str)      
         return ' '.join([namestr, jsonstr])      
     
-    def __new__(cls, forgeo, geolevel, ingeo):
-        pass
+    def __new__(cls, forgeography, geographylevel, ingeography):
+        apigeography = {value['apigeography']:key for key, value in _GEOGRAPHY.items() if value['apigeography']}
+        ingeography = [apigeography[item] for item in ingeography]
+        return super().__new__(cls, forgeography, _aslist(ingeography), geographylevel)
+
+    @property
+    def apigeography(self): return _GEOGRAPHY[self.geography]['apigeography']
+    @property
+    def shapedir(self): return _GEOGRAPHY[self.geography]['shapedir']
+    @property
+    def shapefile(self): return _GEOGRAPHY[self.geography]['shapefile']
+    @property
+    def shapegeography(self): return _GEOGRAPHY[self.geography]['shapegeography']
 
 
 class USCensus_WebQuery(ABC):
@@ -86,82 +139,41 @@ class USCensus_Variable_WebQuery(USCensus_WebQuery):
         if not group: url = self.urlapi.query(*args, query='variables', filetype='json', date=date, **kwargs)   
         else: url = self.urlapi.query(*args, query=['groups', group], filetype='json', date=date, **kwargs)   
         jsondata = self.webreader(str(url), *args, **kwargs)
-        return [USCensus_Variable(tag=key, group=values['group'], label=values['label']) for key, values in jsondata['variables'].items()]
-        
-    def __call__(self, *args, **kwargs):
-        pass
+        return [USCensus_Variable(tag=key, group=values['group'], date=date, label=values['label']) for key, values in jsondata['variables'].items()]
+
+    def generator(self, labels, variables, *uscensus_variables):
+        for label, variable in zip(labels, variables):
+            match_function = lambda strict, ordered, numeric: [uscensus_variable for uscensus_variable in uscensus_variables if uscensus_variable.match(label, variable, strict=strict, ordered=ordered, numeric=numeric)]
+            matches = []
+            for strict, ordered, numeric in product([True, False], repeat=3): 
+                try: matches = match_function(strict, ordered, numeric)
+                except: pass
+                if matches: break
+            if not matches: raise ValueError('label={}, variable={}'.format(label, variable))
+            else: 
+                for item in matches: yield item
+                
+    def __call__(self, *args, variables, labels, date, **kwargs):
+        assert len(labels) == len(variables)
+        labels = [tuple([item.format(date=str(date)) for item in label]) for label in labels]
+        uscensus_variables = self.download(*args, date=date, **kwargs)
+        return [item for item in self.generator(labels, variables, *uscensus_variables)]
 
 
 class USCensus_Geography_WebQuery(USCensus_WebQuery):
-    def download(self, *args, geography, **kwargs):
-        url = self.urlapi.query(*args, query='', filetype='json', **kwargs)
+    def download(self, *args, **kwargs):
+        url = self.urlapi.query(*args, query='geography', filetype='json', **kwargs)
         jsondata = self.webreader(str(url), *args, **kwargs)
-        return [USCensus_Geography(forgeo=item['name'], geolevel=item['geoLevelDisplay'], ingeo=item.get('requires', [])) for item in jsondata['fips']]
+        return [USCensus_Geography(forgeography=item['name'], geographylevel=item['geoLevelDisplay'], ingeography=item.get('requires', [])) for item in jsondata['fips']]
 
-    def __call__(self, *args, **kwargs):
-        pass
-
-
-
-
-
-
-#USCensus_GeographySgmts = ntuple('USCensus_GeographySgmts', 'geography apigeography shapegeography shapedir shapefile value')
-#class USCensus_Geography(USCensus_GeographySgmts):
-#    def __new__(cls, geokey, geovalue=None):
-#        geosgmts = {key:(value if not _isnull(value) else None) for key, value in _GEOGRAPHY[geokey].items()}
-#        return super().__new__(cls, geography=geokey, **geosgmts, value=geovalue)    
+    def __call__(self, *args, geography, **kwargs):
+        uscensus_geographys = self.download(*args, **kwargs)
+        return [item for item in uscensus_geographys if item.geography in geography.keys()]
         
 
-#USCensus_VariableSgmts = ntuple('USCensus_VariableSgmts', 'tag group label variable')
-#class USCensus_Variable(USCensus_VariableSgmts):
-#    def __new__(cls, tag, *args, label, date, group=None, **kwargs):   
-#        items = tuple(label.format(date=str(date)).split(_DELIMITER))   
-#        return super().__new__(cls, tag, group, items[:-1], items[-1])
-#
-#    @property
-#    def concept(self):
-#        variable = self.format_variable(self.variable)       
-#        if variable in _VARIABLES.keys(): pass
-#        else: variable = _remove_nums(variable)
-#        unformated = parse(self.variable, variable)
-#        try: concept = _VARIABLES[variable].format(*unformated.fixed)
-#        except AttributeError: concept = _VARIABLES[variable]
-#        return concept
-#
-#    def format_label(self, *label): return set([_labelparser(item) for item in label])
-#    def format_variable(self, variable): return _indexparser(variable)
-#
-#    def strict_label_match(self, label): return self.format_label(*label) == self.format_label(*self.label)
-#    def inclosed_label_match(self, label): pass
-#    
-#    def strict_variable_match(self, variable): return self.format_variable(variable) == self.format_variable(self.variable)
-#    def all_variable_match(self, variable): return variable == _ALL
-#
-#    def match(self, label, variable, strict=True):
-#        assert isinstance(label, tuple)
-#        assert isinstance(variable, str)
-#        if strict: return self.strict_label_match(label) and (self.strict_variable_match(variable) or self.all_variable_match(variable))
-#        else: return self.strict_label_match(label) and (self.strict_variable_match(variable) or self.all_variable_match(variable))
 
 
 
-    
-    
-    
-#    def variablequery(self, *args, group=None, labels, variables, date, **kwargs):   
-#        assert len(labels) == len(variables)
-#        labels = [tuple([item.format(date=str(date)) for item in label]) for label in labels]
-#        if not group: url = self.urlapi.query(*args, query='variables', filetype='json', date=date, **kwargs)   
-#        else: url = self.urlapi.query(*args, query=['groups', group], filetype='json', date=date, **kwargs)   
-#        variabledata = self.webreader(str(url), *args, **kwargs)
-#        uscensus_variables =  [USCensus_Variable(tag=key, date=date, **items) for key, items in variabledata['variables'].items()]
-#        
-#        variables = [item for label, variable in zip(labels, variables) for item in uscensus_variables if item.match(label, variable, strict=True)]
-#        if not variables: variables = [item for label, variable in zip(labels, variables) for item in uscensus_variables if item.match(label, variable, strict=False)]            
-#        if not variables: raise ValueError(variables)
-#        return variables           
 
-#    def geographyquery(self, *args, geography, **kwargs):
-#        uscensus_geographys = [USCensus_Geography(geokey=geokey, geovalue=geovalue) for geokey, geovalue in geography.items()]
-#        return uscensus_geographys   
+
+

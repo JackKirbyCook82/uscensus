@@ -10,7 +10,7 @@ from collections import OrderedDict as ODict
 
 from webdata.url import URLAPI
 
-from uscensus.website import USCensus_Geography
+from uscensus.website import USCensus_APIGeography
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
@@ -47,7 +47,7 @@ class USCensus_URLAPI(URLAPI):
     def path(self, *args, seriessgmt, surveysgmt, query=None, **kwargs): 
         return ['data', seriessgmt, *_aslist(surveysgmt), *_filterempty(_aslist(query))]
     def parms(self, *args, tags=[], geography, preds, **kwargs): 
-        usgeographys = [USCensus_Geography(geokey, geovalue) for geokey, geovalue in geography.items()]
+        usgeographys = [USCensus_APIGeography(geokey, geovalue) for geokey, geovalue in geography.items()]
         return ODict(_tags(tags) + _forgeo(usgeographys[-1]) + _ingeos(usgeographys[:-1]) + _preds(preds) + _key(self.__apikey))  
 
     @classmethod

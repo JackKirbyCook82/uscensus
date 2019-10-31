@@ -11,6 +11,8 @@ import pandas as pd
 from utilities.dataframes import dataframe_fromjson
 from webdata.webapi import WebAPI
 
+from uscensus.website import USCensus_APIGeography
+
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
 __all__ = ['USCensus_WebAPI']
@@ -29,11 +31,11 @@ def dataparser(item):
 
 
 class USCensus_WebAPI(WebAPI):
-    def __init__(self, repository, urlapi, webreader, geographyquery, variablequery, saving=True):
+    def __init__(self, repository, urlapi, webreader, geography_webquery, variable_webquery, saving=True):
         self.__urlapi = urlapi
         self.__webreader = webreader
-        self.__geographyquery = geographyquery
-        self.__variablequery = variablequery
+        self.__geographywebquery = geography_webquery
+        self.__variablewebquery = variable_webquery
         super().__init__('USCensus', repository=repository, saving=saving)
         
     @property
@@ -60,14 +62,14 @@ class USCensus_WebAPI(WebAPI):
                 if self.saving: self.save(dataframe, *args, date=date, **kwargs)
             yield dataframe
 
-    def execute(self, *args, **kwargs):
-        variables = self.__variablequery(*args, **kwargs)
-        geographys = self.__geographyquery(*args, **kwargs)
-        dataframe = self.download(*args, tags=['NAME', *[item.tag for item in variables]], **kwargs)               
+    def execute(self, *args, geography, **kwargs):
+        variables = self.__variablewebquery(*args, **kwargs)
+        apigeographys = [USCensus_APIGeography(geokey, geovalue) for geokey, geovalue in geography.items()]
+        dataframe = self.download(*args, tags=['NAME', *[item.tag for item in variables]], geography=geography, **kwargs)               
         dataframe = dataframe.rename({item.tag:item.concept for item in variables}, axis='columns')  
-        dataframe = dataframe.rename({item.apigeography:item.geography for item in geographys}, axis='columns') 
+        dataframe = dataframe.rename({item.apigeography:item.geography for item in apigeographys}, axis='columns') 
         dataframe = dataframe.rename({'NAME':'geoname'}, axis='columns')                     
-        dataframe = self.compile_geography(dataframe, *args, columns=[item.geography for item in geographys], **kwargs)
+        dataframe = self.compile_geography(dataframe, *args, columns=[item.geography for item in apigeographys], **kwargs)
         dataframe = self.compile_variable(dataframe, *args, columns=[item.concept for item in variables], **kwargs)
         dataframe = self.parser(dataframe, *args, **kwargs)
         return dataframe    
