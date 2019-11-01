@@ -13,7 +13,7 @@ import zipfile
 from utilities.dataframes import geodataframe_fromdir
 from webdata.url import URLAPI
 
-from uscensus.urlapi import USCensus_Geography
+from uscensus.urlapi import USCensus_APIGeography
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
@@ -29,7 +29,7 @@ class USCensus_Shape_URLAPI(URLAPI):
     def domain(self, *args, **kwargs): return 'www2.census.gov'    
     
     def path(self, *args, shape, date, geography, **kwargs): 
-        usgeography = USCensus_Geography(shape)
+        usgeography = USCensus_APIGeography(shape)
         shapedir = usgeography.shapedir
         try: year = str(date.year)
         except: year = str(date)        
@@ -53,7 +53,7 @@ class USCensus_Shape_Downloader(object):
     def repository(self): return self.__repository    
 
     def directory(self, shape, *args, date, state='', county='', **kwargs): 
-        usgeography = USCensus_Geography(shape)
+        usgeography = USCensus_APIGeography(shape)
         try: year = str(date.year)
         except: year = str(date)
         geoids = {}
@@ -80,7 +80,7 @@ class USCensus_ShapeAPI(object):
 
     def downloaded(self, shape, *args, **kwargs): return os.path.exists(self.directory(shape, *args, **kwargs))
     def directory(self, shape, *args, date, state='', county='', **kwargs): 
-        usgeography = USCensus_Geography(shape)
+        usgeography = USCensus_APIGeography(shape)
         try: year = str(date.year)
         except: year = str(date)
         geoids = {}
@@ -125,7 +125,7 @@ class USCensus_ShapeAPI(object):
 
     def __parser(self, shape, geodataframe, *args, geography, **kwargs):
         GeographyClass = geography.__class__
-        usgeographys = [USCensus_Geography(geokey, geovalue) for geokey, geovalue in geography.items()]           
+        usgeographys = [USCensus_APIGeography(geokey, geovalue) for geokey, geovalue in geography.items()]           
         function = lambda values: str(GeographyClass({key:value for key, value in zip(geography.keys(), values)}))
         geodataframe.columns = map(str.lower, geodataframe.columns)          
         geodataframe['geography'] = geodataframe[[usgeography.shapegeography for usgeography in usgeographys]].apply(function, axis=1)

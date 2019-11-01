@@ -13,8 +13,8 @@ import re
 import pandas as pd
 from collections import namedtuple as ntuple
 from parse import parse
-from itertools import product
 
+from utilities.dispatchers import clskey_singledispatcher as keydispatcher
 from utilities.dataframes import dataframe_fromfile, dataframe_parser
 
 __version__ = "1.0.0"
@@ -66,24 +66,30 @@ class USCensus_Variable(USCensus_Variable_Sgmts):
         variable = self.format_variable(self.variable)       
         if variable in _VARIABLES.keys(): pass
         else: variable = _remove_nums(variable)
-        unformated = parse(self.variable, variable)
-        try: concept = _VARIABLES[variable].format(*unformated.fixed)
-        except AttributeError: concept = _VARIABLES[variable]
+        unformated = parse(variable, self.variable)
+        if unformated is None: concept = _VARIABLES[variable]
+        else: concept = _VARIABLES[variable].format(*unformated.fixed)  
         return concept
 
     def format_label(self, *label): return [_labelparser(item) for item in label]
     def format_variable(self, variable): return _variableparser(variable)
-
-    def strict_label_match(self, *label): return self.format_label(*label) == self.format_label(*self.label)
+    
     def strict_variable_match(self, *variables): return any([self.format_variable(item) == self.format_variable(self.variable) for item in variables])
     
-    def exact_label_match(self, *label): return set(self.format_label(*label)) == set(self.format_label(*self.label))   
-    def under_label_match(self, *label): return all([item in set(self.format_label(*label)) for item in set(self.format_label(*self.label))])
-    def over_label_match(self, *label): return all([item in set(self.format_label(*self.label)) for item in set(self.format_label(*label))])
+    @keydispatcher('method')
+    def label_match(self, *label, method, **kwargs): raise KeyError(method) 
+    @label_match.register('strict')
+    def strict_label_match(self, *label, method, **kwargs): return self.format_label(*label) == self.format_label(*self.label)
+    @label_match.register('exact')
+    def exact_label_match(self, *label, method, **kwargs): return set(self.format_label(*label)) == set(self.format_label(*self.label))   
+    @label_match.register('under')
+    def under_label_match(self, *label, method, **kwargs): return all([item in set(self.format_label(*label)) for item in set(self.format_label(*self.label))])
+    @label_match.register('over')
+    def over_label_match(self, *label, method, **kwargs): return all([item in set(self.format_label(*self.label)) for item in set(self.format_label(*label))])
         
-    def match(self, label):
+    def match(self, label, method='strict'):
         label, variable = label[:-1], label[-1]
-        label_match = any([self.under_label_match(*label), self.over_label_match(*label)])
+        label_match = self.label_match(method=method, *label)
         variable_match = any([self.strict_variable_match(variable), variable == _ALL])
         return label_match and variable_match
         
@@ -140,15 +146,17 @@ class USCensus_Variable_WebQuery(USCensus_WebQuery):
 
     def generator(self, labels, variables):
         for label in labels:
-            matches = [variable for variable in variables if variable.match(label)]
-            if not matches: raise ValueError(label)
-            for item in matches: yield item
+            for method in ('strict', 'exact', 'over', 'under'):      
+                matches = [variable for variable in variables if variable.match(label, method=method)]
+                if matches: break
+            if matches: 
+                for item in matches: yield item
+            else: raise ValueError(label)
                 
-    def __call__(self, *args, variables, labels, date, **kwargs):
-        assert len(labels) == len(variables)
+    def __call__(self, *args, labels, date, **kwargs):
         labels = [tuple([item.format(date=str(date)) for item in label]) for label in labels]
-        uscensus_variables = self.download(*args, date=date, **kwargs)
-        return [item for item in self.generator(labels, variables, *uscensus_variables)]
+        variables = self.download(*args, date=date, **kwargs)
+        return [item for item in self.generator(labels, variables)]
 
 
 class USCensus_Geography_WebQuery(USCensus_WebQuery):
