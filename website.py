@@ -75,19 +75,16 @@ class USCensus_Variable(USCensus_Variable_Sgmts):
     def format_variable(self, variable): return _variableparser(variable)
 
     def strict_label_match(self, *label): return self.format_label(*label) == self.format_label(*self.label)
-    def set_label_match(self, *label): return set(self.format_label(*label)) == set(self.format_label(*self.label))
-    
-    def within_label_match(self, *label): return all([item in set(self.format_label(*self.label)) for item in set(self.format_label(*label))])
-    def overlap_label_match(self, *label): return all([item in set(self.format_label(*label)) for item in set(self.format_label(*self.label))])
-    
     def strict_variable_match(self, *variables): return any([self.format_variable(item) == self.format_variable(self.variable) for item in variables])
-    def without_numbers_variable_match(self, *variables): return any([_remove_nums(self.format_variable(item)) == _remove_nums(self.format_label(self.variable)) for item in variables])
-
-    def match(self, label, variable, strict=True, ordered=True, numeric=True):
-        if strict: label_match = self.strict_label_match(*label) if ordered else self.set_label_match(*label)
-        else: label_match = any([self.within_label_match(*label), self.overlap_label_match(*label)])
-        if numeric: variable_match = self.strict_variable_match(*variable)
-        else: variable_match = self.without_numbers_variable_match(*variable)
+    
+    def exact_label_match(self, *label): return set(self.format_label(*label)) == set(self.format_label(*self.label))   
+    def under_label_match(self, *label): return all([item in set(self.format_label(*label)) for item in set(self.format_label(*self.label))])
+    def over_label_match(self, *label): return all([item in set(self.format_label(*self.label)) for item in set(self.format_label(*label))])
+        
+    def match(self, label):
+        label, variable = label[:-1], label[-1]
+        label_match = any([self.under_label_match(*label), self.over_label_match(*label)])
+        variable_match = any([self.strict_variable_match(variable), variable == _ALL])
         return label_match and variable_match
         
 
@@ -141,17 +138,11 @@ class USCensus_Variable_WebQuery(USCensus_WebQuery):
         jsondata = self.webreader(str(url), *args, **kwargs)
         return [USCensus_Variable(tag=key, group=values['group'], date=date, label=values['label']) for key, values in jsondata['variables'].items()]
 
-    def generator(self, labels, variables, *uscensus_variables):
-        for label, variable in zip(labels, variables):
-            match_function = lambda strict, ordered, numeric: [uscensus_variable for uscensus_variable in uscensus_variables if uscensus_variable.match(label, variable, strict=strict, ordered=ordered, numeric=numeric)]
-            matches = []
-            for strict, ordered, numeric in product([True, False], repeat=3): 
-                try: matches = match_function(strict, ordered, numeric)
-                except: pass
-                if matches: break
-            if not matches: raise ValueError('label={}, variable={}'.format(label, variable))
-            else: 
-                for item in matches: yield item
+    def generator(self, labels, variables):
+        for label in labels:
+            matches = [variable for variable in variables if variable.match(label)]
+            if not matches: raise ValueError(label)
+            for item in matches: yield item
                 
     def __call__(self, *args, variables, labels, date, **kwargs):
         assert len(labels) == len(variables)
