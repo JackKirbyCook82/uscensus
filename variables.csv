@@ -1,8 +1,5 @@
 variable,concept
 ,
-Median gross rent,midrent
-Aggregate gross rent,aggrent
-,
 ${} or more,>${} USD
 ${} to ${},${} USD|${} USD
 Less than ${},<${} USD
@@ -71,29 +68,6 @@ No bedroom,0 BEDRMS
 {} bedrooms,{} BEDRMS
 {} or more bedrooms,>{} BEDRMS
 ,
-state,state
-county,county
-county subdivision,subdivision
-subminor civil division,subminor
-tract,tract
-block group,block
-combined statistical area,combined_area
-metropolitan statistical area/micropolitan statistical area,metro_area
-metropolitan division,metrodiv
-congressional district,congress
-state legislative district (upper chamber),upper
-state legislative district (lower chamber),lower
-school district (elementary),elementary
-school district (secondary),secondary
-school district (unified),unified
-consolidated city,consolidated
-place,place
-zip code tabulation area,zipcode
-,
-time,date
-SEX,sex
-AGE,age
-,
 1 detached,Detached
 1 attached,Attached
 2,Duplex
@@ -105,11 +79,8 @@ AGE,age
 Mobile home,MobileHome
 Boat RV van etc.,Vehicle
 ,
-Total population,population
-Median age (years),midage
-,
-In labor force,LaborForce
-Not in labor force,NonLaborForce
+In labor force,Participating
+Not in labor force,NonParticipating
 Civilian labor force,Civilian
 Armed Forces,Soldier
 Employed,Employed
