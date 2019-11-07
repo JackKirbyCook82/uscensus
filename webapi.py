@@ -48,7 +48,7 @@ class USCensus_WebAPI(WebAPI):
     @property
     def webreader(self): return self.__webreader
 
-    def filename(self, *args, tableID, geography, date, estimate=5, **kwargs):
+    def filename(self, *args, tableID, geography, date, **kwargs):
         filename = _FILENAMES[self.series].format(tableID=tableID, date=date, geoid=geography.geoid)
         filename = filename.replace('|', '_')
         return filename

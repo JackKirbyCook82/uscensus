@@ -61,8 +61,9 @@ class USCensus_URLAPI(URLAPI):
 
 @USCensus_URLAPI.create('geoseries', 'acs')
 class USCensus_ACS_URLAPI:
-    def path(self, *args, survey, date, estimate=5, **kwargs): 
+    def path(self, *args, dataset, date, **kwargs): 
         date.setformat('%Y')
+        survey, estimate = dataset.get('survey', None), dataset['estimate'] 
         seriessgmt, surveysgmt = str(date), _filterempty(['acs', 'acs{estimate}'.format(estimate=estimate), survey])
         return super().path(*args, seriessgmt=seriessgmt, surveysgmt=surveysgmt, **kwargs)   
 
