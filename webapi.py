@@ -38,7 +38,7 @@ class USCensus_WebAPI(WebAPI):
         self.__webreader = webreader
         self.__geographywebquery = geography_webquery
         self.__variablewebquery = variable_webquery
-        super().__init__('USCensus', repository=repository, saving=saving)
+        super().__init__('USCensus' + urlapi.survey.upper(), repository=repository, saving=saving)
         
     @property
     def series(self): return self.__urlapi.series
@@ -78,7 +78,7 @@ class USCensus_WebAPI(WebAPI):
 
     def download(self, *args, **kwargs):
         url = self.urlapi(*args, **kwargs)    
-        data = self.webreader(str(url), *args, **kwargs)
+        data = self.webreader(str(url), *args, method='get', **kwargs)
         dataframe = dataframe_fromjson(data, header=0, forceframe=True)
         return dataframe
 

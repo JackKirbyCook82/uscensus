@@ -10,20 +10,19 @@ import math
 from collections import OrderedDict as ODict
 
 from webdata.url import URLAPI
-from utilities.dispatchers import clskey_singledispatcher as keydispatcher
+from webdata.webapi import WebAPI
+from utilities.dataframes import dataframe_fromcsv
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_GeoCoder_URLAPI']
+__all__ = ['USCensus_GeoCoder_URLAPI', 'USCensus_GeoCoder_WebAPI']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
 
 
 _SPACEPROXY = '+'
 _COMMAPROXY = '%2C'
-_SEARCHFOR = {'address':'locations', 'geography':'geographies'}
-_SEARCHBY = {'address':'onelineaddress', 'location':'address', 'coordinates':'coordinates', 'file':'addressbatch'}
-_SEARCHTYPE = {'csv', 'json', 'html'}
+_FILENAME = 'address_geography_{geoid}'
 
 _version = lambda version: [('benchmark', version)]
 _vintage = lambda vintage: [('vintage', vintage)]
@@ -39,49 +38,57 @@ _coordinate = lambda direction, value: [(direction, '{}/{}'.format(*math.modf(va
 
 class USCensus_GeoCoder_URLAPI(URLAPI):
     def __repr__(self): return "{}(version='{}', vintage='{}')".format(self.__class__.__name__, self.__version, self.__vintage)    
-    def __init__(self, version, vintage, datatype): self.__version, self.__vintage = version, vintage
-    def protocol(self, *args, **kwargs): return 'https'
-    def domain(self, *args, **kwargs): return 'geocoding.geo.census.gov'  
+    def __init__(self, version, vintage): self.__version, self.__vintage = version, vintage
     
     @property
     def version(self): return ODict(_version(self.__version))
     @property
     def vintage(self): return ODict(_vintage(self.__vintage))
     
-    def path(self, *args, searchfor, searchby, searchtype, **kwargs): 
-        assert all([searchfor in _SEARCHFOR, searchby in _SEARCHBY, searchtype in _SEARCHTYPE])
-        return ['geocoder', _SEARCHFOR[searchfor], _SEARCHBY[searchby]]
-    def parms(self, *args, searchfor, searchby, searchtype, **kwargs): 
-        if searchtype == 'cvs': return {}
-        parms = self.searchbyparms(searchby, *args, **kwargs) + _version(self.__version) + _format(self.__datatype)
-        if searchfor == 'geography': return ODict(parms + _vintage(self.__vintage)) 
-        else: return ODict(parms) 
-    
-    @keydispatcher
-    def searchbyparms(self, searchby, *args, **kwargs): raise KeyError(searchby) 
-    @searchbyparms.register('address')
-    def searchbyparms_address(self, *args, address, **kwargs): 
-        return ODict(_address(address))
-    @searchbyparms.register('location')
-    def searchbyparms_location(self, *args, street, city, state, zipcode, **kwargs): 
-        return ODict(_street(street) + _city(city) + _state(state) + _zipcode(zipcode))
-    @searchbyparms.register('coordinates')
-    def searchbyparms_coordinate(self, *args, x, y, **kwargs): 
-        return ODict(_coordinate('x', x) + _coordinate('y', y))    
+    def protocol(self, *args, **kwargs): return 'https'
+    def domain(self, *args, **kwargs): return 'geocoding.geo.census.gov'      
+    def path(self, *args, **kwargs): return ['geocoder', 'geographies', 'addressbatch']
+    def parms(self, *args, **kwargs): return {}
 
     
-class USCensus_GeoCoder_WebAPI(object):
-    pass
+class USCensus_GeoCoder_WebAPI(WebAPI):
+    @property
+    def urlapi(self): return self.__urlapi
+    @property
+    def webreader(self): return self.__webreader
+    @property
+    def repository(self): return self.__repository      
 
+    def __init__(self, repository, urlapi, webreader, saving=False):
+        self.__urlapi = urlapi
+        self.__webreader = webreader
+        super().__init__('USCensusGeoCoder', repository=repository, saving=saving)
     
-class USCensus_GeoCoder_Downloader(object):
-    pass    
-
+    def filename(self, *args, geography, **kwargs): return _FILENAME.format(geoid=geography.geoid)
+    def generator(self, *args, **kwargs): yield self.download(*args, **kwargs)
+    
+    def download(self, *args, file, **kwargs):
+        url = self.urlapi(*args, **kwargs)   
+        data = ODict(self.urlapi.version + self.urlapi.vintage)
+        files = {'addressFile':open(file, 'rb')}
+        data = self.webreader(str(url), *args, method='post', data=data, files=files, **kwargs)
+        dataframe = dataframe_fromcsv(data, header=0, forceframe=True)
+        return dataframe
+    
+    
             
-class USCensus_GeoCoder_FileAPI(object):
-    pass
 
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
