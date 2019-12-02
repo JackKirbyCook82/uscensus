@@ -7,6 +7,7 @@ Created on Weds Sept 11 2019
 """
 
 import pandas as pd
+import numpy as np
 
 from utilities.dataframes import dataframe_fromjson
 from webdata.webapi import WebAPI
@@ -22,6 +23,7 @@ __license__ = ""
 
 _FILENAMES = {'geoseries':'{tableID}_{date}_{geoid}.csv'}
 _DATEFORMATS = {'geoseries':'%Y', 'yearseries':'%Y', 'timeseries':'%Y-%m'}
+_AGGREGATIONS = {'sum':np.sum, 'avg':np.mean, 'max':np.max, 'min':np.min}
 
 
 def dataparser(item):
@@ -62,13 +64,13 @@ class USCensus_WebAPI(WebAPI):
                 if self.saving: self.save(dataframe, *args, date=date, **kwargs)
             yield dataframe
 
-    def execute(self, *args, geography, **kwargs):
+    def execute(self, *args, geography, agg=None, **kwargs):
         variables = self.__variablewebquery(*args, **kwargs)
         apigeographys = [USCensus_APIGeography(geokey, geovalue) for geokey, geovalue in geography.items()]
         dataframe = self.download(*args, tags=['NAME', *[item.tag for item in variables]], geography=geography, **kwargs)               
         dataframe = dataframe.rename({item.tag:item.concept for item in variables}, axis='columns')  
         dataframe = dataframe.rename({item.apigeography:item.geography for item in apigeographys}, axis='columns') 
-        dataframe = dataframe.rename({'NAME':'geoname'}, axis='columns')                     
+        dataframe = dataframe.rename({'NAME':'geoname'}, axis='columns')                  
         dataframe = self.compile_geography(dataframe, *args, columns=[item.geography for item in apigeographys], **kwargs)
         dataframe = self.compile_variable(dataframe, *args, columns=[item.concept for item in variables], **kwargs)
         dataframe = self.parser(dataframe, *args, **kwargs)

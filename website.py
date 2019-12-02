@@ -76,8 +76,8 @@ class USCensus_Variable(USCensus_Variable_Sgmts):
     
     def strict_variable_match(self, *variables): return any([self.format_variable(item) == self.format_variable(self.variable) for item in variables])
     
-    @keydispatcher('method')
-    def label_match(self, label, method, **kwargs): raise KeyError(method) 
+    @keydispatcher
+    def label_match(self, method, label, **kwargs): raise KeyError(method) 
     @label_match.register('strict')
     def strict_label_match(self, label, **kwargs): return self.format_label(*label) == self.format_label(*self.label)
     @label_match.register('exact')
@@ -95,7 +95,7 @@ class USCensus_Variable(USCensus_Variable_Sgmts):
     
     def match(self, label, method='strict', **kwargs):
         label, variable = label[:-1], label[-1]
-        label_match = self.label_match(label, method=method, **kwargs)
+        label_match = self.label_match(method, label, **kwargs)
         variable_match = any([self.strict_variable_match(variable), variable == _ALL])
         return label_match and variable_match
         

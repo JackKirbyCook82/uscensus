@@ -8,6 +8,7 @@ No cash rent,$0 USD
 {} years and over,>{} YRS
 {} to {} years,{} YRS|{} YRS
 Under {} years,<{} YRS
+{} years,{} YRS
 ,
 Male,Male
 Female,Female
@@ -52,7 +53,7 @@ Rented not occupied,RentedEmpty
 For sale only,ForSale
 Sold not occupied,SoldEmpty
 For seasonal recreational or occasional use,Recreational
-For migrant workers,Migrant
+For migrant workers,Other
 Other vacant,Other
 ,
 Built {} or later,>{}
@@ -68,14 +69,14 @@ No bedroom,0 BEDRMS
 {} bedrooms,{} BEDRMS
 {} or more bedrooms,>{} BEDRMS
 ,
-1 detached,Detached
-1 attached,Attached
+1 detached,House
+1 attached,House
 2,Duplex
 3 or 4,Townhouse
-5 to 9,TownhouseComplex
+5 to 9,Townhouse
 10 to 19,Apartment
-20 to 49,ApartmentComplex
-50 or more,HighDensity
+20 to 49,Apartment
+50 or more,Complex
 Mobile home,MobileHome
 Boat RV van etc.,Vehicle
 ,
@@ -86,13 +87,26 @@ Armed Forces,Soldier
 Employed,Employed
 Unemployed,Unemployed
 ,
+No schooling completed,Uneducated
+Nursery to 4th grade,Uneducated
+5th and 6th grade,Uneducated
+7th and 8th grade,Uneducated
 Less than 9th grade,Uneducated
-"9th to 12th grade, no diploma",MiddleSchool
-High school graduate (includes equivalency),HighSchool
-Some college no degree,SomeCollege
-Associate's degree,Associate
-Bachelor's degree,Bachelor
+9th grade,Uneducated
+10th grade,Uneducated
+11th grade,Uneducated
+12th grade no diploma,Uneducated
+9th to 12th grade no diploma,Uneducated
+High school graduate (includes equivalency),GradeSchool
+Some college less than 1 year,GradeSchool
+Some college 1 or more years no degree,GradeSchool
+"Some college, no degree",GradeSchool
+Associate's degree,Associates
+Bachelor's degree,Bachelors
+Master's degree,Graduate
 Graduate or professional degree,Graduate
+Professional school degree,Graduate
+Doctorate degree,Graduate
 ,
 Management occupations,Management
 Business and financial operations occupations,Business&Finance
@@ -101,12 +115,12 @@ Architecture and engineering occupations,Architecture&Engineering
 "Life, physical, and social science occupations",Science
 Community and social service occupations,Community
 Legal occupations,Legal
-"Educational instruction, and library occupations",Education
+"Education, training, and library occupations",Education
 "Arts, design, entertainment, sports, and media occupations",Entertainment
 Health diagnosing and treating practitioners and other technical occupations,HealthCarePractice
 Health technologists and technicians,HealthCareTechnology
 Healthcare support occupations,HealthCareSupport
-"Firefighting and prevention, and other protective service workers including supervisors",Firefighting&Protective
+"Fire fighting and prevention, and other protective service workers including supervisors",Firefighting&Protective
 Law enforcement workers including supervisors,LawEnforcement
 Food preparation and serving related occupations,FoodPreparation
 Building and grounds cleaning and maintenance occupations,GroundsMaintenance
@@ -140,3 +154,66 @@ Health care and social assistance,Healthcare
 Accommodation and food services,Accommodation
 Public administration,Public
 "Other services, except public administration",Other
+,
+Speak only English,English
+Spanish,Spanish
+French (incl. Cajun),IndoEuro
+Haitian,IndoEuro
+Italian,IndoEuro
+Portuguese,IndoEuro
+German,IndoEuro
+Yiddish Pennsylvania Dutch or other West Germanic languages,IndoEuro
+Greek,IndoEuro
+Russian,IndoEuro
+Polish,IndoEuro
+Serbo-Croatian,IndoEuro
+Ukrainian or other Slavic languages,IndoEuro
+Armenian,IndoEuro
+Persian (incl. Farsi Dari),IndoEuro
+Gujarati,IndoEuro
+Hindi,IndoEuro
+Urdu,IndoEuro
+Punjabi,IndoEuro
+Bengali,IndoEuro
+Nepali Marathi or other Indic languages,IndoEuro
+Other Indo-European languages,IndoEuro
+Telugu,Asian
+Tamil,Asian
+Malayalam Kannada or other Dravidian languages,Asian
+Chinese (incl. Mandarin Cantonese),Asian
+Japanese,Asian
+Korean,Asian
+Hmong,Asian
+Vietnamese,Asian
+Khmer,Asian
+Thai Lao or other Tai-Kadai languages,Asian
+Other languages of Asia,Asian
+Tagalog (incl. Filipino),Pacific
+Ilocano Samoan Hawaiian or other Austronesian languages,Pacific
+Arabic,Arabic
+Hebrew,Arabic
+Amharic Somali or other Afro-Asiatic languages,African
+Yoruba Twi Igbo or other languages of Western Africa,African
+Swahili or other languages of Central Eastern and Southern Africa,African
+Navajo,Native
+Other Native languages of North America,Native
+Other and unspecified languages,Other
+,
+Native,Native
+Foreign,Foreign
+,
+Speak English very well,Fluent
+Speak English well,Well
+Speak English not well,Poor
+Speak English not at all,Inable
+,
+With earnings,Wage|Salary|SelfEmployment
+With wage or salary income,Wage|Salary
+With self-employment income,SelfEmployment
+With interest dividends or net rental income,Interest|Dividends|Rental
+With Social Security income,SocialSecurity
+With Supplemental Security Income (SSI),SSI
+With public assistance income,PAI
+With cash public assistance or Food Stamps/SNAP,PAI|FoodStamp|SNAP
+With retirement income,Retirement
+With other types of income,Other

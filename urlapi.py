@@ -2,7 +2,7 @@
 """
 Created on Wed Nov 30 2018
 @name:   USCensus URLAPI
-@author: Jack Kirby cook
+@author: Jack Kirby Cook
 
 """
 
@@ -14,7 +14,7 @@ from uscensus.website import USCensus_APIGeography
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_ACS_URLAPI']
+__all__ = ['USCensus_ACS_URLAPI', 'USCensus_ACSMigration_URLAPI']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
     
@@ -30,7 +30,7 @@ _preds = lambda preds: [(key, value) for key, value in preds.items()]
 _key = lambda key: [('key', key)]
 
 _forgeo = lambda usgeography: [('for', ':'.join([usgeography.apigeography.replace(' ', _SPACEPROXY), usgeography.value]))]
-_ingeos = lambda usgeographys: [('in', ':'.join([usgeography.apigeography.replace(' ', _SPACEPROXY), usgeography.value])) for usgeography in usgeographys]
+_ingeos = lambda usgeographys: [('in', _SPACEPROXY.join([':'.join([usgeography.apigeography.replace(' ', _SPACEPROXY), usgeography.value]) for usgeography in usgeographys]))]
 
 _datestr = lambda date, dateformat: dateformat.format(year=date.year, month=date.month)
 _enddatestr = lambda date, interval, period, dateformat: dateformat.format(year=(date + interval * period).year, month=(date + interval * period).month)
@@ -68,8 +68,12 @@ class USCensus_ACS_URLAPI:
         return super().path(*args, seriessgmt=seriessgmt, surveysgmt=surveysgmt, **kwargs)   
 
 
-
-
+@USCensus_URLAPI.create('geoseries', 'flows')
+class USCensus_ACSMigration_URLAPI:
+    def path(self, *args, date, **kwargs): 
+        date.setformat('%Y')
+        seriessgmt, surveysgmt = str(date), _filterempty(['acs', 'flows'])
+        return super().path(*args, seriessgmt=seriessgmt, surveysgmt=surveysgmt, **kwargs)   
 
 
 

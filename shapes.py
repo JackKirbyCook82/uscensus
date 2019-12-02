@@ -17,49 +17,49 @@ from uscensus.urlapi import USCensus_APIGeography
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_Shape_URLAPI', 'USCensus_Shape_Downloader', 'USCensus_ShapeAPI']
+__all__ = ['USCensus_Shape_URLAPI', 'USCensus_Shape_Downloader', 'USCensus_Shape_FileAPI']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
 
 
 class USCensus_Shape_URLAPI(URLAPI):
-    def __repr__(self): return '{}()'.format(self.__class__.__name__)  
+    @property
+    def year(self): return self.__year    
+    
+    def __repr__(self): return "{}(date='{}')".format(self.__class__.__name__, self.__year)  
+    def __init__(self, date): self.__year = str(date.year) if hasattr(date, 'year') else str(date)  
     
     def protocol(self, *args, **kwargs): return 'https'
     def domain(self, *args, **kwargs): return 'www2.census.gov'    
     
     def path(self, *args, shape, date, geography, **kwargs): 
         usgeography = USCensus_APIGeography(shape)
-        shapedir = usgeography.shapedir
-        try: year = str(date.year)
-        except: year = str(date)        
+        shapedir = usgeography.shapedir    
         geoids = {'state':str(geography.getvalue('state')), 'county':str(geography.getvalue('state'))+str(geography.getvalue('county'))}
-        shapefile = usgeography.shapefile.format(year=year, **geoids)
-        return ['geo', 'tiger', 'TIGER{year}'.format(year=year), shapedir, shapefile]
+        shapefile = usgeography.shapefile.format(year=self.__year, **geoids)
+        return ['geo', 'tiger', 'TIGER{year}'.format(year=self.__year), shapedir, shapefile]
     
 
 class USCensus_Shape_Downloader(object):
-    def __repr__(self): return '{}(repository={})'.format(self.__class__.__name__, self.__repository)  
-    def __init__(self, repository, urlapi, webreader):
-        self.__urlapi = urlapi
-        self.__webreader = webreader
-        self.__repository = repository       
-        
     @property
     def urlapi(self): return self.__urlapi
     @property
     def webreader(self): return self.__webreader
     @property
-    def repository(self): return self.__repository    
-
-    def directory(self, shape, *args, date, state='', county='', **kwargs): 
+    def repository(self): return self.__repository      
+    
+    def __repr__(self): return "{}(repository='{}')".format(self.__class__.__name__, self.__repository)  
+    def __init__(self, repository, urlapi, webreader):
+        self.__urlapi = urlapi
+        self.__webreader = webreader
+        self.__repository = repository       
+        
+    def directory(self, shape, *args, state='', county='', **kwargs): 
         usgeography = USCensus_APIGeography(shape)
-        try: year = str(date.year)
-        except: year = str(date)
         geoids = {}
         if state: geoids['state'] =  str(state)
         if state and county: geoids['county'] = str(state) + str(county)
-        directoryname = usgeography.shapefile.format(year=year, **geoids)
+        directoryname = usgeography.shapefile.format(year=self.urlapi.year, **geoids)
         return os.path.join(self.repository, directoryname)    
     
     def download(self, shape, *args, **kwargs):
@@ -68,35 +68,36 @@ class USCensus_Shape_Downloader(object):
         shapecontent = zipfile.ZipFile(io.BytesIO(shapezipfile))
         shapecontent.extractall(path=self.directory(*args, shape=shape, **kwargs))    
     
-    def __call__(self, shape, *args, date, geography, **kwargs):
-        self.download(shape, *args, date=date, **geography.asdict(), geography=geography, **kwargs)  
+    def __call__(self, shape, *args, geography, **kwargs):
+        self.download(shape, *args, **geography.asdict(), geography=geography, **kwargs)  
 
     
-class USCensus_ShapeAPI(object):   
+class USCensus_Shape_FileAPI(object):   
     @property
-    def repository(self): return self.__repository         
-    def __repr__(self): return '{}(repository={})'.format(self.__class__.__name__, self.__repository)  
-    def __init__(self, repository): self.__repository = repository       
+    def repository(self): return self.__repository    
+    @property
+    def year(self): return self.__year 
+    
+    def __repr__(self): return "{}(repository='{}', date='{}')".format(self.__class__.__name__, self.__repository, self.__year)  
+    def __init__(self, repository, date): self.__repository, self.__year = repository, str(date.year) if hasattr(date, 'year') else str(date)       
 
     def downloaded(self, shape, *args, **kwargs): return os.path.exists(self.directory(shape, *args, **kwargs))
-    def directory(self, shape, *args, date, state='', county='', **kwargs): 
+    def directory(self, shape, *args, state='', county='', **kwargs): 
         usgeography = USCensus_APIGeography(shape)
-        try: year = str(date.year)
-        except: year = str(date)
         geoids = {}
         if state: geoids['state'] =  str(state)
         if state and county: geoids['county'] = str(state) + str(county)
-        directoryname = usgeography.shapefile.format(year=year, **geoids)
+        directoryname = usgeography.shapefile.format(year=self.__year, **geoids)
         return os.path.join(self.repository, directoryname)       
 
-    def __call__(self, *args, date, geography, **kwargs): 
-        geotable = self.geotable(*args, date=date, geography=geography, **geography.asdict(), **kwargs) 
-        basetable = self.basetable(*args, date=date, geography=geography, **geography.asdict(), **kwargs)   
+    def __call__(self, *args, geography, **kwargs): 
+        geotable = self.geotable(*args, geography=geography, **geography.asdict(), **kwargs) 
+        basetable = self.basetable(*args, geography=geography, **geography.asdict(), **kwargs)   
         return geotable, basetable
     
     def __getitem__(self, shape):        
-        def wrapper(*args, date, geography, **kwargs): 
-            return self.itemtable(shape, *args, date=date, geography=geography, **geography.asdict(), **kwargs)
+        def wrapper(*args, geography, **kwargs): 
+            return self.itemtable(shape, *args, geography=geography, **geography.asdict(), **kwargs)
         return wrapper
 
     def load(self, shape, *args, **kwargs):
