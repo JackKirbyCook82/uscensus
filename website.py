@@ -181,8 +181,8 @@ class USCensus_Geography_WebQuery(USCensus_WebQuery):
         jsondata = self.webreader(str(url), *args, **kwargs)
         return [USCensus_Geography(forgeography=item['name'], geographylevel=item['geoLevelDisplay'], ingeography=item.get('requires', [])) for item in jsondata['fips']]
 
-    def __call__(self, *args, geography, **kwargs):
-        uscensus_geographys = self.download(*args, **kwargs)
+    def __call__(self, *args, geography, date, **kwargs):
+        uscensus_geographys = self.download(*args, date=date, **kwargs)
         return [item for item in uscensus_geographys if item.geography in geography.keys()]
         
 

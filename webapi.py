@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Weds Sept 11 2019
-@name:   USCensus WebAPI
+@name:   USCensus WebAPI Object
 @author: Jack Kirby cook
 
 """
