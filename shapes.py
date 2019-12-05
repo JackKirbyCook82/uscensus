@@ -32,11 +32,7 @@ class USCensus_Shape_URLAPI(object):
     def path(self, *args, shapeID, vintage, geography, **kwargs): 
         usgeography = USCensus_APIGeography(shapeID)
         shapedir = usgeography.shapedir    
-        geoids = {}
-        try: geoids['state'] = str(geography.getvalue('state')) 
-        except: pass
-        try: geoids['county'] = str(geography.getvalue('state')) + str(geography.getvalue('county'))
-        except: pass
+        geoids = {key:geography.values()[0:i+1] for key, i in zip(geography.keys(), range(len(geography.values())))}
         shapefile = usgeography.shapefile.format(year=vintage, **geoids)
         return ZIPPath('geo', 'tiger', 'TIGER{year}'.format(year=vintage), shapedir, shapefile)
     
@@ -60,18 +56,14 @@ class USCensus_Shape_Downloader(object):
         
     def directory(self, *args, shapeID, geography, **kwargs): 
         usgeography = USCensus_APIGeography(shapeID)
-        geoids = {}
-        try: geoids['state'] = str(geography.getvalue('state')) 
-        except: pass
-        try: geoids['county'] = str(geography.getvalue('state')) + str(geography.getvalue('county'))
-        except: pass
+        geoids = {key:geography.values()[0:i+1] for key, i in zip(geography.keys(), range(len(geography.values())))}
         directoryname = usgeography.shapefile.format(year=self.vintage, **geoids)
         return os.path.join(self.repository, directoryname)    
     
     def __call__(self, *args, **kwargs): self.download(*args, **kwargs)      
     def download(self, *args, **kwargs):
         url = self.urlapi(*args, **kwargs)
-        shapezipfile = self.webreader(url, *args, method='get', **kwargs)
+        shapezipfile = self.webreader(url, *args, method='get', datatype='zip', **kwargs)
         shapecontent = zipfile.ZipFile(io.BytesIO(shapezipfile))
         shapecontent.extractall(path=self.directory(*args, **kwargs))    
     
@@ -86,49 +78,25 @@ class USCensus_Shape_FileAPI(object):
     def __init__(self, repository, vintage): self.__repository, self.__vintage = repository, str(vintage.year) if hasattr(vintage, 'year') else str(vintage)       
 
     def downloaded(self, *args, **kwargs): return os.path.exists(self.directory(*args, **kwargs))
+    def load(self, *args, **kwargs): return geodataframe_fromdir(self.directory(*args, **kwargs))   
     def directory(self, *args, shapeID, geography, **kwargs): 
         usgeography = USCensus_APIGeography(shapeID)
-        geoids = {}
-        try: geoids['state'] = str(geography.getvalue('state')) 
-        except: pass
-        try: geoids['county'] = str(geography.getvalue('state')) + str(geography.getvalue('county'))
-        except: pass
+        geoids = {key:geography.values()[0:i+1] for key, i in zip(geography.keys(), range(len(geography.values())))}
         directoryname = usgeography.shapefile.format(year=self.vintage, **geoids)
         return os.path.join(self.repository, directoryname)       
 
-    def __call__(self, *args, **kwargs): 
-        geotable = self.geotable(*args, **kwargs) 
-        basetable = self.basetable(*args, **kwargs)   
-        return geotable, basetable
-    
-    def __getitem__(self, shapeID):        
-        def wrapper(*args, geography, **kwargs): 
-            return self.itemtable(*args, shapeID=shapeID, geography=geography, **kwargs)
-        return wrapper
-
-    def load(self, *args, **kwargs):
-        dataframe = geodataframe_fromdir(self.directory(*args, **kwargs))   
-        return dataframe
-
-    def geotable(self, *args, geography, **kwargs):
-        assert self.downloaded(*args, shapeID=geography.getkey(-1), geography=geography, **kwargs) 
-        geodataframe = self.load(*args, shapeID=geography.getkey(-1), geography=geography, **kwargs)
-        geodataframe = self.__parser(geodataframe, *args, shapeID=geography.getkey(-1), geography=geography, **kwargs)        
+    def __call__(self, *args, shapeID, geography, **kwargs): 
+        assert self.downloaded(*args, shapeID=shapeID, geography=geography, **kwargs)
+        geodataframe = self.load(*args, shapeID=shapeID, geography=geography, **kwargs)
+        if shapeID in geography.keys(): geodataframe = self.__geographyparser(*args, shapeID=shapeID, geography=geography, **kwargs)
+        else: geodataframe = self.__landmarkparser(*args, shapeID=shapeID, geography=geography, **kwargs)
         return geodataframe
     
-    def basetable(self, *args, geography, **kwargs):
-        assert self.downloaded(*args, shapeID=geography.getkey(-2), geography=geography, **kwargs)
-        basedataframe = self.load(*args, shapeID=geography.getkey(-2), geography=geography[:-1], **kwargs)
-        basedataframe = self.__parser(basedataframe, *args, shapeID=geography.getkey(-2), geography=geography[:-1], **kwargs)
-        return basedataframe
+    def __getitem__(self, shapeID):        
+        def wrapper(*args, geography, **kwargs): return self(*args, shapeID=shapeID, geography=geography, **kwargs)
+        return wrapper
 
-    def itemtable(self, *args, **kwargs):
-        assert self.downloaded(*args, **kwargs)
-        shapedataframe = self.load(*args, **kwargs)
-        shapedataframe = self.__itemparser(shapedataframe, *args, **kwargs)
-        return shapedataframe
-
-    def __parser(self, geodataframe, *args, geography, **kwargs):
+    def __geographyparser(self, geodataframe, *args, geography, **kwargs):
         GeographyClass = geography.__class__
         usgeographys = [USCensus_APIGeography(geokey, geovalue) for geokey, geovalue in geography.items()]           
         function = lambda values: str(GeographyClass({key:value for key, value in zip(geography.keys(), values)}))
@@ -141,7 +109,7 @@ class USCensus_Shape_FileAPI(object):
         geodataframe = geodataframe.set_index('geography', drop=True)      
         return geodataframe
     
-    def __itemparser(self, shapedataframe, *args, **kwargs):
+    def __landmarkparser(self, shapedataframe, *args, **kwargs):
         return shapedataframe['geometry']
         
 

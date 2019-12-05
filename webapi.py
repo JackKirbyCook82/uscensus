@@ -82,7 +82,7 @@ class USCensus_WebAPI(object):
 
     def download(self, *args, **kwargs):
         url = self.urlapi(*args, **kwargs)    
-        data = self.webreader(str(url), *args, method='get', **kwargs)
+        data = self.webreader(str(url), *args, method='get', datatype='json', **kwargs)
         dataframe = dataframe_fromjson(data, header=0, forceframe=True)
         return dataframe
 

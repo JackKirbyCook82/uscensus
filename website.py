@@ -151,7 +151,7 @@ class USCensus_Variable_WebQuery(USCensus_WebQuery):
     def download(self, *args, group=None, date, **kwargs):
         if not group: url = self.urlapi(*args, query='variables', filetype='json', date=date, **kwargs)   
         else: url = self.urlapi(*args, query=['groups', group], filetype='json', date=date, **kwargs)   
-        jsondata = self.webreader(str(url), *args, method='get', **kwargs)
+        jsondata = self.webreader(str(url), *args, method='get', datatype='json', **kwargs)
         return [USCensus_Variable(tag=key, group=values['group'], date=date, label=values['label']) for key, values in jsondata['variables'].items()]
 
     def getmatches(self, label, variables, method, **kwargs):

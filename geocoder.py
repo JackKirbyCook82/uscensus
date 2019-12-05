@@ -85,7 +85,7 @@ class USCensus_Geocoder_WebAPI(object):
     @download.register('request')
     def download_request(self, *args, **kwargs):
         url = self.urlapi(*args, query='geographies', **kwargs)
-        data = self.webreader(str(url), *args, method='get', **kwargs)
+        data = self.webreader(str(url), *args, method='get', datatype='json', **kwargs)
         return data
     
     @download.register('file')
@@ -95,7 +95,7 @@ class USCensus_Geocoder_WebAPI(object):
             writer.writerow(list(_APIHEADER))
             for count, address in enumerate(addresses, addressID): writer.writerow([str(count), *address.values()])
             url = self.urlapi(*args, batch='addressbatch', **kwargs)
-            data = self.webreader(url, *args, method='post', data={'benchmark':self.urlapi.version, 'vintage':self.urlapi.vintage}, files={'addressFile':tempcsv}, **kwargs) 
+            data = self.webreader(url, *args, method='post', datatype='csv', data={'benchmark':self.urlapi.version, 'vintage':self.urlapi.vintage}, files={'addressFile':tempcsv}, **kwargs) 
         return data
     
     @parser.register('request')
