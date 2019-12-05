@@ -149,9 +149,9 @@ class USCensus_Variable_WebQuery(USCensus_WebQuery):
         super().__init__(urlapi, webreader)
         
     def download(self, *args, group=None, date, **kwargs):
-        if not group: url = self.urlapi.query(*args, query='variables', filetype='json', date=date, **kwargs)   
-        else: url = self.urlapi.query(*args, query=['groups', group], filetype='json', date=date, **kwargs)   
-        jsondata = self.webreader(str(url), *args, **kwargs)
+        if not group: url = self.urlapi(*args, query='variables', filetype='json', date=date, **kwargs)   
+        else: url = self.urlapi(*args, query=['groups', group], filetype='json', date=date, **kwargs)   
+        jsondata = self.webreader(str(url), *args, method='get', **kwargs)
         return [USCensus_Variable(tag=key, group=values['group'], date=date, label=values['label']) for key, values in jsondata['variables'].items()]
 
     def getmatches(self, label, variables, method, **kwargs):
@@ -177,8 +177,8 @@ class USCensus_Variable_WebQuery(USCensus_WebQuery):
 
 class USCensus_Geography_WebQuery(USCensus_WebQuery):
     def download(self, *args, **kwargs):
-        url = self.urlapi.query(*args, query='geography', filetype='json', **kwargs)
-        jsondata = self.webreader(str(url), *args, **kwargs)
+        url = self.urlapi(*args, query='geography', filetype='json', **kwargs)
+        jsondata = self.webreader(str(url), *args, method='get', **kwargs)
         return [USCensus_Geography(forgeography=item['name'], geographylevel=item['geoLevelDisplay'], ingeography=item.get('requires', [])) for item in jsondata['fips']]
 
     def __call__(self, *args, geography, date, **kwargs):

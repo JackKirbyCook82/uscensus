@@ -6,11 +6,11 @@ Created on Weds Sept 11 2019
 
 """
 
+import os.path
 import pandas as pd
 import numpy as np
 
-from utilities.dataframes import dataframe_fromjson
-from webdata.webapi import WebAPI
+from utilities.dataframes import dataframe_fromjson, dataframe_fromfile, dataframe_tofile
 
 from uscensus.website import USCensus_APIGeography
 
@@ -32,37 +32,41 @@ def dataparser(item):
     except ValueError: return str(item)
 
 
-class USCensus_WebAPI(WebAPI):
+class USCensus_WebAPI(object):
+    def __repr__(self): return "{}(repository='{}', saving='{}')".format(self.__class__.__name__, self.__repository, self.__saving)   
     def __init__(self, repository, urlapi, webreader, geography_webquery, variable_webquery, saving=True):
         self.__urlapi = urlapi
         self.__webreader = webreader
         self.__geographywebquery = geography_webquery
         self.__variablewebquery = variable_webquery
-        super().__init__('USCensus' + urlapi.survey.upper(), repository=repository, saving=saving)
-        
+        self.__repository = repository
+        self.__saving = saving
+       
+    @property
+    def repository(self): return self.__repository
+    @property
+    def saving(self): return self.__saving        
     @property
     def series(self): return self.__urlapi.series
     @property
-    def survey(self): return self.__urlapi.survey
-    
+    def survey(self): return self.__urlapi.survey    
     @property
     def urlapi(self): return self.__urlapi
     @property
     def webreader(self): return self.__webreader
 
+    def load(self, *args, **kwargs): 
+        file = self.file(*args, **kwargs)
+        return dataframe_fromfile(file, index=None, header=0, forceframe=True)        
+    def save(self, webtable, *args, **kwargs): 
+        file = self.file(*args, **kwargs)
+        dataframe_tofile(file, webtable, index=False, header=True)   
+
+    def file(self, *args, **kwargs): return os.path.join(self.repository, self.filename(*args, **kwargs))
     def filename(self, *args, tableID, geography, date, **kwargs):
         filename = _FILENAMES[self.series].format(tableID=tableID, date=date, geoid=geography.geoid)
         filename = filename.replace('|', '_')
         return filename
-
-    def generator(self, *args, dates, **kwargs):
-        for date in dates:
-            date.setformat(_DATEFORMATS[self.series])
-            try: dataframe = self.load(*args, date=date, **kwargs)
-            except FileNotFoundError: 
-                dataframe = self.execute(*args, date=date, **kwargs)  
-                if self.saving: self.save(dataframe, *args, date=date, **kwargs)
-            yield dataframe
 
     def execute(self, *args, geography, agg=None, **kwargs):
         variables = self.__variablewebquery(*args, **kwargs)
@@ -101,8 +105,22 @@ class USCensus_WebAPI(WebAPI):
         dataframe[universe] = dataframe[universe].apply(dataparser)
         return dataframe
 
+    def generator(self, *args, dates, **kwargs):
+        for date in dates:
+            date.setformat(_DATEFORMATS[self.series])
+            try: dataframe = self.load(*args, date=date, **kwargs)
+            except FileNotFoundError: 
+                dataframe = self.execute(*args, date=date, **kwargs)  
+                if self.saving: self.save(dataframe, *args, date=date, **kwargs)
+            yield dataframe
 
-
+    def __call__(self, *args, **kwargs):
+        try: 
+            dataframes = [dataframe for dataframe in self.generator(*args, **kwargs)]           
+            dataframe = pd.concat(dataframes, axis=0)
+            return dataframe
+        except Exception as error:
+           raise error
 
 
 
