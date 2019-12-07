@@ -34,10 +34,9 @@ def dataparser(item):
 
 class USCensus_WebAPI(object):
     def __repr__(self): return "{}(repository='{}', saving='{}')".format(self.__class__.__name__, self.__repository, self.__saving)   
-    def __init__(self, repository, urlapi, webreader, geography_webquery, variable_webquery, saving=True):
+    def __init__(self, repository, urlapi, webreader, variable_webquery, saving=True):
         self.__urlapi = urlapi
         self.__webreader = webreader
-        self.__geographywebquery = geography_webquery
         self.__variablewebquery = variable_webquery
         self.__repository = repository
         self.__saving = saving

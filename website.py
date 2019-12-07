@@ -1,25 +1,26 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Nov 30 2018
-@name:   USCensus Website Standards
+@name:   USCensus Website Objects
 @author: Jack Kirby cook
 
 """
 
-from abc import ABC, abstractmethod
 import os.path
 import json
 import re
 import pandas as pd
 from collections import namedtuple as ntuple
+from collections import OrderedDict as ODict
 from parse import parse
 
+from variables.geography import Geography
 from utilities.dispatchers import clskey_singledispatcher as keydispatcher
-from utilities.dataframes import dataframe_fromfile, dataframe_parser
+from utilities.dataframes import dataframe_fromfile, dataframe_parser, dataframe_fromjson
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_Geography_WebQuery', 'USCensus_Variable_WebQuery', 'USCensus_APIGeography']
+__all__ = ['USCensus_Variable_WebQuery', 'USCensus_APIGeography', 'USCensus_APIVariable']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
     
@@ -50,8 +51,15 @@ _VARIABLES = dataframe_fromfile(os.path.join(_DIR, 'variables.csv'), index=None,
 _VARIABLES = dataframe_parser(_VARIABLES, parsers={'variable':_variableparser}).set_index('variable', drop=True).to_dict()['concept']
 
 
-USCensus_Variable_Sgmts = ntuple('USCensus_Variable_Sgmts', 'tag, group, label variable')
-class USCensus_Variable(USCensus_Variable_Sgmts): 
+USCensus_APIGeography_Sgmts = ntuple('USCensus_APIGeography_Sgmts', 'geography apigeography shapegeography shapedir shapefile value')
+class USCensus_APIGeography(USCensus_APIGeography_Sgmts):
+    def __new__(cls, geokey, geovalue=None):
+        geosgmts = {key:(value if not _isnull(value) else None) for key, value in _GEOGRAPHY[geokey].items()}
+        return super().__new__(cls, geography=geokey, **geosgmts, value=geovalue)  
+
+
+USCensus_Variable_Sgmts = ntuple('USCensus_APIVariable_Sgmts', 'tag, group, label variable')
+class USCensus_APIVariable(USCensus_Variable_Sgmts): 
     def __str__(self): 
         namestr = self.__class__.__name__
         jsonstr = json.dumps(self._asdict(), sort_keys=False, indent=3, separators=(',', ' : '), default=str)      
@@ -98,39 +106,15 @@ class USCensus_Variable(USCensus_Variable_Sgmts):
         label_match = self.label_match(method, label, **kwargs)
         variable_match = any([self.strict_variable_match(variable), variable == _ALL])
         return label_match and variable_match
-        
-
-USCensus_APIGeography_Sgmts = ntuple('USCensus_APIGeography_Sgmts', 'geography apigeography shapegeography shapedir shapefile value')
-class USCensus_APIGeography(USCensus_APIGeography_Sgmts):
-    def __new__(cls, geokey, geovalue=None):
-        geosgmts = {key:(value if not _isnull(value) else None) for key, value in _GEOGRAPHY[geokey].items()}
-        return super().__new__(cls, geography=geokey, **geosgmts, value=geovalue)  
 
 
-USCensus_Geography_Sgmts = ntuple('USCensus_Geography_Sgmts', 'geography required geographylevel')
-class USCensus_Geography(USCensus_Geography_Sgmts): 
-    def __str__(self): 
-        namestr = self.__class__.__name__
-        jsonstr = json.dumps(self._asdict(), sort_keys=False, indent=3, separators=(',', ' : '), default=str)      
-        return ' '.join([namestr, jsonstr])      
-    
-    def __new__(cls, forgeography, geographylevel, ingeography):
-        apigeography = {value['apigeography']:key for key, value in _GEOGRAPHY.items() if value['apigeography']}
-        ingeography = [apigeography[item] for item in ingeography]
-        return super().__new__(cls, forgeography, _aslist(ingeography), geographylevel)
-
-    @property
-    def apigeography(self): return _GEOGRAPHY[self.geography]['apigeography']
-    @property
-    def shapedir(self): return _GEOGRAPHY[self.geography]['shapedir']
-    @property
-    def shapefile(self): return _GEOGRAPHY[self.geography]['shapefile']
-    @property
-    def shapegeography(self): return _GEOGRAPHY[self.geography]['shapegeography']
-
-
-class USCensus_WebQuery(ABC):
-    def __init__(self, urlapi, webreader): self.__urlapi, self.__webreader = urlapi, webreader       
+class USCensus_Variable_WebQuery(object):
+    def __init__(self, urlapi, webreader, tolerance=0):
+        self.__urlapi = urlapi
+        self.__webreader = webreader
+        self.__tolerance = tolerance
+        super().__init__(urlapi, webreader)
+         
     @property
     def series(self): return self.__urlapi.series
     @property
@@ -138,21 +122,13 @@ class USCensus_WebQuery(ABC):
     @property
     def urlapi(self): return self.__urlapi
     @property
-    def webreader(self): return self.__webreader
-    @abstractmethod
-    def download(self, *args, **kwargs): pass
-
-   
-class USCensus_Variable_WebQuery(USCensus_WebQuery):
-    def __init__(self, urlapi, webreader, tolerance=0):
-        self.__tolerance = tolerance
-        super().__init__(urlapi, webreader)
+    def webreader(self): return self.__webreader        
         
     def download(self, *args, group=None, date, **kwargs):
         if not group: url = self.urlapi(*args, query='variables', filetype='json', date=date, **kwargs)   
         else: url = self.urlapi(*args, query=['groups', group], filetype='json', date=date, **kwargs)   
         jsondata = self.webreader(str(url), *args, method='get', datatype='json', **kwargs)
-        return [USCensus_Variable(tag=key, group=values['group'], date=date, label=values['label']) for key, values in jsondata['variables'].items()]
+        return [USCensus_APIVariable(tag=key, group=values['group'], date=date, label=values['label']) for key, values in jsondata['variables'].items()]
 
     def getmatches(self, label, variables, method, **kwargs):
         return [variable for variable in variables if variable.match(label, method=method, **kwargs)]
@@ -175,16 +151,51 @@ class USCensus_Variable_WebQuery(USCensus_WebQuery):
         return [item for item in self.generator(labels, variables)]
 
 
-class USCensus_Geography_WebQuery(USCensus_WebQuery):
-    def download(self, *args, **kwargs):
-        url = self.urlapi(*args, query='geography', filetype='json', **kwargs)
-        jsondata = self.webreader(str(url), *args, method='get', **kwargs)
-        return [USCensus_Geography(forgeography=item['name'], geographylevel=item['geoLevelDisplay'], ingeography=item.get('requires', [])) for item in jsondata['fips']]
+class USCensus_Geography_WebQuery(object):
+    def __init__(self, urlapi, webreader):
+        self.__urlapi = urlapi
+        self.__webreader = webreader
+         
+    @property
+    def series(self): return self.__urlapi.series
+    @property
+    def survey(self): return self.__urlapi.survey   
+    @property
+    def urlapi(self): return self.__urlapi
+    @property
+    def webreader(self): return self.__webreader     
 
-    def __call__(self, *args, geography, date, **kwargs):
-        uscensus_geographys = self.download(*args, date=date, **kwargs)
-        return [item for item in uscensus_geographys if item.geography in geography.keys()]
-        
+    def download(self, *args, **kwargs):
+        url = self.urlapi(*args, tags='NAME', **kwargs)    
+        data = self.webreader(str(url), *args, method='get', datatype='json', **kwargs)
+        return data
+
+    def parser(self, data, *args, **kwargs):
+        dataframe = dataframe_fromjson(data, header=0, forceframe=True)
+        dataframe['NAME'] = dataframe['NAME'].apply(lambda x: x.split(', ')[-1])
+        return dataframe
+
+    def execute(self, *args, **kwargs):
+        data = self.download(*args, **kwargs)
+        dataframe = self.parser(data, *args, **kwargs)
+        return dataframe
+
+    def __call__(self, *args, labels, date, **kwargs):
+        geography = Geography()
+        for geokey, geoname in labels.items():
+            geography = Geography(ODict([(key, value) for key, value in geography.items()] + [(geokey, Geography.allChar)]))
+            geovalue = self.execute(*args, geography=geography, date=date, **kwargs).loc['NAME', geokey]
+            geography = Geography(ODict([(key, geovalue) if key == geokey else (key, value) for key, value in geography.items()]))
+        return geography
+
+
+
+
+
+
+
+
+
 
 
 
