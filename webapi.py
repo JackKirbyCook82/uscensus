@@ -73,7 +73,7 @@ class USCensus_WebAPI(object):
         dataframe = self.download(*args, tags=['NAME', *[item.tag for item in variables]], geography=geography, **kwargs)               
         dataframe = dataframe.rename({item.tag:item.concept for item in variables}, axis='columns')  
         dataframe = dataframe.rename({item.apigeography:item.geography for item in apigeographys}, axis='columns') 
-        dataframe = dataframe.rename({'NAME':'geoname'}, axis='columns')                  
+        dataframe = dataframe.rename({'NAME':'geopath'}, axis='columns')                  
         dataframe = self.compile_geography(dataframe, *args, columns=[item.geography for item in apigeographys], **kwargs)
         dataframe = self.compile_variable(dataframe, *args, columns=[item.concept for item in variables], **kwargs)
         dataframe = self.parser(dataframe, *args, **kwargs)
@@ -86,7 +86,7 @@ class USCensus_WebAPI(object):
         return dataframe
 
     def compile_geography(self, dataframe, *args, columns, **kwargs):
-        dataframe['geoname'] = dataframe['geoname'].apply(lambda geoname: '|'.join(geoname.split(', ')))
+        dataframe['geopath'] = dataframe['geopath'].apply(lambda geoname: '|'.join(geoname.split(', ')))
         dataframe['geography'] = dataframe[columns].apply(lambda values: '|'.join(['='.join([column, value]) for column, value in zip(columns, values)]), axis=1)
         dataframe = dataframe.drop(columns, axis=1)
         return dataframe

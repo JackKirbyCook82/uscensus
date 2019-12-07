@@ -14,7 +14,7 @@ from collections import namedtuple as ntuple
 from collections import OrderedDict as ODict
 from parse import parse
 
-from variables.geography import Geography
+from variables import Geography, Geopath
 from utilities.dispatchers import clskey_singledispatcher as keydispatcher
 from utilities.dataframes import dataframe_fromfile, dataframe_parser, dataframe_fromjson
 
@@ -42,7 +42,8 @@ _variableparser = lambda string: _lowercase(_uncomma(_uncomma_nums(_unspace_nums
 _labelparser = lambda string: _lowercase(_uncomma(_uncomma_nums(_unspace_nums(string))))
 
 _isnull = lambda value: pd.isnull(value) if not isinstance(value, (list, tuple, dict)) else False
-_aslist = lambda items: [item for item in items] if hasattr(items, '__iter__') and not isinstance(items, str) else [items]
+_aslist = lambda items: [items] if not isinstance(items, (list, tuple)) else list(items)
+_filterempty = lambda items: [item for item in _aslist(items) if item]
 
 
 _GEOGRAPHY = dataframe_fromfile(os.path.join(_DIR, 'geography.csv'), index='geography', header=0, forceframe=True).transpose().to_dict()
@@ -170,9 +171,11 @@ class USCensus_Geography_WebQuery(object):
         data = self.webreader(str(url), *args, method='get', datatype='json', **kwargs)
         return data
 
-    def parser(self, data, *args, **kwargs):
+    def parser(self, data, *args, geography, **kwargs):
+        apigeographys = [USCensus_APIGeography(geokey, geovalue) for geokey, geovalue in geography.items()]
         dataframe = dataframe_fromjson(data, header=0, forceframe=True)
         dataframe['NAME'] = dataframe['NAME'].apply(lambda x: x.split(', ')[-1])
+        dataframe = dataframe.rename({item.apigeography:item.geography for item in apigeographys}, axis='columns') 
         return dataframe
 
     def execute(self, *args, **kwargs):
@@ -180,19 +183,19 @@ class USCensus_Geography_WebQuery(object):
         dataframe = self.parser(data, *args, **kwargs)
         return dataframe
 
-    def __call__(self, *args, labels, date, **kwargs):
-        geography = Geography()
-        for geokey, geoname in labels.items():
-            geography = Geography(ODict([(key, value) for key, value in geography.items()] + [(geokey, Geography.allChar)]))
-            geovalue = self.execute(*args, geography=geography, date=date, **kwargs).loc['NAME', geokey]
-            geography = Geography(ODict([(key, geovalue) if key == geokey else (key, value) for key, value in geography.items()]))
-        return geography
-
-
-
-
-
-
+    def generator(self, *args, geopaths, **kwargs):
+        assert all([isinstance(geopath, Geopath) for geopath in geopaths])
+        for geopath in _filterempty([*_aslist(geopaths), *_aslist(kwargs.get('geopath', None))]):
+            geography = Geography()
+            for geokey, geoname in geopath.items():
+                geography = Geography(ODict([(key, value) for key, value in geography.items()] + [(geokey, Geography.allChar)]))
+                geovalue = self.execute(*args, geography=geography, **kwargs).loc['NAME', geokey]
+                geography = Geography(ODict([(key, geovalue) if key == geokey else (key, value) for key, value in geography.items()]))            
+            yield geopath, geography
+       
+    def __call__(self, *args, **kwargs):
+        geodata = [[str(geopath), str(geography)] for geopath, geography in self.generator(*args, **kwargs)]       
+        return pd.DataFrame(geodata, columns=['geopath', 'geography'])
 
 
 
