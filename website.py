@@ -20,7 +20,7 @@ from utilities.dataframes import dataframe_fromfile, dataframe_parser, dataframe
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['USCensus_Variable_WebQuery', 'USCensus_APIGeography', 'USCensus_APIVariable']
+__all__ = ['geographies', 'variables', 'USCensus_Geography_WebQuery', 'USCensus_Variable_WebQuery', 'USCensus_APIGeography', 'USCensus_APIVariable']
 __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
     
@@ -51,13 +51,16 @@ _GEOGRAPHY = {geography:{key:(value if not _isnull(value) else None) for key, va
 _VARIABLES = dataframe_fromfile(os.path.join(_DIR, 'variables.csv'), index=None, header=0, forceframe=True)
 _VARIABLES = dataframe_parser(_VARIABLES, parsers={'variable':_variableparser}).set_index('variable', drop=True).to_dict()['concept']
 
+def geographies(): return list(set(_GEOGRAPHY.keys()))
+def variables(): return list(set(_VARIABLES.values()))
+
 
 USCensus_APIGeography_Sgmts = ntuple('USCensus_APIGeography_Sgmts', 'geography apigeography shapegeography shapedir shapefile value')
 class USCensus_APIGeography(USCensus_APIGeography_Sgmts):
     def __new__(cls, geokey, geovalue=None):
         geosgmts = {key:(value if not _isnull(value) else None) for key, value in _GEOGRAPHY[geokey].items()}
         return super().__new__(cls, geography=geokey, **geosgmts, value=geovalue)  
-
+    
 
 USCensus_Variable_Sgmts = ntuple('USCensus_APIVariable_Sgmts', 'tag, group, label variable')
 class USCensus_APIVariable(USCensus_Variable_Sgmts): 
@@ -114,7 +117,6 @@ class USCensus_Variable_WebQuery(object):
         self.__urlapi = urlapi
         self.__webreader = webreader
         self.__tolerance = tolerance
-        super().__init__(urlapi, webreader)
          
     @property
     def series(self): return self.__urlapi.series

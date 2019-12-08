@@ -86,7 +86,7 @@ class USCensus_WebAPI(object):
         return dataframe
 
     def compile_geography(self, dataframe, *args, columns, **kwargs):
-        dataframe['geopath'] = dataframe['geopath'].apply(lambda geoname: '|'.join(geoname.split(', ')))
+        dataframe['geopath'] = dataframe['geopath'].apply(lambda values: '|'.join(['='.join([column, value]) for column, value in zip(columns, values.split(', ')[::-1])]))        
         dataframe['geography'] = dataframe[columns].apply(lambda values: '|'.join(['='.join([column, value]) for column, value in zip(columns, values)]), axis=1)
         dataframe = dataframe.drop(columns, axis=1)
         return dataframe

@@ -13,7 +13,7 @@ import zipfile
 from webdata.url import URL, Protocol, Domain, ZIPPath
 from utilities.dataframes import geodataframe_fromdir
 
-from uscensus.urlapi import USCensus_APIGeography
+from uscensus.website import USCensus_APIGeography, geographies
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
@@ -23,6 +23,7 @@ __license__ = ""
 
 
 class USCensus_Shape_URLAPI(object):
+    def __repr__(self): return "{}()".format(self.__class__.__name__)    
     def __call__(self, *args, **kwargs): 
         return URL(self.protocol(*args, **kwargs), self.domain(*args, **kwargs), path=self.path(*args, **kwargs))
     
@@ -32,7 +33,7 @@ class USCensus_Shape_URLAPI(object):
     def path(self, *args, shapeID, vintage, geography, **kwargs): 
         usgeography = USCensus_APIGeography(shapeID)
         shapedir = usgeography.shapedir    
-        geoids = {key:geography.values()[0:i+1] for key, i in zip(geography.keys(), range(len(geography.values())))}
+        geoids = {key:''.join(geography.values()[0:i+1]) for key, i in zip(geography.keys(), range(len(geography.values())))}
         shapefile = usgeography.shapefile.format(year=vintage, **geoids)
         return ZIPPath('geo', 'tiger', 'TIGER{year}'.format(year=vintage), shapedir, shapefile)
     
@@ -47,6 +48,9 @@ class USCensus_Shape_Downloader(object):
     @property
     def vintage(self): return self.__vintage 
     
+    @property
+    def shapes(self): return geographies()
+    
     def __repr__(self): return "{}(repository='{}', vintage='{}')".format(self.__class__.__name__, self.repository, self.vintage)  
     def __init__(self, repository, vintage, urlapi, webreader):
         self.__urlapi = urlapi
@@ -56,23 +60,35 @@ class USCensus_Shape_Downloader(object):
         
     def directory(self, *args, shapeID, geography, **kwargs): 
         usgeography = USCensus_APIGeography(shapeID)
-        geoids = {key:geography.values()[0:i+1] for key, i in zip(geography.keys(), range(len(geography.values())))}
+        geoids = {key:''.join(geography.values()[0:i+1]) for key, i in zip(geography.keys(), range(len(geography.values())))}
         directoryname = usgeography.shapefile.format(year=self.vintage, **geoids)
         return os.path.join(self.repository, directoryname)    
     
-    def __call__(self, *args, **kwargs): self.download(*args, **kwargs)      
     def download(self, *args, **kwargs):
-        url = self.urlapi(*args, **kwargs)
+        url = self.urlapi(*args, vintage=self.vintage, **kwargs)
         shapezipfile = self.webreader(url, *args, method='get', datatype='zip', **kwargs)
         shapecontent = zipfile.ZipFile(io.BytesIO(shapezipfile))
-        shapecontent.extractall(path=self.directory(*args, **kwargs))    
+        shapecontent.extractall(path=self.directory(*args, **kwargs))     
     
+    def __call__(self, *args, shapeID, geography, **kwargs): 
+        try: 
+            self.download(*args, shapeID=shapeID, geography=geography, **kwargs)  
+            print('Shape Download Success:')
+            print("Shape='{}' w/ geo='{}'".format(str(shapeID), str(geography)))
+        except Exception as error:
+            print('Shape Download Success:')
+            print("Shape='{}' w/ Geography='{}'".format(str(shapeID), str(geography)))            
+            raise error
+
     
 class USCensus_Shape_FileAPI(object):   
     @property
     def repository(self): return self.__repository    
     @property
     def vintage(self): return self.__vintage
+    
+    @property
+    def shapes(self): return geographies()
     
     def __repr__(self): return "{}(repository='{}', vintage='{}')".format(self.__class__.__name__, self.repository, self.vintage)  
     def __init__(self, repository, vintage): self.__repository, self.__vintage = repository, str(vintage.year) if hasattr(vintage, 'year') else str(vintage)       
@@ -81,7 +97,7 @@ class USCensus_Shape_FileAPI(object):
     def load(self, *args, **kwargs): return geodataframe_fromdir(self.directory(*args, **kwargs))   
     def directory(self, *args, shapeID, geography, **kwargs): 
         usgeography = USCensus_APIGeography(shapeID)
-        geoids = {key:geography.values()[0:i+1] for key, i in zip(geography.keys(), range(len(geography.values())))}
+        geoids = {key:''.join(geography.values()[0:i+1]) for key, i in zip(geography.keys(), range(len(geography.values())))}
         directoryname = usgeography.shapefile.format(year=self.vintage, **geoids)
         return os.path.join(self.repository, directoryname)       
 

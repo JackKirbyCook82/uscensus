@@ -70,13 +70,13 @@ class USCensus_ACS_URLAPI:
         seriessgmt, surveysgmt = str(date), _filterempty(['acs', 'acs{estimate}'.format(estimate=estimate), survey])
         return super().path(*args, seriessgmt=seriessgmt, surveysgmt=surveysgmt, **kwargs)   
 
-
-@USCensus_URLAPI.create('geoseries', 'flows')
-class USCensus_ACSMigration_URLAPI:
-    def path(self, *args, date, **kwargs): 
+    def querypath(self, *args, dataset, date, **kwargs): 
         date.setformat('%Y')
-        seriessgmt, surveysgmt = str(date), _filterempty(['acs', 'flows'])
-        return super().path(*args, seriessgmt=seriessgmt, surveysgmt=surveysgmt, **kwargs)   
+        survey, estimate = dataset.get('survey', None), dataset['estimate'] 
+        seriessgmt, surveysgmt = str(date), _filterempty(['acs', 'acs{estimate}'.format(estimate=estimate), survey])
+        return super().querypath(*args, seriessgmt=seriessgmt, surveysgmt=surveysgmt, **kwargs)   
+
+
 
 
 
