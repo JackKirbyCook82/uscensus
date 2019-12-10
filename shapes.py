@@ -10,7 +10,7 @@ import os.path
 import io
 import zipfile
 
-from webdata.url import URL, Protocol, Domain, ZIPPath
+from webscraping.url import URL, Protocol, Domain, ZIPPath
 from utilities.dataframes import geodataframe_fromdir
 
 from uscensus.website import USCensus_APIGeography, geographies

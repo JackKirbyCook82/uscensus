@@ -12,7 +12,7 @@ import tempfile
 import pandas as pd
 from collections import OrderedDict as ODict
 
-from webdata.url import URL, Protocol, Domain, Path, Parms
+from webscraping.url import URL, Protocol, Domain, Path, Parms
 from utilities.dispatchers import clskey_singledispatcher as keydispatcher
 from utilities.dataframes import dataframe_fromjson, dataframe_fromcsv
 
