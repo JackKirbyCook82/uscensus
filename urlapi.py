@@ -55,10 +55,7 @@ class USCensus_URLAPI(object):
 
     @classmethod
     def create(cls, series, survey):  
-        def wrapper(subclass):
-            name = subclass.__name__
-            bases = (subclass, cls)
-            return type(name, bases, dict(series=series, survey=survey))
+        def wrapper(subclass): return type(subclass.__name__, (subclass, cls), dict(series=series, survey=survey))
         return wrapper 
 
 
@@ -66,14 +63,14 @@ class USCensus_URLAPI(object):
 class USCensus_ACS_URLAPI:
     def path(self, *args, dataset, date, **kwargs): 
         date.setformat('%Y')
-        survey, estimate = dataset.get('survey', None), dataset['estimate'] 
-        seriessgmt, surveysgmt = str(date), _filterempty(['acs', 'acs{estimate}'.format(estimate=estimate), survey])
+        survey, subsurvey, estimate = dataset['survey'], dataset.get('subsurvey', None), dataset['estimate'] 
+        seriessgmt, surveysgmt = str(date), _filterempty([survey, survey + str(estimate), subsurvey])
         return super().path(*args, seriessgmt=seriessgmt, surveysgmt=surveysgmt, **kwargs)   
 
     def querypath(self, *args, dataset, date, **kwargs): 
         date.setformat('%Y')
-        survey, estimate = dataset.get('survey', None), dataset['estimate'] 
-        seriessgmt, surveysgmt = str(date), _filterempty(['acs', 'acs{estimate}'.format(estimate=estimate), survey])
+        survey, subsurvey, estimate = dataset['survey'], dataset.get('subsurvey', None), dataset['estimate'] 
+        seriessgmt, surveysgmt = str(date), _filterempty([survey, survey + str(estimate), subsurvey])
         return super().querypath(*args, seriessgmt=seriessgmt, surveysgmt=surveysgmt, **kwargs)   
 
 

@@ -1,0 +1,16 @@
+tableID,dataset,preds,group,labels,universe,index,header,scope
+,,,,,,,,
+hh|geo|cost@renter,series=geoseries;survey=acs;estimate=5,,B25063,Estimate|Total|With cash rent|*;Estimate|Total|No cash rent,households,geography,cost,tenure=Renter
+hh|geo|cost@owner,series=geoseries;survey=acs;estimate=5,,B25094,Estimate|Total|*,households,geography,cost,tenure=Owner
+hh|geo|cost@owner@mortgage,series=geoseries;survey=acs;estimate=5,,B25087,Estimate|Total|Housing units with a mortgage|*,households,geography,cost,tenure=Owner;status=Primary|Secondary|Tertiary
+hh|geo|cost@owner@equity,series=geoseries;survey=acs;estimate=5,,B25087,Estimate|Total|Housing units without a mortgage|*,households,geography,cost,tenure=Owner;status=Equity
+,,,,,,,,
+hh|geo|inc,series=geoseries;survey=acs;estimate=5,,B19001,Estimate|Total|*,households,geography,income,tenure=Owner|Renter
+hh|geo|inc@renter,series=geoseries;survey=acs;estimate=5,,B25118,Estimate|Total|Renter occupied|*,households,geography,income,tenure=Renter
+hh|geo|inc@owner,series=geoseries;survey=acs;estimate=5,,B25118,Estimate|Total|Owner occupied|*,households,geography,income,tenure=Owner
+,,,,,,,,
+hh|geo|rent@renter,series=geoseries;survey=acs;estimate=5,,B25056,Estimate|Total|With cash rent|*;Estimate|Total|No cash rent,households,geography,rent,tenure=Renter
+hh|geo|val@owner,series=geoseries;survey=acs;estimate=5,,B25075,Estimate|Total|*,households,geography,value,tenure=Owner
+,,,,,,,,
+st|geo|occ,series=geoseries;survey=acs;estimate=5,,B25002,Estimate|Total|*,structures,geography,occupancy,
+st|geo|vac@vacant,series=geoseries;survey=acs;estimate=5,,B25004,Estimate|Total|*,structures,geography,vacancy,occupancy=Vacant
