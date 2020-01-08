@@ -29,7 +29,7 @@ renderer = Renderer(style='double', extend=1)
 calculation = Calculation('uscensus', name='USCensus Calculation')
 calculation += microrvi_calculation
 calculation += macrorvi_calculation
-#calculation()
+calculation()
 
 
 def main(*inputArgs, tableID, **inputParms):     

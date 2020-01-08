@@ -21,20 +21,32 @@ __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
 
-microrvi_calculation = Calculation('microrvi', name='Micro Rent/Value/Inccome USCensus')
-
-
 feed_tables = {
-    'hh|geo|inc@renter': dict(meta=Meta('households', 'geography', 'income', tenure='Renter')),
-    'hh|geo|inc@owner': dict(meta=Meta('households', 'geography', 'income', tenure='Owner')),
-    'hh|geo|cost@renter': dict(meta=Meta('households', 'geography', 'cost', tenure='Renter')),
-    'hh|geo|cost@owner@mortgage': dict(meta=Meta('households', 'geography', 'cost', tenure='Owner', mortgage='Primary|Secondary|Tertiary')),
-    'hh|geo|cost@owner@equity': dict(meta=Meta('households', 'geography', 'cost', tenure='Owner', mortgage='Equity')),
-    'hh|geo|rent@renter': dict(meta=Meta('households', 'geography', 'rent', tenure='Renter')),
-    'hh|geo|val@owner': dict(meta=Meta('households', 'geography', 'value', tenure='Owner')),
-    'hh|geo|ci@renter': dict(meta=Meta('households', 'geography', '%costincome', tenure='Renter')),
-    'hh|geo|ci@owner@mortgage': dict(meta=Meta('households', 'geography', '%costincome', tenure='Owner', mortgage='Primary|Secondary|Tertiary')),
-    'hh|geo|ci@owner@equity': dict(meta=Meta('households', 'geography', '%costincome', tenure='Owner', mortgage='Equity'))}
+    'hh|geo|inc@renter': {
+        'meta': Meta('households', 'geography', 'income', tenure='Renter')},
+    'hh|geo|inc@owner': {
+        'meta': Meta('households', 'geography', 'income', tenure='Owner')},
+    'hh|geo|cost@renter': {
+        'meta': Meta('households', 'geography', 'cost', tenure='Renter')},
+    'hh|geo|cost@owner@mortgage': {
+        'meta': Meta('households', 'geography', 'cost', tenure='Owner', mortgage='Primary|Secondary|Tertiary')},
+    'hh|geo|cost@owner@equity': {
+        'meta': Meta('households', 'geography', 'cost', tenure='Owner', mortgage='Equity')},
+    'hh|geo|rent@renter': {
+        'meta': Meta('households', 'geography', 'rent', tenure='Renter')},
+    'hh|geo|val@owner': {
+        'meta': Meta('households', 'geography', 'value', tenure='Owner')},
+    'hh|geo|ci@renter': {
+        'meta': Meta('households', 'geography', '%costincome', tenure='Renter')},
+    'hh|geo|ci@owner@mortgage': {
+        'meta': Meta('households', 'geography', '%costincome', tenure='Owner', mortgage='Primary|Secondary|Tertiary')},
+    'hh|geo|ci@owner@equity': {
+        'meta': Meta('households', 'geography', '%costincome', tenure='Owner', mortgage='Equity')}}
+
+
+microrvi_calculation =  Calculation('microrvi', name='Micro Rent/Value/Inccome USCensus')
+
+
 @microrvi_calculation.create(**feed_tables)
 def feed_pipeline(tableID, *args, **kwargs):
     queryParms = query(tableID)
