@@ -51,7 +51,7 @@ acs_webapi = USCensus_WebAPI(TABLE_REPOSITORY, acs_urlapi, webreader, acs_variab
 AGGS = {'households':'sum', 'population':'sum', 'structures':'sum'}
 
 
-def acsdetail_feed(*args, tableID, universe, index, header, scope, **kwargs):
+def acsfeed(*args, tableID, universe, index, header, scope, **kwargs):
     dataframe = acs_webapi(*args, tableID=tableID, universe=universe, index=index, header=header, scope=scope, **kwargs)
     dataframe = variable_cleaner(dataframe, *args, **kwargs)
     flattable = tbls.FlatTable(dataframe, variables=variables, name=tableID)
@@ -65,7 +65,7 @@ def main(*inputArgs, tableID, **inputParms):
     print(str(inputparser), '\n')  
     if tableID in query:
         tableParms = query(tableID)
-        arraytable = acsdetail_feed(*inputArgs, tableID=tableID, **tableParms, **inputParms)
+        arraytable = acsfeed(*inputArgs, tableID=tableID, **tableParms, **inputParms)
         print(str(arraytable))
     else: 
         print("{} Table Not Supported: '{}'".format('USCensus', tableID))
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     print(repr(acs_urlapi))
     print(repr(acs_webapi), '\n')  
     
-    sys.argv.extend(['tableID=', 'geography=', 'dates='])
+    sys.argv.extend(['tableID=hh|geo|mort@owner', 'geography=state|48,county|157,tract|*', 'dates=2015,2016,2017'])
     inputparser(*sys.argv[1:])  
     main(*inputparser.inputArgs, **inputparser.inputParms)
 

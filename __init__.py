@@ -15,7 +15,8 @@ from parsers import ListParser, DictParser
 from variables import Geography, Date
 from utilities.inputparsers import InputParser
 
-from uscensus.qtilervi import qtilervi_calculation
+from uscensus.microrvi import microrvi_calculation
+from uscensus.macrorvi import macrorvi_calculation
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
@@ -26,8 +27,9 @@ __license__ = ""
 
 renderer = Renderer(style='double', extend=1)
 calculation = Calculation('uscensus', name='USCensus Calculation')
-calculation.extend(qtilervi_calculation)
-calculation()
+calculation += microrvi_calculation
+calculation += macrorvi_calculation
+#calculation()
 
 
 def main(*inputArgs, tableID, **inputParms):     
@@ -60,7 +62,7 @@ if __name__ == '__main__':
     print(repr(inputparser))
     print(repr(calculation), '\n')  
     
-    sys.argv.extend(['tableID=', 'geography=', 'dates='])
+    sys.argv.extend(['tableID=agginc|geo@owner@mortgage', 'geography=state|48,county|157,tract|*', 'dates=2015,2016,2017'])
     inputparser(*sys.argv[1:])
     main(*inputparser.inputArgs, **inputparser.inputParms)
     

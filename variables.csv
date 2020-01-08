@@ -5,6 +5,11 @@ ${} to ${},${} USD|${} USD
 Less than ${},<${} USD
 No cash rent,$0 USD
 ,
+{} percent or more,>{}%
+{} to {} percent,{}%|{}%
+Less than {} percent,<{}%
+Not computed,0%
+,
 {} years and over,>{} YRS
 {} to {} years,{} YRS|{} YRS
 Under {} years,<{} YRS
