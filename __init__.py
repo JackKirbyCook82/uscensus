@@ -7,16 +7,18 @@ Created on Thu Dec 5 2019
 """
 
 import sys
+import os.path
 
 import tables as tbls
 import visualization as vis
 from tables.processors import Calculation, Renderer
-from parsers import ListParser, DictParser
+from parsers import BoolParser, ListParser, DictParser
 from variables import Geography, Date
 from utilities.inputparsers import InputParser
 
 from uscensus.microrvi import microrvi_calculation
 from uscensus.macrorvi import macrorvi_calculation
+from uscensus.display import MapPlotter
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
@@ -25,11 +27,29 @@ __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
 
+DIR = os.path.dirname(os.path.realpath(__file__))
+ROOT_DIR = os.path.abspath(os.path.join(DIR, os.pardir))
+SHAPE_DIR = os.path.join(ROOT_DIR, 'resources', 'shapefiles')
+EXCEL_FILE = os.path.join(ROOT_DIR, 'USCensusTables.xlsx')
+
 renderer = Renderer(style='double', extend=1)
+mapplotter = MapPlotter(SHAPE_DIR, size=(8,8), vintage=2018, colors='YlGn', roads=True, water=True)
 calculation = Calculation('uscensus', name='USCensus Calculation')
 calculation += microrvi_calculation
 calculation += macrorvi_calculation
 calculation()
+
+
+def display(table, tree, *inputArgs, **inputParms):  
+    if table: print(str(tree))
+    if table: print(str(table)) 
+    if table: print(str(table.variables))  
+
+def create_spreadsheet(table, *inputArgs, spreadsheet=False, **inputParms): 
+    if spreadsheet: table.flatten().toexcel(EXCEL_FILE)
+
+def create_mapplot(table, *inputArgs, mapplot=False, **inputParms): 
+    if mapplot: mapplotter(table, *inputArgs, **inputParms)
 
 
 def main(*inputArgs, tableID, **inputParms):     
@@ -39,10 +59,9 @@ def main(*inputArgs, tableID, **inputParms):
     if tableID in calculation: 
         tree = renderer(calculation[tableID])
         table = calculation[tableID](*inputArgs, **inputParms)
-        if table: 
-            print(str(tree), '\n')
-            print(str(table), '\n')
-            print(str(table.variables))
+        create_spreadsheet(table, *inputArgs, **inputParms)
+        create_mapplot(table, *inputArgs, **inputParms)   
+        display(table, tree, *inputArgs, **inputParms)
     else: print("{} Table Not Supported: '{}'".format(calculation.name, tableID))
     
    
@@ -54,15 +73,22 @@ if __name__ == '__main__':
     
     input_dictparser = DictParser(pattern=',|')
     input_listparser = ListParser(pattern=',')
+    input_boolparser = BoolParser()
     geography_parser = lambda item: Geography(input_dictparser(item))
     dates_parser = lambda item: [Date.fromstr(value, dateformat='%Y') for value in input_listparser(item)] 
-    variable_parsers = {'geography':geography_parser, 'dates':dates_parser}
+    variable_parsers = {'geography':geography_parser, 'dates':dates_parser, 'mapplot':input_boolparser, 'spreadsheet':input_boolparser}
     inputparser = InputParser(assignproxy='=', spaceproxy='_', parsers=variable_parsers)    
     
     print(repr(inputparser))
+    print(repr(renderer))
+    print(repr(mapplotter))
     print(repr(calculation), '\n')  
     
-    sys.argv.extend(['tableID=agginc|geo@owner@mortgage', 'geography=state|48,county|157,tract|*', 'dates=2015,2016,2017'])
+    sys.argv.extend(['tableID=hh|geo',
+                     'mapplot=',
+                     'spreadsheet=',
+                     'geography=state|48,county|157,tract|*,block|*', 
+                     'dates=2015,2016,2017'])
     inputparser(*sys.argv[1:])
     main(*inputparser.inputArgs, **inputparser.inputParms)
     

@@ -16,11 +16,12 @@ hh|geo|ci@renter,series=geoseries;survey=acs;estimate=5,,B25070,Estimate|Total|*
 hh|geo|ci@owner@mortgage,series=geoseries;survey=acs;estimate=5,,B25091,Estimate|Total|Housing units with a mortgage|*,households,geography,%costincome,tenure=Owner;status=Primary|Secondary|Tertiary
 hh|geo|ci@owner@equity,series=geoseries;survey=acs;estimate=5,,B25091,Estimate|Total|Housing units without a mortgage|*,households,geography,%costincome,tenure=Owner;status=Equity
 ,,,,,,,,
+agginc|geo,series=geoseries;survey=acs;estimate=5,,B19313,Estimate|Aggregate income in the past 12 months (in {date} Inflation-adjusted dollars),aggincome,geography,,tenure=Owner|Renter;status=Primary|Secondary|Tertiary|Equity
 agginc|geo@renter,series=geoseries;survey=acs;estimate=5,,B25120,Estimate|Aggregate household income in the past 12 months (in {date} Inflation-adjusted dollars)|Renter occupied,aggincome,geography,,tenure=Renter
 agginc|geo|mort@owner,series=geoseries;survey=acs;estimate=5,,B25120,Estimate|Aggregate household income in the past 12 months (in {date} Inflation-adjusted dollars)|Owner occupied|*,aggincome,geography,mortgage,tenure=Owner
 ,,,,,,,,
-aggcost|geo@renter,series=geoseries;survey=acs;estimate=5,,B25065,Estimate|Aggregate gross rent,aggcost,geography,,tenure=Renter
-aggcost|geo|mort@owner,series=geoseries;survey=acs;estimate=5,,B25089,Estimate|Aggregate selected monthly owner costs (dollars)|Housing units with a mortgage (dollars);Estimate|Aggregate selected monthly owner costs (dollars)|Housing units without a mortgage (dollars),aggcost,geography,mortgage,tenure=Owner
+aggcost|geo@renter,series=geoseries;survey=acs;estimate=5,,B25065,Estimate|Aggregate gross rent,aggrentercost,geography,,tenure=Renter
+aggcost|geo|mort@owner,series=geoseries;survey=acs;estimate=5,,B25089,Estimate|Aggregate selected monthly owner costs (dollars)|Housing units with a mortgage (dollars);Estimate|Aggregate selected monthly owner costs (dollars)|Housing units without a mortgage (dollars),aggownercost,geography,mortgage,tenure=Owner
 ,,,,,,,,
 aggrent|geo@renter,series=geoseries;survey=acs;estimate=5,,B25060,Estimate|Aggregate contract rent,aggrent,geography,,tenure=Renter
 aggval|geo|mort@owner,series=geoseries;survey=acs;estimate=5,,B25082,Estimate|Aggregate value (dollars)|*,aggvalue,geography,mortgage,tenure=Owner

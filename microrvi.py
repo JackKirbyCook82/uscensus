@@ -27,11 +27,11 @@ feed_tables = {
     'hh|geo|inc@owner': {
         'meta': Meta('households', 'geography', 'income', tenure='Owner')},
     'hh|geo|cost@renter': {
-        'meta': Meta('households', 'geography', 'cost', tenure='Renter')},
+        'meta': Meta('households', 'geography', 'rentercost', tenure='Renter')},
     'hh|geo|cost@owner@mortgage': {
-        'meta': Meta('households', 'geography', 'cost', tenure='Owner', mortgage='Primary|Secondary|Tertiary')},
+        'meta': Meta('households', 'geography', 'ownercost', tenure='Owner', mortgage='Primary|Secondary|Tertiary')},
     'hh|geo|cost@owner@equity': {
-        'meta': Meta('households', 'geography', 'cost', tenure='Owner', mortgage='Equity')},
+        'meta': Meta('households', 'geography', 'ownercost', tenure='Owner', mortgage='Equity')},
     'hh|geo|rent@renter': {
         'meta': Meta('households', 'geography', 'rent', tenure='Renter')},
     'hh|geo|val@owner': {

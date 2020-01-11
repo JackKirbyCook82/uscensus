@@ -33,7 +33,8 @@ __license__ = ""
 APIKEY = 'f98e5cb368f964cde784b85a0b22035efc3a3498'
 DIR = os.path.dirname(os.path.realpath(__file__))
 SPECS_FILE = os.path.join(DIR, 'specs.csv')
-TABLE_REPOSITORY = os.path.join(DIR, 'tables')
+ROOT_DIR = os.path.abspath(os.path.join(DIR, os.pardir))
+SAVE_DIR = os.path.join(ROOT_DIR, 'save')
 
 specsparsers = {'databasis': DictorListParser(pattern=';=')}
 specs = specs_fromfile(SPECS_FILE, specsparsers)
@@ -46,7 +47,7 @@ webreader = WebReader(delay=3, headers=headers, retry=retry)
 
 acs_urlapi = USCensus_ACS_URLAPI(APIKEY)
 acs_variable_webquery = USCensus_Variable_WebQuery(acs_urlapi, webreader, tolerance=0)
-acs_webapi = USCensus_WebAPI(TABLE_REPOSITORY, acs_urlapi, webreader, acs_variable_webquery, saving=True)
+acs_webapi = USCensus_WebAPI(SAVE_DIR, acs_urlapi, webreader, acs_variable_webquery, saving=True)
 
 AGGS = {'households':'sum', 'population':'sum', 'structures':'sum'}
 
