@@ -89,7 +89,7 @@ if __name__ == '__main__':
     print(repr(acs_urlapi))
     print(repr(acs_webapi), '\n')  
     
-    sys.argv.extend(['tableID=hh|geo|mort@owner', 'geography=state|48,county|157,tract|*', 'dates=2015,2016,2017'])
+    sys.argv.extend(['tableID=', 'geography=state|48,county|157,tract|*', 'dates=2015,2016,2017'])
     inputparser(*sys.argv[1:])  
     main(*inputparser.inputArgs, **inputparser.inputParms)
 

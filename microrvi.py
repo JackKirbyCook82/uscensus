@@ -8,7 +8,7 @@ Created on Sat Oct 19 2019
 
 import numpy as np
 
-from tables.processors import Calculation, Meta
+from tables.processors import Calculation
 from tables.tables import FlatTable
 
 from uscensus.webquery import query
@@ -22,26 +22,16 @@ __license__ = ""
 
 
 feed_tables = {
-    'hh|geo|inc@renter': {
-        'meta': Meta('households', 'geography', 'income', tenure='Renter')},
-    'hh|geo|inc@owner': {
-        'meta': Meta('households', 'geography', 'income', tenure='Owner')},
-    'hh|geo|cost@renter': {
-        'meta': Meta('households', 'geography', 'rentercost', tenure='Renter')},
-    'hh|geo|cost@owner@mortgage': {
-        'meta': Meta('households', 'geography', 'ownercost', tenure='Owner', mortgage='Primary|Secondary|Tertiary')},
-    'hh|geo|cost@owner@equity': {
-        'meta': Meta('households', 'geography', 'ownercost', tenure='Owner', mortgage='Equity')},
-    'hh|geo|rent@renter': {
-        'meta': Meta('households', 'geography', 'rent', tenure='Renter')},
-    'hh|geo|val@owner': {
-        'meta': Meta('households', 'geography', 'value', tenure='Owner')},
-    'hh|geo|ci@renter': {
-        'meta': Meta('households', 'geography', '%costincome', tenure='Renter')},
-    'hh|geo|ci@owner@mortgage': {
-        'meta': Meta('households', 'geography', '%costincome', tenure='Owner', mortgage='Primary|Secondary|Tertiary')},
-    'hh|geo|ci@owner@equity': {
-        'meta': Meta('households', 'geography', '%costincome', tenure='Owner', mortgage='Equity')}}
+    'hh|geo|inc@renter': {},
+    'hh|geo|inc@owner': {},
+    'hh|geo|cost@renter': {},
+    'hh|geo|cost@owner@mortgage': {},
+    'hh|geo|cost@owner@equity': {},
+    'hh|geo|rent@renter': {},
+    'hh|geo|val@owner': {},
+    'hh|geo|ci@renter': {},
+    'hh|geo|ci@owner@mortgage': {},
+    'hh|geo|ci@owner@equity': {}}
 
 
 microrvi_calculation =  Calculation('microrvi', name='Micro Rent/Value/Inccome USCensus')

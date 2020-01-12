@@ -6,17 +6,17 @@ hh|geo|inc@owner,series=geoseries;survey=acs;estimate=5,,B25118,Estimate|Total|O
 ,,,,,,,,
 hh|geo|cost@renter,series=geoseries;survey=acs;estimate=5,,B25063,Estimate|Total|With cash rent|*;Estimate|Total|No cash rent,households,geography,cost,tenure=Renter
 hh|geo|cost@owner,series=geoseries;survey=acs;estimate=5,,B25094,Estimate|Total|*,households,geography,cost,tenure=Owner
-hh|geo|cost@owner@mortgage,series=geoseries;survey=acs;estimate=5,,B25087,Estimate|Total|Housing units with a mortgage|*,households,geography,cost,tenure=Owner;status=Primary|Secondary|Tertiary
-hh|geo|cost@owner@equity,series=geoseries;survey=acs;estimate=5,,B25087,Estimate|Total|Housing units without a mortgage|*,households,geography,cost,tenure=Owner;status=Equity
+hh|geo|cost@owner@mortgage,series=geoseries;survey=acs;estimate=5,,B25087,Estimate|Total|Housing units with a mortgage|*,households,geography,cost,tenure=Owner;mortgage=Primary|Secondary|Tertiary
+hh|geo|cost@owner@equity,series=geoseries;survey=acs;estimate=5,,B25087,Estimate|Total|Housing units without a mortgage|*,households,geography,cost,tenure=Owner;mortgage=Equity
 ,,,,,,,,
 hh|geo|rent@renter,series=geoseries;survey=acs;estimate=5,,B25056,Estimate|Total|With cash rent|*;Estimate|Total|No cash rent,households,geography,rent,tenure=Renter
 hh|geo|val@owner,series=geoseries;survey=acs;estimate=5,,B25075,Estimate|Total|*,households,geography,value,tenure=Owner
 ,,,,,,,,
 hh|geo|ci@renter,series=geoseries;survey=acs;estimate=5,,B25070,Estimate|Total|*,households,geography,%costincome,tenure=Renter
-hh|geo|ci@owner@mortgage,series=geoseries;survey=acs;estimate=5,,B25091,Estimate|Total|Housing units with a mortgage|*,households,geography,%costincome,tenure=Owner;status=Primary|Secondary|Tertiary
-hh|geo|ci@owner@equity,series=geoseries;survey=acs;estimate=5,,B25091,Estimate|Total|Housing units without a mortgage|*,households,geography,%costincome,tenure=Owner;status=Equity
+hh|geo|ci@owner@mortgage,series=geoseries;survey=acs;estimate=5,,B25091,Estimate|Total|Housing units with a mortgage|*,households,geography,%costincome,tenure=Owner;mortgage=Primary|Secondary|Tertiary
+hh|geo|ci@owner@equity,series=geoseries;survey=acs;estimate=5,,B25091,Estimate|Total|Housing units without a mortgage|*,households,geography,%costincome,tenure=Owner;mortgage=Equity
 ,,,,,,,,
-agginc|geo,series=geoseries;survey=acs;estimate=5,,B19313,Estimate|Aggregate income in the past 12 months (in {date} Inflation-adjusted dollars),aggincome,geography,,tenure=Owner|Renter;status=Primary|Secondary|Tertiary|Equity
+agginc|geo,series=geoseries;survey=acs;estimate=5,,B19313,Estimate|Aggregate income in the past 12 months (in {date} Inflation-adjusted dollars),aggincome,geography,,tenure=Owner|Renter;mortgage=Primary|Secondary|Tertiary|Equity
 agginc|geo@renter,series=geoseries;survey=acs;estimate=5,,B25120,Estimate|Aggregate household income in the past 12 months (in {date} Inflation-adjusted dollars)|Renter occupied,aggincome,geography,,tenure=Renter
 agginc|geo|mort@owner,series=geoseries;survey=acs;estimate=5,,B25120,Estimate|Aggregate household income in the past 12 months (in {date} Inflation-adjusted dollars)|Owner occupied|*,aggincome,geography,mortgage,tenure=Owner
 ,,,,,,,,
