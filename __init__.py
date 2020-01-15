@@ -33,7 +33,7 @@ SHAPE_DIR = os.path.join(ROOT_DIR, 'resources', 'shapefiles')
 EXCEL_FILE = os.path.join(ROOT_DIR, 'USCensusTables.xlsx')
 
 renderer = Renderer(style='double', extend=1)
-mapplotter = MapPlotter(SHAPE_DIR, size=(16,8), vintage=2018, colors='YlGn', roads=True, water=True)
+mapplotter = MapPlotter(SHAPE_DIR, size=(8,8), vintage=2018, colors='YlGn', roads=True)
 calculation = Calculation('uscensus', name='USCensus Calculation')
 calculation += microrvi_calculation
 calculation += macrorvi_calculation
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     sys.argv.extend(['tableID=avginc|geo',
                      'mapplot=True',
                      'spreadsheet=False',
-                     'geography=state|06,county|029,tract|*,block|*', 
+                     'geography=state|48,county|157,tract|*,block|*', 
                      'dates=2015,2016,2017'])
     inputparser(*sys.argv[1:])
     main(*inputparser.inputArgs, **inputparser.inputParms)

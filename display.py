@@ -19,13 +19,13 @@ __license__ = ""
 
 
 class MapPlotter(object):
-    def __repr__(self): return "{}(repository='{}', size={}, vintage='{}', colors='{}', roads={}, water={})".format(self.__class__.__name__, self.__repository, self.__size, self.__vintage, self.__colors, self.__roads, self.__water)          
+    def __repr__(self): return "{}(repository='{}', size={}, vintage='{}', colors='{}', roads={})".format(self.__class__.__name__, self.__repository, self.__size, self.__vintage, self.__colors, self.__roads)          
     def __init__(self, repository, size=(8,8), vintage=2018, colors='YlGn', roads=True, water=True):
         self.__repository = repository
         self.__size = size
         self.__colors = colors
         self.__vintage = str(vintage)
-        self.__roads, self.__water = roads, water
+        self.__roads = roads
         
     def __geographyparser(self, geodataframe, *args, geography, **kwargs):
         GeographyClass = geography.__class__
@@ -46,8 +46,9 @@ class MapPlotter(object):
         data = table.flatten().toseries(datakey, index='geography')
         span = table.spans[datakey]
           
-        geo , basegeo = self.geo_dataframe(geography, *args, **kwargs),  self.basegeo_dataframe(geography, *args, **kwargs)
-        features = {'roads':self.feature_dataframe('primaryroad', geography, *args, **kwargs), 'water':self.feature_dataframe('water', geography, *args, **kwargs)}
+        geo = self.geo_dataframe(geography, *args, **kwargs)
+        basegeo = self.basegeo_dataframe(geography, *args, **kwargs)
+        features = {'roads':self.feature_dataframe('primaryroad', geography, *args, **kwargs)}
     
         fig = vis.figures.createplot(self.__size, title=table.name)   
         ax = vis.figures.createax(fig, x=1, y=1, pos=1)
