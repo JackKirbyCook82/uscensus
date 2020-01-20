@@ -41,7 +41,7 @@ specs = specs_fromfile(SPECS_FILE, specsparsers)
 variables = Variables.create(**specs, name='USCensus')
 variable_cleaner = USCensus_Variable_Cleaner(variables)
 
-headers = {'USER_AGENT':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'}
+headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'}
 retry = {'retries':3, 'backoff':0.3, 'httpcodes':(500, 502, 504)}
 webreader = WebReader(delay=3, headers=headers, retry=retry)
 
