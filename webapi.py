@@ -6,11 +6,10 @@ Created on Weds Sept 11 2019
 
 """
 
-import os.path
 import pandas as pd
 import numpy as np
 
-from utilities.dataframes import dataframe_fromjson, dataframe_fromfile, dataframe_tofile
+from utilities.dataframes import dataframe_fromjson
 
 from uscensus.website import USCensus_APIGeography
 
@@ -33,35 +32,15 @@ def dataparser(item):
 
 
 class USCensus_WebAPI(object):
-    def __repr__(self): return "{}(repository='{}', saving='{}')".format(self.__class__.__name__, self.__repository, self.__saving)   
-    def __init__(self, repository, urlapi, webreader, variable_webquery, saving=True):
-        self.__urlapi = urlapi
-        self.__webreader = webreader
+    def __init__(self, *args, variable_webquery, **kwargs):
         self.__variablewebquery = variable_webquery
-        self.__repository = repository
-        self.__saving = saving
-       
-    @property
-    def repository(self): return self.__repository
-    @property
-    def saving(self): return self.__saving        
+        super().__init__(*args, **kwargs)
+             
     @property
     def series(self): return self.__urlapi.series
     @property
     def survey(self): return self.__urlapi.survey    
-    @property
-    def urlapi(self): return self.__urlapi
-    @property
-    def webreader(self): return self.__webreader
 
-    def load(self, *args, **kwargs): 
-        file = self.file(*args, **kwargs)
-        return dataframe_fromfile(file, index=None, header=0, forceframe=True)        
-    def save(self, webtable, *args, **kwargs): 
-        file = self.file(*args, **kwargs)
-        dataframe_tofile(file, webtable, index=False, header=True)   
-
-    def file(self, *args, **kwargs): return os.path.join(self.repository, self.filename(*args, **kwargs))
     def filename(self, *args, tableID, geography, date, **kwargs):
         filename = _FILENAMES[self.series].format(tableID=tableID, date=date, geoid=geography.geoid)
         filename = filename.replace('|', '_')

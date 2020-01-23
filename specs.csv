@@ -47,7 +47,7 @@ vacancy,vacancy,category,ForRent;RentedEmpty;ForSale;SoldEmpty;Recreational;Othe
 year,year,range,precision=0
 rooms,rooms,range,unit=RMS;precision=0
 bedrooms,bedrooms,range,unit=BEDRMS;precision=0
-units,units,category,House;Duplex;Townhouse;Apartment;Complex;MobileHome;Vehicle
+unit,unit,category,House;Duplex;Townhouse;Apartment;Complex;MobileHome;Vehicle
 ,,,
 laborstatus,laborstatus,category,Participating;NonParticipating
 laborforce,laborforce,category,Civilian;Soldier

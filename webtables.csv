@@ -38,7 +38,7 @@ hh|geo|mort@owner,series=geoseries;survey=acs;estimate=5,,B25081,Estimate|Total|
 st|geo|yr,series=geoseries;survey=acs;estimate=5,,B25034,Estimate|Total|*,structures,geography,year,occupancy=Occupied|Vacant
 st|geo|rm,series=geoseries;survey=acs;estimate=5,,B25017,Estimate|Total|*,structures,geography,rooms,occupancy=Occupied|Vacant
 st|geo|br,series=geoseries;survey=acs;estimate=5,,B25041,Estimate|Total|*,structures,geography,bedrooms,occupancy=Occupied|Vacant
-st|geo|unit,series=geoseries;survey=acs;estimate=5,,B25024,Estimate|Total|*,structures,geography,units,occupancy=Occupied|Vacant
+st|geo|unit,series=geoseries;survey=acs;estimate=5,,B25024,Estimate|Total|*,structures,geography,unit,occupancy=Occupied|Vacant
 st|geo|occ,series=geoseries;survey=acs;estimate=5,,B25002,Estimate|Total|*,structures,geography,occupancy,
 st|geo|vac@vacant,series=geoseries;survey=acs;estimate=5,,B25004,Estimate|Total|*,structures,geography,vacancy,occupancy=Vacant
 ,,,,,,,,

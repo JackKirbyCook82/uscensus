@@ -44,7 +44,6 @@ variable_cleaner = USCensus_Variable_Cleaner(variables)
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'}
 retry = {'retries':3, 'backoff':0.3, 'httpcodes':(500, 502, 504)}
 webreader = WebReader(delay=3, headers=headers, retry=retry)
-
 acs_urlapi = USCensus_ACS_URLAPI(APIKEY)
 acs_variable_webquery = USCensus_Variable_WebQuery(acs_urlapi, webreader, tolerance=0)
 acs_webapi = USCensus_WebAPI(SAVE_DIR, acs_urlapi, webreader, acs_variable_webquery, saving=True)
@@ -89,7 +88,9 @@ if __name__ == '__main__':
     print(repr(acs_urlapi))
     print(repr(acs_webapi), '\n')  
     
-    sys.argv.extend(['tableID=', 'geography=state|48,county|157,tract|*', 'dates=2015,2016,2017'])
+    sys.argv.extend(['tableID=', 
+                     'geography=state|48,county|157,tract|*', 
+                     'dates=2015,2016,2017'])
     inputparser(*sys.argv[1:])  
     main(*inputparser.inputArgs, **inputparser.inputParms)
 
