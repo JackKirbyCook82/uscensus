@@ -38,7 +38,9 @@ SAVE_DIR = os.path.join(ROOT_DIR, 'save')
 
 specsparsers = {'databasis': DictorListParser(pattern=';=')}
 specs = specs_fromfile(SPECS_FILE, specsparsers)
-variables = Variables.create(**specs, name='USCensus')
+custom_variables = Variables.create(**specs, name='USCensus')
+noncustom_variables = Variables.load('date', 'geography', name='USCensus')
+variables = custom_variables.update(noncustom_variables)
 variable_cleaner = USCensus_Variable_Cleaner(variables)
 
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'}
@@ -76,10 +78,11 @@ if __name__ == '__main__':
     tbls.set_options(linewidth=110, maxrows=40, maxcolumns=10, threshold=100, precision=3, fixednotation=True, framechar='=')
     tbls.show_options()
     
-    input_dictparser = DictParser(pattern=',|')
-    input_listparser = ListParser(pattern=',')
-    geography_parser = lambda item: Geography(input_dictparser(item))
-    dates_parser = lambda item: [Date.fromstr(value, dateformat='%Y') for value in input_listparser(item)] 
+    dictparser = DictParser(pattern=',|')
+    listparser = ListParser(pattern=',')
+    geography_parser = lambda item: Geography(dictparser(item))
+    dates_parser = lambda items: [Date.fromstr(item) for item in listparser(items)]
+    date_parser = lambda item: Date.fromstr(item) if item else None
     variable_parsers = {'geography':geography_parser, 'dates':dates_parser}
     inputparser = InputParser(assignproxy='=', spaceproxy='_', parsers=variable_parsers)
     
@@ -90,7 +93,8 @@ if __name__ == '__main__':
     
     sys.argv.extend(['tableID=', 
                      'geography=state|48,county|157,tract|*', 
-                     'dates=2015,2016,2017'])
+                     'dates=2015,2016,2017',
+                     'date=2018'])
     inputparser(*sys.argv[1:])  
     main(*inputparser.inputArgs, **inputparser.inputParms)
 

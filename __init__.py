@@ -71,12 +71,11 @@ if __name__ == '__main__':
     tbls.show_options()
     vis.show_options()
     
-    input_dictparser = DictParser(pattern=',|')
-    input_listparser = ListParser(pattern=',')
-    input_boolparser = BoolParser()
-    geography_parser = lambda item: Geography(input_dictparser(item))
-    dates_parser = lambda item: [Date.fromstr(value, dateformat='%Y') for value in input_listparser(item)] 
-    variable_parsers = {'geography':geography_parser, 'dates':dates_parser, 'mapplot':input_boolparser, 'spreadsheet':input_boolparser}
+    boolparser, listparser, dictparser = BoolParser(), ListParser(pattern=','), DictParser(pattern=',|')
+    geography_parser = lambda item: Geography(dictparser(item))
+    dates_parser = lambda items: [Date.fromstr(item) for item in listparser(items)]
+    date_parser = lambda item: Date.fromstr(item) if item else None
+    variable_parsers = {'geography':geography_parser, 'dates':dates_parser, 'date':date_parser, 'mapplot':boolparser, 'spreadsheet':boolparser}
     inputparser = InputParser(assignproxy='=', spaceproxy='_', parsers=variable_parsers)    
     
     print(repr(inputparser))
@@ -88,7 +87,8 @@ if __name__ == '__main__':
                      'mapplot=True',
                      'spreadsheet=False',
                      'geography=state|48,county|157,tract|*,block|*', 
-                     'dates=2015,2016,2017'])
+                     'dates=2015,2016,2017',
+                     'date=2018'])
     inputparser(*sys.argv[1:])
     main(*inputparser.inputArgs, **inputparser.inputParms)
     

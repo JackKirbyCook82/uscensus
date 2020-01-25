@@ -24,6 +24,9 @@ _FILENAMES = {'geoseries':'{tableID}_{date}_{geoid}.csv'}
 _DATEFORMATS = {'geoseries':'%Y', 'yearseries':'%Y', 'timeseries':'%Y-%m'}
 _AGGREGATIONS = {'sum':np.sum, 'avg':np.mean, 'max':np.max, 'min':np.min}
 
+_aslist = lambda items: [item for item in items] if hasattr(items, '__iter__') and not isinstance(items, str) else [items]
+_filterlist = lambda items: [item for item in _aslist(items) if item]
+
 
 def dataparser(item):
     if pd.isnull(item): return item
@@ -83,8 +86,8 @@ class USCensus_WebAPI(object):
         dataframe[universe] = dataframe[universe].apply(dataparser)
         return dataframe
 
-    def generator(self, *args, dates, **kwargs):
-        for date in dates:
+    def generator(self, *args, dates=[], **kwargs):
+        for date in _filterlist([*_aslist(dates), kwargs.get('date', None)]):
             date.setformat(_DATEFORMATS[self.series])
             try: dataframe = self.load(*args, date=date, **kwargs)
             except FileNotFoundError: 
