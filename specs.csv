@@ -8,7 +8,7 @@ population,population,num,unit=PPL;precision=0
 %structures,structures/structures,num,unit=ST/ST;multiplier=%;precision=1
 %population,population/population,num,unit=PPL/PPL;multiplier=%;precision=1
 ,,,
-incometype,incometype,category,Wage;Salary;SelfEmployment;Interest;Dividends;Rental;SocialSecurity;SSI;PAI;FoodStamp;SNAP;Retirement;Other
+incometype,incometype,category,Earnings;Dividends;Welfare;Retirement;Other
 ,,,
 income,income,range,heading=$;unit=USD;multiplier=K;precision=0
 rent,rent,range,heading=$;unit=USD;precision=0
@@ -47,9 +47,9 @@ vacancy,vacancy,category,ForRent;RentedEmpty;ForSale;SoldEmpty;Recreational;Othe
 year,year,range,precision=0
 rooms,rooms,range,unit=RMS;precision=0
 bedrooms,bedrooms,range,unit=BEDRMS;precision=0
-unit,unit,category,House;Duplex;Townhouse;Apartment;Complex;MobileHome;Vehicle
+unit,unit,category,House;Duplex;Townhouse;SplitHouse;Condo;Apartment;Complex;MobileHome;Vehicle
 ,,,
-laborstatus,laborstatus,category,Participating;NonParticipating
+laborstatus,laborstatus,category,Working;NonWorking
 laborforce,laborforce,category,Civilian;Soldier
 employstatus,employstatus,category,Employed;Unemployed
 ,,,

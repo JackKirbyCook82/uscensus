@@ -75,20 +75,20 @@ No bedroom,0 BEDRMS
 {} or more bedrooms,>{} BEDRMS
 ,
 1 detached,House
-1 attached,House
-2,Duplex
-3 or 4,Townhouse
-5 to 9,Townhouse
-10 to 19,Apartment
+1 attached,Duplex|Townhouse
+2,SplitHouse
+3 or 4,SplitHouse
+5 to 9,Condo
+10 to 19,Condo
 20 to 49,Apartment
 50 or more,Complex
 Mobile home,MobileHome
 Boat RV van etc.,Vehicle
 ,
-In labor force,Participating
-Not in labor force,NonParticipating
+In labor force,Working
+Not in labor force,NonWorking
 Civilian labor force,Civilian
-Armed Forces,Soldier
+Armed Forces,Military
 Employed,Employed
 Unemployed,Unemployed
 ,
@@ -212,13 +212,13 @@ Speak English well,Well
 Speak English not well,Poor
 Speak English not at all,Inable
 ,
-With earnings,Wage|Salary|SelfEmployment
-With wage or salary income,Wage|Salary
-With self-employment income,SelfEmployment
-With interest dividends or net rental income,Interest|Dividends|Rental
-With Social Security income,SocialSecurity
-With Supplemental Security Income (SSI),SSI
-With public assistance income,PAI
-With cash public assistance or Food Stamps/SNAP,PAI|FoodStamp|SNAP
+With earnings,Earnings
+With wage or salary income,Earnings
+With self-employment income,Earnings
+With interest dividends or net rental income,Dividends
+With Social Security income,Retirement
+With Supplemental Security Income (SSI),Welfare
+With public assistance income,Welfare
+With cash public assistance or Food Stamps/SNAP,Welfare
 With retirement income,Retirement
 With other types of income,Other

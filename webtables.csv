@@ -8,10 +8,10 @@ agginc|geo,series=geoseries;survey=acs;estimate=5,,B19313,Estimate|Aggregate inc
 agginc|geo@renter,series=geoseries;survey=acs;estimate=5,,B25120,Estimate|Aggregate household income in the past 12 months (in {date} Inflation-adjusted dollars)|Renter occupied,aggincome,geography,,tenure=Renter
 agginc|geo|mort@owner,series=geoseries;survey=acs;estimate=5,,B25120,Estimate|Aggregate household income in the past 12 months (in {date} Inflation-adjusted dollars)|Owner occupied|*,aggincome,geography,mortgage,tenure=Owner
 ,,,,,,,,
-agginc|geo@wage@salary,series=geoseries;survey=acs;estimate=5,,B19062,Estimate|Aggregate wage or salary income in the past 12 months (in {date} Inflation-adjusted dollars),aggincome,geography,,incometype=Wage|Salary
-agginc|geo@self,series=geoseries;survey=acs;estimate=5,,B19063,Estimate|Aggregate self-employment income in the past 12 months (in {date} Inflation-adjusted dollars),aggincome,geography,,incometype=SelfEmployment
-agginc|geo@int@div@rental,series=geoseries;survey=acs;estimate=5,,B19064,Estimate|Aggregate interest dividends or net rental income in the past 12 months (in {date} Inflation-adjusted dollars),aggincome,geography,,incometype=Interest|Dividends|Rental
-agginc|geo@retire,series=geoseries;survey=acs;estimate=5,,B19069,Estimate|Aggregate retirement income in the past 12 months (in {date} Inflation-adjusted dollars),aggincome,geography,,incometype=Retirement
+agginc|geo@earn,series=geoseries;survey=acs;estimate=5,,B19062,Estimate|Aggregate wage or salary income in the past 12 months (in {date} Inflation-adjusted dollars),aggincome,geography,,incometype=Earnings
+agginc|geo@div,series=geoseries;survey=acs;estimate=5,,B19064,Estimate|Aggregate interest dividends or net rental income in the past 12 months (in {date} Inflation-adjusted dollars),aggincome,geography,,incometype=Dividends
+agginc|geo@retire,series=geoseries;survey=acs;estimate=5,,B19069,Estimate|Aggregate retirement income in the past 12 months (in {date} Inflation-adjusted dollars),aggincome,geography,,incometype=Welfare
+agginc|geo@welfare,,,,,,,,incometype=Retirement
 agginc|geo@other,series=geoseries;survey=acs;estimate=5,,B19070,Estimate|Aggregate other types of income in the past 12 months (in {date} Inflation-adjusted dollars),aggincome,geography,,incometype=Other
 ,,,,,,,,
 hh|geo|cost@renter,series=geoseries;survey=acs;estimate=5,,B25063,Estimate|Total|With cash rent|*;Estimate|Total|No cash rent,households,geography,cost,tenure=Renter

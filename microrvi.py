@@ -21,20 +21,10 @@ __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
 
-feed_tables = {
-    'hh|geo|inc@renter': {},
-    'hh|geo|inc@owner': {},
-    'hh|geo|cost@renter': {},
-    'hh|geo|cost@owner@mortgage': {},
-    'hh|geo|cost@owner@equity': {},
-    'hh|geo|rent@renter': {},
-    'hh|geo|val@owner': {},
-    'hh|geo|ci@renter': {},
-    'hh|geo|ci@owner@mortgage': {},
-    'hh|geo|ci@owner@equity': {}}
+microrvi_calculation = Calculation('microrvi', name='Micro Rent/Value/Inccome USCensus')
 
 
-microrvi_calculation =  Calculation('microrvi', name='Micro Rent/Value/Inccome USCensus')
+feed_tables = {}
 
 
 @microrvi_calculation.create(**feed_tables)
