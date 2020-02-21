@@ -48,7 +48,7 @@ retry = {'retries':3, 'backoff':0.3, 'httpcodes':(500, 502, 504)}
 webreader = WebReader(delay=3, headers=headers, retry=retry)
 acs_urlapi = USCensus_ACS_URLAPI(APIKEY)
 acs_variable_webquery = USCensus_Variable_WebQuery(acs_urlapi, webreader, tolerance=0)
-acs_webapi = USCensus_WebAPI(SAVE_DIR, acs_urlapi, webreader, acs_variable_webquery, saving=True)
+acs_webapi = USCensus_WebAPI(SAVE_DIR, acs_urlapi, webreader, variable_webquery=acs_variable_webquery, saving=True)
 
 AGGS = {'households':'sum', 'population':'sum', 'structures':'sum'}
 
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     print(repr(acs_webapi), '\n')  
     
     sys.argv.extend(['tableID=', 
-                     'geography=state|48,county|157,tract|*', 
+                     'geography=state|48,county|157,tract|*,block|*', 
                      'dates=2015,2016,2017',
                      'date=2018'])
     inputparser(*sys.argv[1:])  

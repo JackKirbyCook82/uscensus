@@ -60,3 +60,6 @@ industry,industry,category,Agriculture;Resources;Construction;Manufacturing;Whol
 language,language,category,English;Spanish;IndoEuro;Asian;Pacific;African;Native;Arabic;Other
 nativity,nativity,category,Native;Foreign
 english,english,category,Fluent;Well;Poor;Inable
+,,,
+size,size,range,unit=PPL/HH;precision=0
+children,children,category,W/Children;W/OChildren

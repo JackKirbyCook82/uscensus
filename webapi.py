@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 
 from utilities.dataframes import dataframe_fromjson
+from webscraping.webapi import WebAPI
 
 from uscensus.website import USCensus_APIGeography
 
@@ -34,15 +35,15 @@ def dataparser(item):
     except ValueError: return str(item)
 
 
-class USCensus_WebAPI(object):
+class USCensus_WebAPI(WebAPI):
     def __init__(self, *args, variable_webquery, **kwargs):
         self.__variablewebquery = variable_webquery
         super().__init__(*args, **kwargs)
              
     @property
-    def series(self): return self.__urlapi.series
+    def series(self): return self.urlapi.series
     @property
-    def survey(self): return self.__urlapi.survey    
+    def survey(self): return self.urlapi.survey    
 
     def filename(self, *args, tableID, geography, date, **kwargs):
         filename = _FILENAMES[self.series].format(tableID=tableID, date=date, geoid=geography.geoid)

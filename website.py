@@ -75,12 +75,13 @@ class USCensus_APIVariable(USCensus_Variable_Sgmts):
     
     @property
     def concept(self):
-        variable = self.format_variable(self.variable)     
-        if variable not in _VARIABLES.keys(): variable = _remove_nums(variable)
-        if variable not in _VARIABLES.keys(): return self.tag
-        unformated = parse(variable, self.variable)
-        if unformated is None: concept = _VARIABLES[variable]
-        else: concept = _VARIABLES[variable].format(*unformated.fixed)  
+        variable = self.format_variable(self.variable)
+        variablekey = variable
+        if variablekey not in _VARIABLES.keys(): variablekey = _remove_nums(variablekey)
+        if variablekey not in _VARIABLES.keys(): return self.tag
+        unformated = parse(variablekey, variable)        
+        if unformated is None: concept = _VARIABLES[variablekey]
+        else: concept = _VARIABLES[variablekey].format(*unformated.fixed)  
         return concept
 
     def format_label(self, *label): return [_labelparser(item) for item in label]

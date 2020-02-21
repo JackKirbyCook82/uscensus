@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Oct 19 2019
-@name:   USCensus Macro Rent/Value/Income Calculations
+Created on Thurs Fed 20 2020
+@name:   USCensus Housing Supply Side Calculations
 @author: Jack Kirby Cook
 
 """
@@ -16,18 +16,17 @@ from uscensus.webtable import acs_webapi, variable_cleaner, variables
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['macrorvi_calculation']
+__all__ = ['housing_supply_calculation']
 __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
 
-macrorvi_calculation = Calculation('macrorvi', name='Macro Rent/Value/Inccome USCensus')
-
+housing_supply_calculation = Calculation('supply', name='Housing Demand USCensus')
 
 feed_tables = {}
 
 
-@macrorvi_calculation.create(**feed_tables)
+@housing_supply_calculation.create(**feed_tables)
 def feed_pipeline(tableID, *args, **kwargs):
     queryParms = query(tableID)
     universe, index, header, scope = queryParms['universe'], queryParms['index'], queryParms['header'], queryParms['scope']   
@@ -40,7 +39,7 @@ def feed_pipeline(tableID, *args, **kwargs):
 
 
 def main():     
-    print(str(macrorvi_calculation), '\n')
+    print(str(housing_supply_calculation), '\n')
     
 
 if __name__ == '__main__':  

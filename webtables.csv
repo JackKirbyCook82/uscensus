@@ -35,6 +35,10 @@ aggval|geo|mort@owner,series=geoseries;survey=acs;estimate=5,,B25082,Estimate|Ag
 hh|geo@renter,series=geoseries;survey=acs;estimate=5,,B25003,Estimate|Total|Renter occupied,households,geography,,tenure=Renter
 hh|geo|mort@owner,series=geoseries;survey=acs;estimate=5,,B25081,Estimate|Total|Housing units with a mortgage contract to purchase or similar debt;Estimate|Total|Housing units without a mortgage,households,geography,mortgage,tenure=Owner
 ,,,,,,,,
+hh|geo|size@renter,series=geoseries;survey=acs;estimate=5,,B25009,Estimate|Total|Renter occupied|*,households,geography,size,tenure=Renter
+hh|geo|size@owner,series=geoseries;survey=acs;estimate=5,,B25009,Estimate|Total|Owner occupied|*,households,geography,size,tenure=Owner
+hh|geo|child,series=geoseries;survey=acs;estimate=5,,B11005,Estimate|Total|Households with one or more people under 18 years;Estimate|Total|Households with no people under 18 years,households,geography,children,
+,,,,,,,,
 st|geo|yr,series=geoseries;survey=acs;estimate=5,,B25034,Estimate|Total|*,structures,geography,year,occupancy=Occupied|Vacant
 st|geo|rm,series=geoseries;survey=acs;estimate=5,,B25017,Estimate|Total|*,structures,geography,rooms,occupancy=Occupied|Vacant
 st|geo|br,series=geoseries;survey=acs;estimate=5,,B25041,Estimate|Total|*,structures,geography,bedrooms,occupancy=Occupied|Vacant

@@ -16,8 +16,8 @@ from parsers import BoolParser, ListParser, DictParser
 from variables import Geography, Date
 from utilities.inputparsers import InputParser
 
-from uscensus.microrvi import microrvi_calculation
-from uscensus.macrorvi import macrorvi_calculation
+from uscensus.housingdemand import housing_demand_calculation
+from uscensus.housingsupply import housing_supply_calculation
 from uscensus.display import MapPlotter
 
 __version__ = "1.0.0"
@@ -35,33 +35,26 @@ EXCEL_FILE = os.path.join(ROOT_DIR, 'USCensusTables.xlsx')
 renderer = Renderer(style='double', extend=1)
 mapplotter = MapPlotter(SHAPE_DIR, size=(8,8), vintage=2018, colors='YlGn', roads=True)
 calculation = Calculation('uscensus', name='USCensus Calculation')
-calculation += microrvi_calculation
-calculation += macrorvi_calculation
+calculation += housing_demand_calculation
+calculation += housing_supply_calculation
 calculation()
 
 
-def display(table, tree, *inputArgs, **inputParms):  
-    if table: print(str(tree))
-    if table: print(str(table)) 
-    if table: print(str(table.variables))  
-
-def create_spreadsheet(table, *inputArgs, spreadsheet=False, **inputParms): 
-    if spreadsheet: table.flatten().toexcel(EXCEL_FILE)
-
-def create_mapplot(table, *inputArgs, mapplot=False, **inputParms): 
-    if mapplot: mapplotter(table, *inputArgs, **inputParms)
+def create_spreadsheet(table, *inputArgs, **inputParms): table.flatten().toexcel(EXCEL_FILE)
+def create_mapplot(table, *inputArgs, **inputParms): mapplotter(table, *inputArgs, **inputParms)
+def display(table, tree, *inputArgs, **inputParms): print('\n'.join([str(tree), str(table), str(table.variables)])) 
 
 
-def main(*inputArgs, tableID, **inputParms):     
+def main(*inputArgs, tableID, mapplot=False, spreadsheet=False, **inputParms):     
     print(str(inputparser), '\n')  
     print(str(calculation), '\n')
     
     if tableID in calculation: 
         tree = renderer(calculation[tableID])
         table = calculation[tableID](*inputArgs, **inputParms)
-        create_spreadsheet(table, *inputArgs, **inputParms)
-        create_mapplot(table, *inputArgs, **inputParms)   
-        display(table, tree, *inputArgs, **inputParms)
+        if spreadsheet: create_spreadsheet(table, *inputArgs, **inputParms)
+        if mapplot: create_mapplot(table, *inputArgs, **inputParms)   
+        if table: display(table, tree, *inputArgs, **inputParms)
     else: print("{} Table Not Supported: '{}'".format(calculation.name, tableID))
     
    
@@ -83,12 +76,11 @@ if __name__ == '__main__':
     print(repr(mapplotter))
     print(repr(calculation), '\n')  
     
-    sys.argv.extend(['tableID=avginc|geo',
-                     'mapplot=True',
+    sys.argv.extend(['tableID=hh|geo|child',
+                     'mapplot=False', 
                      'spreadsheet=False',
-                     'geography=state|48,county|157,tract|*,block|*', 
-                     'dates=2015,2016,2017',
-                     'date=2018'])
+                     'geography=state|48,county|157,tract|*', 
+                     'dates=2017,2016,2015'])
     inputparser(*sys.argv[1:])
     main(*inputparser.inputArgs, **inputparser.inputParms)
     

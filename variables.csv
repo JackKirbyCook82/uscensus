@@ -12,6 +12,7 @@ Not computed,0%
 ,
 {} years and over,>{} YRS
 {} to {} years,{} YRS|{} YRS
+{} and {} years,{} YRS|{} YRS
 Under {} years,<{} YRS
 {} years,{} YRS
 ,
@@ -222,3 +223,9 @@ With public assistance income,Welfare
 With cash public assistance or Food Stamps/SNAP,Welfare
 With retirement income,Retirement
 With other types of income,Other
+,
+{}-person household,{} PPL/HH
+{}-or-more person household,>{} PPL/HH
+,
+Households with one or more people under 18 years,W/Children
+Households with no people under 18 years,W/OChildren
