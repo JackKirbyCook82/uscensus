@@ -8,6 +8,7 @@ Created on Thu Dec 5 2019
 
 import sys
 import os.path
+import numpy as np
 
 import tables as tbls
 import visualization as vis
@@ -16,8 +17,8 @@ from parsers import BoolParser, ListParser, DictParser
 from variables import Geography, Date
 from utilities.inputparsers import InputParser
 
-from uscensus.housingdemand import housing_demand_calculation
-from uscensus.housingsupply import housing_supply_calculation
+from uscensus.webquery import query
+from uscensus.webtable import acs_webapi, variable_cleaner, variables
 from uscensus.display import MapPlotter
 
 __version__ = "1.0.0"
@@ -35,9 +36,36 @@ EXCEL_FILE = os.path.join(ROOT_DIR, 'USCensusTables.xlsx')
 renderer = Renderer(style='double', extend=1)
 mapplotter = MapPlotter(SHAPE_DIR, size=(8,8), vintage=2018, colors='YlGn', roads=True)
 calculation = Calculation('uscensus', name='USCensus Calculation')
-calculation += housing_demand_calculation
-calculation += housing_supply_calculation
-calculation()
+
+
+feed_tables = {
+    'hh|geo|inc@renter': {},
+    'hh|geo|inc@owner': {},
+    'hh|geo|size@renter': {}, 
+    'hh|geo|size@owner': {},
+    'pop|geo|age@male': {},
+    'pop|geo|age@female': {},
+    'hh|geo|child': {}}
+sum_tables = {
+    'hh|geo|inc': dict(tables=['hh|geo|inc@renter', 'hh|geo|inc@owner'], parms={'axis':'tenure'}),
+    'hh|geo|size': dict(tables=['hh|geo|size@renter', 'hh|geo|size@owner'], parms={'axis':'tenure'}),
+    'pop|geo|age': dict(tables=['pop|geo|age@male', 'pop|geo|age@female'], parms={'axis':'sex'})}
+
+
+@calculation.create(**feed_tables)
+def feed_pipeline(tableID, *args, **kwargs):
+    queryParms = query(tableID)
+    universe, index, header, scope = queryParms['universe'], queryParms['index'], queryParms['header'], queryParms['scope']   
+    dataframe = acs_webapi(*args, tableID=tableID, **queryParms, **kwargs)
+    dataframe = variable_cleaner(dataframe, *args, **kwargs)   
+    flattable = tbls.FlatTable(dataframe, variables=variables, name=tableID)
+    arraytable = flattable[[universe, index, header, 'date', *scope.keys()]].unflatten(universe)
+    arraytable = arraytable.squeeze(*scope.keys()).sortall(ascending=True).fillneg(np.nan)   
+    return arraytable
+
+@calculation.create(**sum_tables)
+def sum_pipeline(tableID, table, other, *args, axis, **kwargs):
+    return tbls.operations.add(table, other, *args, axis=axis, **kwargs)
 
 
 def create_spreadsheet(table, *inputArgs, **inputParms): table.flatten().toexcel(EXCEL_FILE)
@@ -45,7 +73,8 @@ def create_mapplot(table, *inputArgs, **inputParms): mapplotter(table, *inputArg
 def display(table, tree, *inputArgs, **inputParms): print('\n'.join([str(tree), str(table), str(table.variables)])) 
 
 
-def main(*inputArgs, tableID, mapplot=False, spreadsheet=False, **inputParms):     
+def main(*inputArgs, tableID, mapplot=False, spreadsheet=False, **inputParms):   
+    calculation()
     print(str(inputparser), '\n')  
     print(str(calculation), '\n')
     
@@ -76,10 +105,10 @@ if __name__ == '__main__':
     print(repr(mapplotter))
     print(repr(calculation), '\n')  
     
-    sys.argv.extend(['tableID=hh|geo|child',
+    sys.argv.extend(['tableID=',
                      'mapplot=False', 
                      'spreadsheet=False',
-                     'geography=state|48,county|157,tract|*', 
+                     'geography=state|48,county|157,tract|*,block|*', 
                      'dates=2017,2016,2015'])
     inputparser(*sys.argv[1:])
     main(*inputparser.inputArgs, **inputparser.inputParms)
