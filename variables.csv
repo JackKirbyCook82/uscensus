@@ -87,9 +87,9 @@ Mobile home,MobileHome
 Boat RV van etc.,Vehicle
 ,
 In labor force,Working
-Not in labor force,NonWorking
+Not in labor force,Domestic
 Civilian labor force,Civilian
-Armed Forces,Military
+Armed Forces,Soldier
 Employed,Employed
 Unemployed,Unemployed
 ,
@@ -113,53 +113,6 @@ Master's degree,Graduate
 Graduate or professional degree,Graduate
 Professional school degree,Graduate
 Doctorate degree,Graduate
-,
-Management occupations,Management
-Business and financial operations occupations,Business&Finance
-Computer and mathematical occupations,Computer&Math
-Architecture and engineering occupations,Architecture&Engineering
-"Life, physical, and social science occupations",Science
-Community and social service occupations,Community
-Legal occupations,Legal
-"Education, training, and library occupations",Education
-"Arts, design, entertainment, sports, and media occupations",Entertainment
-Health diagnosing and treating practitioners and other technical occupations,HealthCarePractice
-Health technologists and technicians,HealthCareTechnology
-Healthcare support occupations,HealthCareSupport
-"Fire fighting and prevention, and other protective service workers including supervisors",Firefighting&Protective
-Law enforcement workers including supervisors,LawEnforcement
-Food preparation and serving related occupations,FoodPreparation
-Building and grounds cleaning and maintenance occupations,GroundsMaintenance
-Personal care and service occupations,PersonalCare
-Sales and related occupations,Sales
-Office and administrative support occupations,Adminstration
-"Farming, fishing, and forestry occupations",Agriculture
-Construction and extraction occupations,Construction
-"Installation, maintenance, and repair occupations",Installation&Maintenance
-Production occupations,Production
-Transportation occupations,Transportation
-Material moving occupations,Materials
-,
-"Agriculture, forestry, fishing and hunting",Agriculture
-"Mining, quarrying, and oil and gas extraction",Resources
-Construction,Construction
-Manufacturing,Manufacturing
-Wholesale trade,Wholesale
-Retail trade,Retail
-Transportation and warehousing,Transportation
-Utilities,Utilities
-Information,Information
-Finance and insurance,Finance&Insurance
-Real estate and rental and leasing,RealEstate
-"Professional, scientific, and technical services",Professional
-Management of companies and enterprises,Management
-Administrative and support and waste management services,Administrative
-Educational services,Educational
-Health care and social assistance,Healthcare
-"Arts, entertainment, and recreation",Entertainment
-Accommodation and food services,Accommodation
-Public administration,Public
-"Other services, except public administration",Other
 ,
 Speak only English,English
 Spanish,Spanish

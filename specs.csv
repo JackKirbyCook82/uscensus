@@ -49,13 +49,11 @@ rooms,rooms,range,unit=RMS;precision=0
 bedrooms,bedrooms,range,unit=BEDRMS;precision=0
 unit,unit,category,House;Duplex;Townhouse;SplitHouse;Condo;Apartment;Complex;MobileHome;Vehicle
 ,,,
-laborstatus,laborstatus,category,Working;NonWorking
+laborstatus,laborstatus,category,Working;Domestic
 laborforce,laborforce,category,Civilian;Soldier
 employstatus,employstatus,category,Employed;Unemployed
 ,,,
 education,education,category,Uneducated;GradeSchool;Associates;Bachelors;Graduate
-occupation,occupation,category,Management;Business&Finance;Computer&Math;Architecture&Engineering;Science;Community;Legal;Education;Entertainment;HealthCarePractice;HealthCareTechnology;HealthCareSupport;Firefighting&Protective;LawEnforcement;FoodPreparation;GroundsMaintenance;PersonalCare;Sales;Adminstration;Agriculture;Construction;Installation&Maintenance;Production;Transportation;Materials
-industry,industry,category,Agriculture;Resources;Construction;Manufacturing;Wholesale;Retail;Transportation;Utilities;Information;Finance&Insurance;RealEstate;Professional;Management;Administrative;Educational;Healthcare;Entertainment;Accommodation;Public;Other
 ,,,
 language,language,category,English;Spanish;IndoEuro;Asian;Pacific;African;Native;Arabic;Other
 nativity,nativity,category,Native;Foreign
