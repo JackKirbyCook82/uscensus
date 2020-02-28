@@ -16,6 +16,10 @@ Not computed,0%
 Under {} years,<{} YRS
 {} years,{} YRS
 ,
+Householder {} and under,<{} YRS
+Householder {} to {} years,{} YRS|{} YRS
+Householder {} years and over,>{} YRS
+,
 Male,Male
 Female,Female
 ,
@@ -65,6 +69,10 @@ Other vacant,Other
 Built {} or later,>{}
 Built {} to {},{}|{}
 Built {} or earlier,<{}
+,
+Moved in {} or later,>{}
+Moved in {} to {},{}|{}
+Moved in {} or earlier,<{}
 ,
 {} room,{} RMS
 {} rooms,{} RMS

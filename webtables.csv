@@ -35,11 +35,21 @@ aggval|geo|mort@owner,series=geoseries;survey=acs;estimate=5,,B25082,Estimate|Ag
 hh|geo@renter,series=geoseries;survey=acs;estimate=5,,B25003,Estimate|Total|Renter occupied,households,geography,,tenure=Renter
 hh|geo|mort@owner,series=geoseries;survey=acs;estimate=5,,B25081,Estimate|Total|Housing units with a mortgage contract to purchase or similar debt;Estimate|Total|Housing units without a mortgage,households,geography,mortgage,tenure=Owner
 ,,,,,,,,
+hh|geo|age@renter,series=geoseries;survey=acs;estimate=5,,B25007,Estimate|Total|Renter occupied|*,households,geography,age,tenure=Renter
+hh|geo|age@owner,series=geoseries;survey=acs;estimate=5,,B25007,Estimate|Total|Owner occupied|*,households,geography,age,tenure=Owner
+hh|geo|age@owner@mortgage,series=geoseries;survey=acs;estimate=5,,B25027,Estimate|Total|Housing units with a mortgage|*,households,geography,age,tenure=Owner;mortgage=Primary|Secondary|Tertiary
+hh|geo|age@owner@equity,series=geoseries;survey=acs;estimate=5,,B25027,Estimate|Total|Housing units without a mortgage|*,households,geography,age,tenure=Owner;mortgage=Equity
+,,,,,,,,
 hh|geo|size@renter,series=geoseries;survey=acs;estimate=5,,B25009,Estimate|Total|Renter occupied|*,households,geography,size,tenure=Renter
 hh|geo|size@owner,series=geoseries;survey=acs;estimate=5,,B25009,Estimate|Total|Owner occupied|*,households,geography,size,tenure=Owner
-hh|geo|child,series=geoseries;survey=acs;estimate=5,,B11005,Estimate|Total|Households with one or more people under 18 years;Estimate|Total|Households with no people under 18 years,households,geography,children,
 ,,,,,,,,
-st|geo|yr,series=geoseries;survey=acs;estimate=5,,B25034,Estimate|Total|*,structures,geography,year,occupancy=Occupied|Vacant
+hh|geo|child@renter,series=geoseries;survey=acs;estimate=5,,B25012,Estimate|Total|Renter-occupied housing units|With related children of the householder under 18;Estimate|Total|Renter-occupied housing units|No related children of the householder under 18,households,geography,children,tenure=Renter
+hh|geo|child@owner,series=geoseries;survey=acs;estimate=5,,B25012,Estimate|Total|Owner-occupied housing units|With related children of the householder under 18;Estimate|Total|Owner-occupied housing units|No related children of the householder under 18,households,geography,children,tenure=Owner
+,,,,,,,,
+hh|geo|yrocc@renter,series=geoseries;survey=acs;estimate=5,,B25038,Estimate|Total|Renter occupied|*,households,geography,yearoccupied,tenure=Renter
+hh|geo|yrocc@owner,series=geoseries;survey=acs;estimate=5,,B25038,Estimate|Total|Owner occupied|*,households,geography,yearoccupied,tenure=Owner
+,,,,,,,,
+st|geo|yrblt,series=geoseries;survey=acs;estimate=5,,B25034,Estimate|Total|*,structures,geography,yearbuilt,occupancy=Occupied|Vacant
 st|geo|rm,series=geoseries;survey=acs;estimate=5,,B25017,Estimate|Total|*,structures,geography,rooms,occupancy=Occupied|Vacant
 st|geo|br,series=geoseries;survey=acs;estimate=5,,B25041,Estimate|Total|*,structures,geography,bedrooms,occupancy=Occupied|Vacant
 st|geo|unit,series=geoseries;survey=acs;estimate=5,,B25024,Estimate|Total|*,structures,geography,unit,occupancy=Occupied|Vacant
@@ -51,3 +61,14 @@ pop|geo|origin,series=geoseries;survey=acs;estimate=5,,B03003,Estimate|Total|*,p
 ,,,,,,,,
 pop|geo|age@male,series=geoseries;survey=acs;estimate=5,,B01001,Estimate|Total|Male|*,population,geography,age,sex=Male
 pop|geo|age@female,series=geoseries;survey=acs;estimate=5,,B01001,Estimate|Total|Female|*,population,geography,age,sex=Female
+,,,,,,,,
+pop|geo|edu@male@age1,series=geoseries;survey=acs;estimate=5,,B15001,Estimate|Total|Male|18 to 24 years|*,population,geography,education,sex=Male;age=18 YRS|24 YRS
+pop|geo|edu@male@age2,series=geoseries;survey=acs;estimate=5,,B15001,Estimate|Total|Male|25 to 34 years|*,population,geography,education,sex=Male;age=25 YRS|34 YRS
+pop|geo|edu@male@age3,series=geoseries;survey=acs;estimate=5,,B15001,Estimate|Total|Male|35 to 44 years|*,population,geography,education,sex=Male;age=35 YRS|44 YRS
+pop|geo|edu@male@age4,series=geoseries;survey=acs;estimate=5,,B15001,Estimate|Total|Male|45 to 64 years|*,population,geography,education,sex=Male;age=45 YRS|64 YRS
+pop|geo|edu@male@age5,series=geoseries;survey=acs;estimate=5,,B15001,Estimate|Total|Male|65 years and over|*,population,geography,education,sex=Male;age=>65 YRS
+pop|geo|edu@female@age1,series=geoseries;survey=acs;estimate=5,,B15001,Estimate|Total|Female|18 to 24 years|*,population,geography,education,sex=Female;age=18 YRS|24 YRS
+pop|geo|edu@female@age2,series=geoseries;survey=acs;estimate=5,,B15001,Estimate|Total|Female|25 to 34 years|*,population,geography,education,sex=Female;age=25 YRS|34 YRS
+pop|geo|edu@female@age3,series=geoseries;survey=acs;estimate=5,,B15001,Estimate|Total|Female|35 to 44 years|*,population,geography,education,sex=Female;age=35 YRS|44 YRS
+pop|geo|edu@female@age4,series=geoseries;survey=acs;estimate=5,,B15001,Estimate|Total|Female|45 to 64 years|*,population,geography,education,sex=Female;age=45 YRS|64 YRS
+pop|geo|edu@female@age5,series=geoseries;survey=acs;estimate=5,,B15001,Estimate|Total|Female|65 years and over|*,population,geography,education,sex=Female;age=>65 YRS

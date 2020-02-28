@@ -41,10 +41,11 @@ midage,mid|age,num,unit=YRS;precision=0
 ,,,
 tenure,tenure,category,Owner;Renter
 mortgage,mortgage,category,Primary;Secondary;Tertiary;Equity
+yearoccupied,yearoccupied,range,precision=0
 ,,,
 occupancy,occupancy,category,Occupied;Vacant
 vacancy,vacancy,category,ForRent;RentedEmpty;ForSale;SoldEmpty;Recreational;Other
-year,year,range,precision=0
+yearbuilt,yearbuilt,range,precision=0
 rooms,rooms,range,unit=RMS;precision=0
 bedrooms,bedrooms,range,unit=BEDRMS;precision=0
 unit,unit,category,House;Duplex;Townhouse;SplitHouse;Condo;Apartment;Complex;MobileHome;Vehicle
