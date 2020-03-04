@@ -62,3 +62,5 @@ english,english,category,Fluent;Well;Poor;Inable
 ,,,
 size,size,range,unit=PPL/HH;precision=0
 children,children,category,W/Children;W/OChildren
+,,,
+commute,commute,range,unit=MINS;precision=0

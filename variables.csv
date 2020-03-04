@@ -190,3 +190,10 @@ With other types of income,Other
 ,
 Households with one or more people under 18 years,W/Children
 Households with no people under 18 years,W/OChildren
+,
+Less than {} minutes,<{} MINS
+{} to {} minutes,{} MINS|{} MINS
+{} or more minutes,>{} MINS
+
+
+
