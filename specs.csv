@@ -32,6 +32,7 @@ aggownercost,agg|ownercost,num,heading=$;unit=USD;multiplier=M;precision=6
 ,,,
 %costincome,cost/income,range,unit=USD/USD;multiplier=%;precision=1
 ,,,
+lifestage,lifestage,category,Toddler;Child;Teenager;YoungAdult;MidLife;MatureAdult;Retired;Elderly
 age,age,range,unit=YRS;precision=0
 sex,sex,category,Male;Female
 origin,origin,category,Hispanic;NonHispanic
