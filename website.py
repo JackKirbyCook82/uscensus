@@ -55,15 +55,13 @@ def geographies(): return list(set(_GEOGRAPHY.keys()))
 def variables(): return list(set(_VARIABLES.values()))
 
 
-USCensus_APIGeography_Sgmts = ntuple('USCensus_APIGeography_Sgmts', 'geography apigeography shapegeography shapedir shapefile value')
-class USCensus_APIGeography(USCensus_APIGeography_Sgmts):
+class USCensus_APIGeography(ntuple('USCensus_APIGeography', 'geography apigeography shapegeography shapedir shapefile value')):
     def __new__(cls, geokey, geovalue=None):
         geosgmts = {key:(value if not _isnull(value) else None) for key, value in _GEOGRAPHY[geokey].items()}
         return super().__new__(cls, geography=geokey, **geosgmts, value=geovalue)  
     
 
-USCensus_Variable_Sgmts = ntuple('USCensus_APIVariable_Sgmts', 'tag, group, label variable')
-class USCensus_APIVariable(USCensus_Variable_Sgmts): 
+class USCensus_APIVariable(ntuple('USCensus_APIVariable', 'tag, group, label variable')): 
     def __str__(self): 
         namestr = self.__class__.__name__
         jsonstr = json.dumps(self._asdict(), sort_keys=False, indent=3, separators=(',', ' : '), default=str)      

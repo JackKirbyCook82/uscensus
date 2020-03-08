@@ -89,7 +89,7 @@ No bedroom,0 BEDRMS
 3 or 4,SplitHouse
 5 to 9,Condo
 10 to 19,Condo
-20 to 49,Apartment
+20 to 49,Condo
 50 or more,Complex
 Mobile home,MobileHome
 Boat RV van etc.,Vehicle
