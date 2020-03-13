@@ -21,6 +21,7 @@ __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
 
+AGGS = {'households':'sum', 'population':'sum'}
 demand_calculations = Calculation('demand', name='USCensus Real Estate Demand Calculations')
 
 
@@ -41,6 +42,10 @@ feed_tables = {
     'pop|geo|age@male': {}, 
     'pop|geo|age@female': {}, 
     'pop|geo|race': {},
+    'pop|geo|origin': {},
+    'pop|geo|lang@age1': {},
+    'pop|geo|lang@age2': {},
+    'pop|geo|lang@age3': {},
     'hh|geo|cost@renter': {},
     'hh|geo|cost@owner': {},
     'hh|geo|cost@owner@mortgage': {},
@@ -92,6 +97,9 @@ sum_tables = {
         'parms': {'axis':'sex'}},
     'pop|geo|edu@age1|5': {
         'tables': ['pop|geo|edu@age1', 'pop|geo|edu@age2', 'pop|geo|edu@age3', 'pop|geo|edu@age4', 'pop|geo|edu@age5'], 
+        'parms': {'axis':'age'}},
+    'pop|geo|lang@age1|3': {
+        'tables': ['pop|geo|lang@age1', 'pop|geo|lang@age2', 'pop|geo|lang@age3'], 
         'parms': {'axis':'age'}}}
 
 
@@ -102,7 +110,7 @@ def feed_pipeline(tableID, *args, **kwargs):
     dataframe = acs_webapi(*args, tableID=tableID, **queryParms, **kwargs)
     dataframe = variable_cleaner(dataframe, *args, **kwargs)   
     flattable = tbls.FlatTable(dataframe, variables=variables, name=tableID)
-    arraytable = flattable[[universe, index, header, 'date', *scope.keys()]].unflatten(universe)
+    arraytable = flattable[[universe, index, header, 'date', *scope.keys()]].unflatten(universe, aggs=AGGS)
     arraytable = arraytable.squeeze(*scope.keys()).sortall(ascending=True).fillneg(np.nan)   
     return arraytable
 

@@ -57,7 +57,7 @@ employstatus,employstatus,category,Employed;Unemployed
 ,,,
 education,education,category,Uneducated;GradeSchool;Associates;Bachelors;Graduate
 ,,,
-language,language,category,English;Spanish;IndoEuro;Asian;Pacific;African;Native;Arabic;Other
+language,language,category,English;Spanish;IndoEuro;Asian;Other
 nativity,nativity,category,Native;Foreign
 english,english,category,Fluent;Well;Poor;Inable
 ,,,

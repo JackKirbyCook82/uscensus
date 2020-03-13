@@ -21,7 +21,7 @@ __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
  
 
-_FILENAMES = {'geoseries':'{tableID}_{date}_{geoid}.csv'}
+_FILENAMES = {'geoseries':'{tableID}_{date}_{geoID}.csv'}
 _DATEFORMATS = {'geoseries':'%Y', 'yearseries':'%Y', 'timeseries':'%Y-%m'}
 _AGGREGATIONS = {'sum':np.sum, 'avg':np.mean, 'max':np.max, 'min':np.min}
 
@@ -46,7 +46,7 @@ class USCensus_WebAPI(WebAPI):
     def survey(self): return self.urlapi.survey    
 
     def filename(self, *args, tableID, geography, date, **kwargs):
-        filename = _FILENAMES[self.series].format(tableID=tableID, date=date, geoid=geography.geoid)
+        filename = _FILENAMES[self.series].format(tableID=tableID, date=date, geoID=geography.geoID)
         filename = filename.replace('|', '_')
         return filename
 

@@ -114,7 +114,7 @@ Less than 9th grade,Uneducated
 High school graduate (includes equivalency),GradeSchool
 Some college less than 1 year,GradeSchool
 Some college 1 or more years no degree,GradeSchool
-"Some college, no degree",GradeSchool
+Some college no degree,GradeSchool
 Associate's degree,Associates
 Bachelor's degree,Bachelors
 Master's degree,Graduate
@@ -124,13 +124,18 @@ Doctorate degree,Graduate
 ,
 Speak only English,English
 Spanish,Spanish
+Speak Spanish,Spanish
+Speak other Indo-European languages,IndoEuro
+French Haitian or Cajun,IndoEuro
 French (incl. Cajun),IndoEuro
 Haitian,IndoEuro
 Italian,IndoEuro
 Portuguese,IndoEuro
+German or other West Germanic languages, IndoEuro
 German,IndoEuro
 Yiddish Pennsylvania Dutch or other West Germanic languages,IndoEuro
 Greek,IndoEuro
+Russian polish or other Slavic languages, IndoEuro
 Russian,IndoEuro
 Polish,IndoEuro
 Serbo-Croatian,IndoEuro
@@ -144,6 +149,7 @@ Punjabi,IndoEuro
 Bengali,IndoEuro
 Nepali Marathi or other Indic languages,IndoEuro
 Other Indo-European languages,IndoEuro
+Speak Asian and Pacific Island languages,Asian
 Telugu,Asian
 Tamil,Asian
 Malayalam Kannada or other Dravidian languages,Asian
@@ -155,16 +161,18 @@ Vietnamese,Asian
 Khmer,Asian
 Thai Lao or other Tai-Kadai languages,Asian
 Other languages of Asia,Asian
-Tagalog (incl. Filipino),Pacific
-Ilocano Samoan Hawaiian or other Austronesian languages,Pacific
+Tagalog (incl. Filipino),Asian
+Ilocano Samoan Hawaiian or other Austronesian languages,Asian
+Other Asian and Pacific Island languages,Asian
 Arabic,Arabic
 Hebrew,Arabic
-Amharic Somali or other Afro-Asiatic languages,African
-Yoruba Twi Igbo or other languages of Western Africa,African
-Swahili or other languages of Central Eastern and Southern Africa,African
-Navajo,Native
-Other Native languages of North America,Native
+Amharic Somali or other Afro-Asiatic languages,Other
+Yoruba Twi Igbo or other languages of Western Africa,Other
+Swahili or other languages of Central Eastern and Southern Africa,Other
+Navajo,Other
+Other Native languages of North America,Other
 Other and unspecified languages,Other
+Speak other languages,Other
 ,
 Native,Native
 Foreign,Foreign
@@ -188,8 +196,8 @@ With other types of income,Other
 {}-person household,{} PPL/HH
 {}-or-more person household,>{} PPL/HH
 ,
-Households with one or more people under 18 years,W/Children
-Households with no people under 18 years,W/OChildren
+With related children of the householder under 18,W/Children
+No related children of the householder under 18,W/OChildren
 ,
 Less than {} minutes,<{} MINS
 {} to {} minutes,{} MINS|{} MINS

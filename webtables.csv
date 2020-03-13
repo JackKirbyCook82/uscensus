@@ -58,6 +58,9 @@ st|geo|vac@vacant,series=geoseries;survey=acs;estimate=5,,B25004,Estimate|Total|
 ,,,,,,,,
 pop|geo|race,series=geoseries;survey=acs;estimate=5,,B02001,Estimate|Total|*,population,geography,race,
 pop|geo|origin,series=geoseries;survey=acs;estimate=5,,B03003,Estimate|Total|*,population,geography,origin,
+pop|geo|lang@age1,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|5 to 17 years|*,population,geography,language,age=5 YRS|17 YRS
+pop|geo|lang@age2,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|18 to 64 years|*,population,geography,language,age=18 YRS|64 YRS
+pop|geo|lang@age3,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|65 years and over|*,population,geography,language,age=>65 YRS
 ,,,,,,,,
 pop|geo|age@male,series=geoseries;survey=acs;estimate=5,,B01001,Estimate|Total|Male|*,population,geography,age,sex=Male
 pop|geo|age@female,series=geoseries;survey=acs;estimate=5,,B01001,Estimate|Total|Female|*,population,geography,age,sex=Female

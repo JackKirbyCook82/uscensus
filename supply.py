@@ -21,6 +21,7 @@ __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
 
+AGGS = {'households':'sum', 'population':'sum'}
 supply_calculations = Calculation('supply', name='USCensus Real Estate Supply Calculations')
 
 
@@ -34,7 +35,7 @@ def feed_pipeline(tableID, *args, **kwargs):
     dataframe = acs_webapi(*args, tableID=tableID, **queryParms, **kwargs)
     dataframe = variable_cleaner(dataframe, *args, **kwargs)   
     flattable = tbls.FlatTable(dataframe, variables=variables, name=tableID)
-    arraytable = flattable[[universe, index, header, 'date', *scope.keys()]].unflatten(universe)
+    arraytable = flattable[[universe, index, header, 'date', *scope.keys()]].unflatten(universe, aggs=AGGS)
     arraytable = arraytable.squeeze(*scope.keys()).sortall(ascending=True).fillneg(np.nan)   
     return arraytable
 
