@@ -36,6 +36,7 @@ interpolate = Interpolate(how='linear', fill='extrapolate')
 upperunconsolidate = Unconsolidate(how='cumulate', direction='upper')
 upperuncumulate = Uncumulate(how='upper')
 avgconsolidate = Consolidate(how='average', weight=0.5)
+summationcheck = Reduction(how='summation', by='couple')
 
 
 feed_tables = {
@@ -67,7 +68,6 @@ feed_tables = {
     '#pop|geo|edu@female@age3': {},
     '#pop|geo|edu@female@age4': {},
     '#pop|geo|edu@female@age5': {}}
-    
 
 merge_tables = {
     '#hh|geo|inc|ten': {
@@ -88,7 +88,7 @@ merge_tables = {
     '#pop|geo|age|sex': {
         'tables': ['#pop|geo|age@male', '#pop|geo|age@female'],
         'parms': {'axis':'sex'}},     
-    '#pop|geo|lang|age': {
+    '#pop|geo|age|lang': {
         'tables': ['#pop|geo|lang@age1', '#pop|geo|lang@age2', '#pop|geo|lang@age3'],
         'parms': {'axis':'age'}}, 
     '#pop|geo|edu|age@male': {
@@ -105,14 +105,28 @@ summation_tables = {
     '#pop|geo|age': {
         'tables': '#pop|geo|age|sex',
         'parms': {'axis':'sex'}},  
-    '#pop|geo|edu|age': {
+    '#pop|geo|age|edu': {
         'tables': '#pop|geo|edu|age|sex',
         'parms': {'axis':'sex'}}}
+    
+boundary_pipeline = {
+    '#hh|geo|~size|ten': {
+        'tables': '#hh|geo|size|ten',
+        'parms': {'axis':'size', 'bounds':(0, 7)}}}
 
 interpolate_pipeline = {     
     '#hh|geo|~inc|ten': {
         'tables': '#hh|geo|inc|ten',
-        'parms': {'data':'households', 'axis':'income', 'formatting':{'multiplier':'', 'precision':3}}}}
+        'parms': {'data':'households', 'axis':'income', 'bounds':(0, 200000), 'values':[10000, 25000, 40000, 60000, 80000, 100000, 125000, 150000, 175000, 200000]}},
+    '#hh|geo|~age|ten': {
+        'tables': '#hh|geo|age|ten',
+        'parms': {'data':'households', 'axis':'age', 'bounds':(15, 95), 'values':[20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}},
+    '#pop|geo|~age|edu': {
+       'tables': '#pop|geo|age|edu',     
+       'parms': {'data':'population', 'axis':'age', 'bounds':(15, 95), 'values':[20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}},
+    '#pop|geo|~age|lang': {
+       'tables': '#pop|geo|age|lang',     
+       'parms': {'data':'population', 'axis':'age', 'bounds':(15, 95), 'values':[20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}}}
 
 
 @demand_calculations.create(**feed_tables)
@@ -127,39 +141,43 @@ def feed_pipeline(tableID, *args, **kwargs):
     arraytable = sumcontained(arraytable, axis=header)
     return arraytable
 
-
 @demand_calculations.create(**merge_tables)
-def merge_pipeline(tableID, table, *args, axis, **kwargs):
+def merge_pipeline(tableID, table, other, *args, axis, **kwargs):
+    assert isinstance(other, type(table))
+    table = tbls.combinations.merge([table, other], *args, axis=axis, **kwargs)
     others = [arg for arg in args if isinstance(arg, type(table))]
-    return tbls.combinations.merge([table, *others], *args, axis=axis, **kwargs)
+    for other in others: table = tbls.combinations.append([table, other], *args, axis=axis, **kwargs)
+    return table
     
 @demand_calculations.create(**summation_tables)
 def sum_pipeline(tableID, table, *args, axis, **kwargs):
     return summation(table, *args, axis=axis, **kwargs).squeeze(axis)
 
+@demand_calculations.create(**boundary_pipeline)
+def boundary_pipeline(tableID, table, *args, axis, bounds, **kwargs): 
+    return avgconsolidate(table, *args, axis=axis, bounds=bounds, **kwargs)
+
 def proxyvalues(x):
-    yi = x[0] - round(np.diff(x).min()/2)
+    yi = max(x[0] - np.floor(np.diff(x).min()/2), 0)
     yield yi
     for xi in x:
         yi = 2*xi - yi
         yield yi
-
+        
 @demand_calculations.create(**interpolate_pipeline)
-def interpolate_pipeline(tableID, table, *args, data, axis, formatting, values, **kwargs):
-    values = [value for value in proxyvalues(values[axis])]        
-    table = boundary(table, axis=axis, bounds=(values[0], None))
-    table = normalize(table, *args, axis=axis, **kwargs) 
+def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kwargs):
+    values = [value for value in proxyvalues(values)]      
+    table = boundary(table, *args, axis=axis, bounds=(bounds[0], None), **kwargs)
+    total = summation(table, *args, axis=axis, retag={data:'total{}'.format(data)}, **kwargs)
+    table = tbls.operations.divide(table, total, *args, axis=axis, **kwargs)
     table = uppercumulate(table, *args, axis=axis, **kwargs)
     table = upperconsolidate(table, *args, axis=axis, **kwargs)
     table = interpolate(table, *args, axis=axis, values=values[:-1], **kwargs).fillneg(fill=0)
     table = upperunconsolidate(table, *args, axis=axis, **kwargs)
     table = upperuncumulate(table, *args, axis=axis, total=1, **kwargs)
-    table = avgconsolidate(table, *args, axis=axis, bounds=(values[0], values[-1]), **kwargs)
+    table = avgconsolidate(table, *args, axis=axis, bounds=(bounds[0], values[-1]), **kwargs)
+    table = tbls.operations.multiply(table, total, *args, noncoreaxis=axis, retag={'{data}/total{data}*total{data}'.format(data=data):data}, **kwargs)
     return table
-
-
-
-    
 
 
 

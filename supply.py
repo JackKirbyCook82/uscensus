@@ -75,10 +75,7 @@ merge_tables = {
     '#st|geo|yrocc|age|ten': {
         'tables': ['#st|geo|yrocc|age@renter', '#st|geo|yrocc|age@owner'],
         'parms': {'axis':'tenure'}}}     
-    
-interpolate_pipeline = {     
-    }
-    
+
 
 @supply_calculations.create(**feed_tables)
 def feed_pipeline(tableID, *args, **kwargs):
@@ -92,35 +89,12 @@ def feed_pipeline(tableID, *args, **kwargs):
     arraytable = sumcontained(arraytable, axis=header)
     return arraytable
 
-
 @supply_calculations.create(**merge_tables)
-def merge_pipeline(tableID, table, *args, axis, **kwargs):
+def merge_pipeline(tableID, table, other, *args, axis, **kwargs):
+    assert isinstance(other, type(table))
+    table = tbls.combinations.merge([table, other], *args, axis=axis, **kwargs)
     others = [arg for arg in args if isinstance(arg, type(table))]
-    return tbls.combinations.merge([table, *others], *args, axis=axis, **kwargs)
-
-@supply_calculations.create(**interpolate_pipeline)
-def interpolate_pipeline(tableID, table, *args, axis, **kwargs):
-    pass
-
-def proxyvalues(x):
-    yi = x[0] - round(np.diff(x).min()/2)
-    yield yi
-    for xi in x:
-        yi = 2*xi - yi
-        yield yi
-
-@supply_calculations.create(**interpolate_pipeline)
-def interpolate_pipeline(tableID, table, *args, data, axis, formatting, values, **kwargs):
-    values = [value for value in proxyvalues(values[axis])]        
-    table = boundary(table, axis=axis, bounds=(values[0], None))
-    table = normalize(table, *args, axis=axis, **kwargs) 
-    table = uppercumulate(table, *args, axis=axis, **kwargs)
-    table = upperconsolidate(table, *args, axis=axis, **kwargs)
-    table = interpolate(table, *args, axis=axis, values=values[:-1], **kwargs).fillneg(fill=0)
-    table = upperunconsolidate(table, *args, axis=axis, **kwargs)
-    table = upperuncumulate(table, *args, axis=axis, total=1, **kwargs)
-    table = avgconsolidate(table, *args, axis=axis, bounds=(values[0], values[-1]), **kwargs)
+    for other in others: table = tbls.combinations.append([table, other], *args, axis=axis, **kwargs)
     return table
-
 
 
