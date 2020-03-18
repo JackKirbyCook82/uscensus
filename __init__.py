@@ -79,8 +79,8 @@ if __name__ == '__main__':
     sys.argv.extend(['tableID=',
                      'mapplot=False', 
                      'spreadsheet=False',
-                     'geography=state|48,county|157,tract|*,block|*', 
-                     'dates=2017,2016,2015'])
+                     'geography=', 
+                     'dates='])
     inputparser(*sys.argv[1:])
     main(*inputparser.inputArgs, **inputparser.inputParms)
     

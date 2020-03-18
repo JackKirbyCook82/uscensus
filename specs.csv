@@ -49,11 +49,12 @@ vacancy,vacancy,category,ForRent;RentedEmpty;ForSale;SoldEmpty;Recreational;Othe
 yearbuilt,yearbuilt,range,precision=0
 rooms,rooms,range,unit=RMS;precision=0
 bedrooms,bedrooms,range,unit=BEDRMS;precision=0
-unit,unit,category,House;Duplex;Townhouse;SplitHouse;Condo;Complex;MobileHome;Vehicle
+unit,unit,category,House;Duplex;Townhouse;SplitHouse;Apartment;MobileHome;Vehicle
 ,,,
 laborstatus,laborstatus,category,Working;Domestic
 laborforce,laborforce,category,Civilian;Soldier
 employstatus,employstatus,category,Employed;Unemployed
+employlocation,employlocation,category,OnSite;AtHome
 ,,,
 education,education,category,Uneducated;GradeSchool;Associates;Bachelors;Graduate
 ,,,
