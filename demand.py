@@ -36,7 +36,6 @@ interpolate = Interpolate(how='linear', fill='extrapolate')
 upperunconsolidate = Unconsolidate(how='cumulate', direction='upper')
 upperuncumulate = Uncumulate(how='upper')
 avgconsolidate = Consolidate(how='average', weight=0.5)
-summationcheck = Reduction(how='summation', by='couple')
 
 
 feed_tables = {
@@ -82,7 +81,7 @@ merge_tables = {
     '#hh|geo|age|mort@owner': {
         'tables': ['#hh|geo|age@owner@mortgage', '#hh|geo|age@owner@equity'],
         'parms': {'axis':'mortgage'}}, 
-    '#hh|geo|child': {
+    '#hh|geo|child|ten': {
         'tables': ['#hh|geo|child@renter', '#hh|geo|child@owner'],
         'parms': {'axis':'tenure'}},   
     '#pop|geo|age|sex': {
@@ -107,7 +106,25 @@ summation_tables = {
         'parms': {'axis':'sex'}},  
     '#pop|geo|age|edu': {
         'tables': '#pop|geo|edu|age|sex',
-        'parms': {'axis':'sex'}}}
+        'parms': {'axis':'sex'}},
+    '#hh|geo|~inc': {
+        'tables':'#hh|geo|~inc|ten',
+        'parms':{'axis':'tenure'}},
+    '#hh|geo|~age': {
+        'tables':'#hh|geo|~age|ten',
+        'parms':{'axis':'tenure'}},
+    '#hh|geo|~size': {
+        'tables':'#hh|geo|~size|ten',
+        'parms':{'axis':'tenure'}},
+    '#hh|geo|child': {
+        'tables':'#hh|geo|child|ten',
+        'parms':{'axis':'tenure'}},        
+    '#pop|geo|edu': {
+        'tables':'#pop|geo|age|edu',
+        'parms':{'axis':'age'}},
+    '#pop|geo|lang': {
+        'tables':'#pop|geo|age|lang',
+        'parms':{'axis':'age'}}}
     
 boundary_pipeline = {
     '#hh|geo|~size|ten': {
@@ -120,14 +137,8 @@ interpolate_pipeline = {
         'parms': {'data':'households', 'axis':'income', 'bounds':(0, 200000), 'values':[10000, 25000, 40000, 60000, 80000, 100000, 125000, 150000, 175000, 200000]}},
     '#hh|geo|~age|ten': {
         'tables': '#hh|geo|age|ten',
-        'parms': {'data':'households', 'axis':'age', 'bounds':(15, 95), 'values':[20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}},
-    '#pop|geo|~age|edu': {
-       'tables': '#pop|geo|age|edu',     
-       'parms': {'data':'population', 'axis':'age', 'bounds':(15, 95), 'values':[20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}},
-    '#pop|geo|~age|lang': {
-       'tables': '#pop|geo|age|lang',     
-       'parms': {'data':'population', 'axis':'age', 'bounds':(15, 95), 'values':[20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}}}
-
+        'parms': {'data':'households', 'axis':'age', 'bounds':(15, 95), 'values':[20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}}}
+    
 
 @demand_calculations.create(**feed_tables)
 def feed_pipeline(tableID, *args, **kwargs):
@@ -178,6 +189,9 @@ def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kw
     table = avgconsolidate(table, *args, axis=axis, bounds=(bounds[0], values[-1]), **kwargs)
     table = tbls.operations.multiply(table, total, *args, noncoreaxis=axis, retag={'{data}/total{data}*total{data}'.format(data=data):data}, **kwargs)
     return table
+
+
+
 
 
 
