@@ -25,11 +25,11 @@ Female,Female
 ,
 White alone,White
 Black or African American alone,Black
-American Indian and Alaska Native alone,Native
+American Indian and Alaska Native alone,Other
 Asian alone,Asian
-Native Hawaiian and Other Pacific Islander alone,Islander
+Native Hawaiian and Other Pacific Islander alone,Asian
 Some other race alone,Other
-Two or more races,Mix
+Two or more races,Other
 ,
 Not Hispanic or Latino,Hispanic
 Hispanic or Latino,NonHispanic
@@ -40,28 +40,28 @@ Renter occupied,Renter
 Owner occupied (dollars),Owner
 Renter occupied (dollars),Renter
 ,
-Housing units with a mortgage,Primary|Secondary|Tertiary
+Housing units with a mortgage,Mortgage
 Housing units without a mortgage,Equity
 ,
-Median value for units with a mortgage,Primary|Secondary|Tertiary
+Median value for units with a mortgage,Mortgage
 Median value for units without a mortgage,Equity
 ,
-Housing units with a mortgage (dollars),Primary|Secondary|Tertiary
+Housing units with a mortgage (dollars),Mortgage
 Housing units without a mortgage (dollars),Equity
 ,
-Housing units with a mortgage contract to purchase or similar debt,Primary|Secondary|Tertiary
-No second mortgage and no home equity loan,Primary
-With either a second mortgage or home equity loan but not both,Secondary
-Both second mortgage and home equity loan,Tertiary
+Housing units with a mortgage contract to purchase or similar debt,Mortgage
+No second mortgage and no home equity loan,Mortgage
+With either a second mortgage or home equity loan but not both,Mortgage
+Both second mortgage and home equity loan,Mortgage
 Housing units without a mortgage,Equity
 ,
 Occupied,Occupied
 Vacant,Vacant
 ,
 For rent,ForRent
-Rented not occupied,RentedEmpty
+Rented not occupied,Other
 For sale only,ForSale
-Sold not occupied,SoldEmpty
+Sold not occupied,Other
 For seasonal recreational or occasional use,Recreational
 For migrant workers,Other
 Other vacant,Other
@@ -84,15 +84,15 @@ No bedroom,0 BEDRMS
 {} or more bedrooms,>{} BEDRMS
 ,
 1 detached,House
-1 attached,Duplex|Townhouse
-2,SplitHouse
+1 attached,House
+2,Split
 3 or 4,Apartment
 5 to 9,Apartment
 10 to 19,Apartment
 20 to 49,Apartment
 50 or more,Apartment
-Mobile home,MobileHome
-Boat RV van etc.,Vehicle
+Mobile home,Mobile
+Boat RV van etc.,Mobile
 ,
 In labor force,Working
 Not in labor force,Domestic
@@ -164,8 +164,8 @@ Other languages of Asia,Asian
 Tagalog (incl. Filipino),Asian
 Ilocano Samoan Hawaiian or other Austronesian languages,Asian
 Other Asian and Pacific Island languages,Asian
-Arabic,Arabic
-Hebrew,Arabic
+Arabic,Other
+Hebrew,Other
 Amharic Somali or other Afro-Asiatic languages,Other
 Yoruba Twi Igbo or other languages of Western Africa,Other
 Swahili or other languages of Central Eastern and Southern Africa,Other
