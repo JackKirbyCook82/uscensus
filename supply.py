@@ -30,6 +30,7 @@ sumcontained = GroupBy(how='contains', agg='sum', ascending=True)
 boundary = Boundary()
 sumcontained = GroupBy(how='contains', agg='sum', ascending=True)
 summation = Reduction(how='summation', by='summation')
+sumcouple = Reduction(how='summation', by='couple')
 normalize = Scale(how='normalize')
 uppercumulate = Cumulate(how='upper')
 upperconsolidate = Consolidate(how='cumulate', direction='upper')
@@ -76,6 +77,19 @@ merge_tables = {
         'tables': ['#st|geo|yrocc|age@renter', '#st|geo|yrocc|age@owner'],
         'parms': {'axis':'tenure'}}}     
 
+interpolate_pipeline = {     
+    '#hh|geo|~val@owner': {
+        'tables': '#hh|geo|val@owner',
+        'parms': {'data':'households', 'axis':'value', 'bounds':(0, 1500000), 'values':[100000, 150000, 200000, 250000, 300000, 350000, 400000, 500000, 750000, 1000000]}},
+    '#hh|geo|~rent@renter': {
+        'tables': '#hh|geo|rent@renter',
+        'parms': {'data':'households', 'axis':'rent', 'bounds':(0, 4000), 'values':[500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000, 3500]}}}
+
+collapse_pipeline = {
+    '#hh|geo|~val': {
+        'tables': ['#hh|geo|~val@owner', '#hh|geo|~rent@renter'],
+        'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'scope':'tenure'}}}
+
 
 @supply_calculations.create(**feed_tables)
 def feed_pipeline(tableID, *args, **kwargs):
@@ -96,5 +110,40 @@ def merge_pipeline(tableID, table, other, *args, axis, **kwargs):
     others = [arg for arg in args if isinstance(arg, type(table))]
     for other in others: table = tbls.combinations.append([table, other], *args, axis=axis, **kwargs)
     return table
+
+def proxyvalues(x):
+    yi = max(x[0] - np.floor(np.diff(x).min()/2), 0)
+    yield yi
+    for xi in x:
+        yi = 2*xi - yi
+        yield yi
+        
+@supply_calculations.create(**interpolate_pipeline)
+def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kwargs):
+    values = [value for value in proxyvalues(values)]      
+    table = boundary(table, *args, axis=axis, bounds=(bounds[0], None), **kwargs)
+    total = summation(table, *args, axis=axis, retag={data:'total{}'.format(data)}, **kwargs)
+    table = tbls.operations.divide(table, total, *args, axis=axis, **kwargs)
+    table = uppercumulate(table, *args, axis=axis, **kwargs)
+    table = upperconsolidate(table, *args, axis=axis, **kwargs)
+    table = interpolate(table, *args, axis=axis, values=values[:-1], **kwargs).fillneg(fill=0)
+    table = upperunconsolidate(table, *args, axis=axis, **kwargs)
+    table = upperuncumulate(table, *args, axis=axis, total=1, **kwargs)
+    table = avgconsolidate(table, *args, axis=axis, bounds=(bounds[0], values[-1]), **kwargs)
+    table = tbls.operations.multiply(table, total, *args, noncoreaxis=axis, retag={'{data}/total{data}*total{data}'.format(data=data):data}, **kwargs)
+    return table
+
+@supply_calculations.create(**collapse_pipeline)
+def collapse_pipeline(tableID, table, other, *args, axis, collapse, value, scope, **kwargs):
+    other = sumcouple(other, *args, axis=collapse, **kwargs).squeeze(collapse)
+    other = other.addscope(axis, value, table.variables[axis])
+    table = tbls.combinations.append([table, other], *args, axis=axis, noncoreaxes=[collapse, scope], **kwargs)
+    return table
+
+
+
+
+
+
 
 
