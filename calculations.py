@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Dec 5 2019
-@name:   USCensus Website Real Estate Demand Side
+@name:   USCensus Website Calculations
 @author: Jack Kirby Cook
 
 """
@@ -9,25 +9,27 @@ Created on Thu Dec 5 2019
 import numpy as np
 
 import tables as tbls
-from tables.processors import Calculation
-from tables.transformations import Boundary, Reduction, GroupBy, Scale, Cumulate, Consolidate, Interpolate, Unconsolidate, Uncumulate
+from tables.processors import Calculation, Renderer
+from tables.transformations import Boundary, Reduction, GroupBy, Scale, Cumulate, Consolidate, Interpolate, Unconsolidate, Uncumulate, Moving
 
 from uscensus.webquery import query
 from uscensus.webtable import acs_webapi, variable_cleaner, variables
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['demand_calculations']
+__all__ = ['calculations', 'renderer']
 __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
 
-AGGS = {'households':'sum', 'population':'sum'}
+AGGS = {'households':'sum', 'population':'sum', 'structures':'sum'}
 
-demand_calculations = Calculation('demand', name='USCensus Real Estate Demand Calculations')
+calculations = Calculation('uscensus', name='USCensus Calculations')
+renderer = Renderer(style='double', extend=1)
 
 boundary = Boundary()
 sumcontained = GroupBy(how='contains', agg='sum', ascending=True)
+sumcouple = Reduction(how='summation', by='couple')
 summation = Reduction(how='summation', by='summation')
 normalize = Scale(how='normalize')
 uppercumulate = Cumulate(how='upper')
@@ -36,9 +38,13 @@ interpolate = Interpolate(how='linear', fill='extrapolate')
 upperunconsolidate = Unconsolidate(how='cumulate', direction='upper')
 upperuncumulate = Uncumulate(how='upper')
 avgconsolidate = Consolidate(how='average', weight=0.5)
+movingdifference = Moving(how='difference', by='minimum', period=1)
 
 
 feed_tables = {
+    '#agginc|geo': {},
+    '#aggrent|geo@renter': {},
+    '#aggval|geo|mort@owner': {},
     '#hh|geo|inc': {},
     '#hh|geo|inc@renter': {},
     '#hh|geo|inc@owner': {}, 
@@ -50,6 +56,14 @@ feed_tables = {
     '#hh|geo|age@owner@equity': {},    
     '#hh|geo|child@renter': {}, 
     '#hh|geo|child@owner': {}, 
+    '#hh|geo|cost@renter': {},
+    '#hh|geo|cost@owner': {},
+    '#hh|geo|cost@owner@mortgage': {},
+    '#hh|geo|cost@owner@equity': {},
+    '#hh|geo|rent@renter': {},
+    '#hh|geo|val@owner': {}, 
+    '#hh|geo|mort@owner': {},
+    '#hh|geo@renter': {},
     '#pop|geo|age@male': {}, 
     '#pop|geo|age@female': {}, 
     '#pop|geo|race': {},
@@ -66,7 +80,22 @@ feed_tables = {
     '#pop|geo|edu@female@age2': {},
     '#pop|geo|edu@female@age3': {},
     '#pop|geo|edu@female@age4': {},
-    '#pop|geo|edu@female@age5': {}}
+    '#pop|geo|edu@female@age5': {},
+    '#pop|geo|cmte': {},           
+    '#st|geo|yrblt':{},
+    '#st|geo|rm': {},
+    '#st|geo|br': {},
+    '#st|geo|unit': {},
+    '#st|geo|yrocc@renter': {}, 
+    '#st|geo|yrocc@owner': {},     
+    '#st|geo|yrocc@renter@age1': {},
+    '#st|geo|yrocc@renter@age2': {},
+    '#st|geo|yrocc@renter@age3': {},
+    '#st|geo|yrocc@owner@age1': {},
+    '#st|geo|yrocc@owner@age2': {},
+    '#st|geo|yrocc@owner@age3': {},
+    '#st|geo|occ': {},
+    '#st|geo|vac@vacant': {}}
 
 merge_tables = {
     '#hh|geo|inc|ten': {
@@ -98,15 +127,33 @@ merge_tables = {
         'parms': {'axis':'age'}},
     '#pop|geo|edu|age|sex': {
         'tables': ['#pop|geo|edu|age@male', '#pop|geo|edu|age@female'],
-        'parms': {'axis':'sex'}}}
+        'parms': {'axis':'sex'}},
+    '#st|geo|yrocc|ten': {
+        'tables': ['#st|geo|yrocc@renter', '#st|geo|yrocc@owner'],
+        'parms': {'axis':'tenure'}},
+    '#st|geo|yrocc|age@renter': {
+        'tables': ['#st|geo|yrocc@renter@age1', '#st|geo|yrocc@renter@age2', '#st|geo|yrocc@renter@age3'],
+        'parms': {'axis':'age'}},
+    '#st|geo|yrocc|age@owner': {
+        'tables': ['#st|geo|yrocc@owner@age1', '#st|geo|yrocc@owner@age2', '#st|geo|yrocc@owner@age3'],
+        'parms': {'axis':'age'}},
+    '#st|geo|yrocc|age|ten': {
+        'tables': ['#st|geo|yrocc|age@renter', '#st|geo|yrocc|age@owner'],
+        'parms': {'axis':'tenure'}}}
 
 summation_tables = {
+    '#aggval|geo@owner': {
+        'tables': '#aggval|geo|mort@owner',
+        'parms': {'axis':'mortgage'}},        
     '#pop|geo|age': {
         'tables': '#pop|geo|age|sex',
         'parms': {'axis':'sex'}},  
     '#pop|geo|age|edu': {
         'tables': '#pop|geo|edu|age|sex',
         'parms': {'axis':'sex'}},
+    '#pop|geo|lang': {
+        'tables':'#pop|geo|age|lang',
+        'parms':{'axis':'age'}},        
     '#hh|geo|~inc': {
         'tables':'#hh|geo|~inc|ten',
         'parms':{'axis':'tenure'}},
@@ -122,8 +169,14 @@ summation_tables = {
     '#pop|geo|edu': {
         'tables':'#pop|geo|age|edu',
         'parms':{'axis':'age'}},
-    '#pop|geo|lang': {
-        'tables':'#pop|geo|age|lang',
+    '#st|geo|yrocc|age': {
+        'tables':'#st|geo|yrocc|age|ten',
+        'parms':{'axis':'tenure'}},
+    '#st|geo|yrocc|tenure': {
+        'tables':'#st|geo|yrocc|age|ten',
+        'parms':{'axis':'age'}},
+    '#st|geo|yrocc': {
+        'tables':'#st|geo|yrocc|age',
         'parms':{'axis':'age'}}}
     
 boundary_pipeline = {
@@ -137,10 +190,41 @@ interpolate_pipeline = {
         'parms': {'data':'households', 'axis':'income', 'bounds':(0, 200000), 'values':[10000, 25000, 40000, 60000, 80000, 100000, 125000, 150000, 175000, 200000]}},
     '#hh|geo|~age|ten': {
         'tables': '#hh|geo|age|ten',
-        'parms': {'data':'households', 'axis':'age', 'bounds':(15, 95), 'values':[20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}}}
-    
+        'parms': {'data':'households', 'axis':'age', 'bounds':(15, 95), 'values':[20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}},
+    '#hh|geo|~val@owner': {
+        'tables': '#hh|geo|val@owner',
+        'parms': {'data':'households', 'axis':'value', 'bounds':(0, 1500000), 'values':[100000, 150000, 200000, 250000, 300000, 350000, 400000, 500000, 750000, 1000000]}},
+    '#hh|geo|~rent@renter': {
+        'tables': '#hh|geo|rent@renter',
+        'parms': {'data':'households', 'axis':'rent', 'bounds':(0, 4000), 'values':[500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000, 3500]}},
+    '#st|geo|yrocc|~age|ten': {
+        'tables':'#st|geo|yrocc|age|ten',
+        'parms':{'data':'structures', 'axis':'age', 'bounds':(15, 95), 'values':[20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}},
+    '#st|geo|~yrocc|~age|ten': {
+        'tables':'#st|geo|yrocc|~age|ten',
+        'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 'values':[1985, 1990, 1995, 2000, 2005, 2010, 2015, 2018]}},
+    '#st|geo|~yrocc': {
+        'tables':'#st|geo|yrocc',
+        'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 'values':[1985, 1990, 1995, 2000, 2005, 2010, 2015, 2018]}}}
 
-@demand_calculations.create(**feed_tables)
+collapse_pipeline = {
+    '#hh|geo|~val': {
+        'tables': ['#hh|geo|~val@owner', '#hh|geo|~rent@renter'],
+        'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'scope':'tenure'}}}
+    
+rate_pipeline = {
+    'Δ%agginc|geo': {
+        'tables': '#agginc|geo',
+        'parms': {'data':'aggincome', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}},          
+    'Δ%aggval|geo@owner': {
+        'tables': '#aggval|geo@owner',
+        'parms': {'data':'aggvalue', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}},   
+    'Δ%aggrent|geo@renter': {
+        'tables': '#aggrent|geo@renter',
+        'parms': {'data':'aggrent', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}}}        
+        
+
+@calculations.create(**feed_tables)
 def feed_pipeline(tableID, *args, **kwargs):
     queryParms = query(tableID)
     universe, index, header, scope = queryParms['universe'], queryParms['index'], queryParms['header'], queryParms['scope']   
@@ -149,10 +233,10 @@ def feed_pipeline(tableID, *args, **kwargs):
     flattable = tbls.FlatTable(dataframe, variables=variables, name=tableID)
     arraytable = flattable[[universe, index, header, 'date', *scope.keys()]].unflatten(universe, aggs=AGGS)
     arraytable = arraytable.squeeze(*scope.keys()).sortall(ascending=True).fillneg(np.nan)   
-    arraytable = sumcontained(arraytable, axis=header)
+    if header: arraytable = sumcontained(arraytable, axis=header)
     return arraytable
 
-@demand_calculations.create(**merge_tables)
+@calculations.create(**merge_tables)
 def merge_pipeline(tableID, table, other, *args, axis, **kwargs):
     assert isinstance(other, type(table))
     table = tbls.combinations.merge([table, other], *args, axis=axis, **kwargs)
@@ -160,11 +244,11 @@ def merge_pipeline(tableID, table, other, *args, axis, **kwargs):
     for other in others: table = tbls.combinations.append([table, other], *args, axis=axis, **kwargs)
     return table
     
-@demand_calculations.create(**summation_tables)
-def sum_pipeline(tableID, table, *args, axis, **kwargs):
+@calculations.create(**summation_tables)
+def sum_pipeline(tableID, table, *args, axis, **kwargs): 
     return summation(table, *args, axis=axis, **kwargs).squeeze(axis)
 
-@demand_calculations.create(**boundary_pipeline)
+@calculations.create(**boundary_pipeline)
 def boundary_pipeline(tableID, table, *args, axis, bounds, **kwargs): 
     return avgconsolidate(table, *args, axis=axis, bounds=bounds, **kwargs)
 
@@ -175,22 +259,37 @@ def proxyvalues(x):
         yi = 2*xi - yi
         yield yi
         
-@demand_calculations.create(**interpolate_pipeline)
+@calculations.create(**interpolate_pipeline)
 def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kwargs):
-    values = [value for value in proxyvalues(values)]      
+    values = [value for value in proxyvalues(values)]    
+    retag = {'{data}/total{data}*total{data}'.format(data=data):data}
     table = boundary(table, *args, axis=axis, bounds=(bounds[0], None), **kwargs)
     total = summation(table, *args, axis=axis, retag={data:'total{}'.format(data)}, **kwargs)
     table = tbls.operations.divide(table, total, *args, axis=axis, **kwargs)
     table = uppercumulate(table, *args, axis=axis, **kwargs)
     table = upperconsolidate(table, *args, axis=axis, **kwargs)
-    table = interpolate(table, *args, axis=axis, values=values[:-1], **kwargs).fillneg(fill=0)
+    table = interpolate(table, *args, axis=axis, values=values[:-1], **kwargs).fillneg(fill=0)  
     table = upperunconsolidate(table, *args, axis=axis, **kwargs)
-    table = upperuncumulate(table, *args, axis=axis, total=1, **kwargs)
+    table = upperuncumulate(table, *args, axis=axis, total=1, **kwargs)    
     table = avgconsolidate(table, *args, axis=axis, bounds=(bounds[0], values[-1]), **kwargs)
-    table = tbls.operations.multiply(table, total, *args, noncoreaxis=axis, retag={'{data}/total{data}*total{data}'.format(data=data):data}, **kwargs)
+    table = tbls.operations.multiply(table, total, *args, noncoreaxis=axis, retag=retag, simplify=True, **kwargs)
     return table
 
+@calculations.create(**collapse_pipeline)
+def collapse_pipeline(tableID, table, other, *args, axis, collapse, value, scope, **kwargs):
+    other = sumcouple(other, *args, axis=collapse, **kwargs).squeeze(collapse)
+    other = other.addscope(axis, value, table.variables[axis])
+    table = tbls.combinations.append([table, other], *args, axis=axis, noncoreaxes=[collapse, scope], **kwargs)
+    return table
 
+@calculations.create(**rate_pipeline)
+def rate_pipeline(tableID, table, *args, data, axis, **kwargs):
+    retag = {'delta{data}/{data}'.format(data=data):'{}rate'.format(data)}
+    deltatable = movingdifference(table, *args, axis=axis, retag={data:'delta{}'.format(data)}, **kwargs)
+    basetable = table[{'date':slice(-1)}]
+    table = tbls.operations.divide(deltatable, basetable, *args, retag=retag, **kwargs).fillinf(np.NaN)
+    return table
+    
 
 
 

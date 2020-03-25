@@ -11,18 +11,16 @@ import os.path
 
 import tables as tbls
 import visualization as vis
-from tables.processors import Calculation, Renderer
 from parsers import BoolParser, ListParser, DictParser
 from variables import Geography, Date
 from utilities.inputparsers import InputParser
 
-from uscensus.supply import supply_calculations
-from uscensus.demand import demand_calculations
+from uscensus.calculations import calculations, renderer
 from uscensus.display import MapPlotter
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['calculation']
+__all__ = ['calculations']
 __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
@@ -32,11 +30,8 @@ ROOT_DIR = os.path.abspath(os.path.join(DIR, os.pardir))
 SHAPE_DIR = os.path.join(ROOT_DIR, 'resources', 'shapefiles')
 EXCEL_FILE = os.path.join(ROOT_DIR, 'USCensusTables.xlsx')
 
-renderer = Renderer(style='double', extend=1)
+
 mapplotter = MapPlotter(SHAPE_DIR, size=(8,8), vintage=2018, colors='YlGn', roads=True)
-calculation = Calculation('uscensus', name='USCensus Calculation')
-calculation += supply_calculations
-calculation += demand_calculations
 
 
 def create_spreadsheet(table, *inputArgs, **inputParms): table.flatten().toexcel(EXCEL_FILE)
@@ -45,21 +40,21 @@ def display(table, tree, *inputArgs, **inputParms): print('\n'.join([str(tree), 
 
 
 def main(*inputArgs, tableID, mapplot=False, spreadsheet=False, **inputParms):   
-    calculation()
+    calculations()
     print(str(inputparser), '\n')  
-    print(str(calculation), '\n')
+    print(str(calculations), '\n')
     
-    if tableID in calculation: 
-        tree = renderer(calculation[tableID])
-        table = calculation[tableID](*inputArgs, **inputParms)
+    if tableID in calculations: 
+        tree = renderer(calculations[tableID])
+        table = calculations[tableID](*inputArgs, **inputParms)
         if spreadsheet: create_spreadsheet(table, *inputArgs, **inputParms)
         if mapplot: create_mapplot(table, *inputArgs, **inputParms)   
         if table: display(table, tree, *inputArgs, **inputParms)
-    else: print("{} Table Not Supported: '{}'".format(calculation.name, tableID))
+    else: print("{} Table Not Supported: '{}'".format(calculations.name, tableID))
     
    
 if __name__ == '__main__':  
-    tbls.set_options(linewidth=110, maxrows=40, maxcolumns=10, threshold=100, precision=3, fixednotation=True, framechar='=')
+    tbls.set_options(linewidth=100, maxrows=40, maxcolumns=10, threshold=100, precision=3, fixednotation=True, framechar='=')
     vis.set_options(axisfontsize=8, legendfontsize=8, titlefontsize=12)
     tbls.show_options()
     vis.show_options()
@@ -74,13 +69,13 @@ if __name__ == '__main__':
     print(repr(inputparser))
     print(repr(renderer))
     print(repr(mapplotter))
-    print(repr(calculation), '\n')  
+    print(repr(calculations), '\n')  
     
-    sys.argv.extend(['tableID=#hh|geo|~val',
+    sys.argv.extend(['tableID=',
                      'mapplot=False', 
                      'spreadsheet=False',
                      'geography=state|6,county|29,tract|*', 
-                     'dates=2018'])
+                     'dates=2018,2017,2016,2015,2014,2013,2012,2011,2010'])
     inputparser(*sys.argv[1:])
     main(*inputparser.inputArgs, **inputparser.inputParms)
     
