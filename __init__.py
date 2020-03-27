@@ -71,11 +71,11 @@ if __name__ == '__main__':
     print(repr(mapplotter))
     print(repr(calculations), '\n')  
     
-    sys.argv.extend(['tableID=',
+    sys.argv.extend(['tableID=#pop|geo|edu@male@age1',
                      'mapplot=False', 
                      'spreadsheet=False',
                      'geography=state|6,county|29,tract|*', 
-                     'dates=2018,2017,2016,2015,2014,2013,2012,2011,2010'])
+                     'dates=2018'])
     inputparser(*sys.argv[1:])
     main(*inputparser.inputArgs, **inputparser.inputParms)
     
