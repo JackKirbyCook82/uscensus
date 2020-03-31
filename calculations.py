@@ -212,14 +212,26 @@ collapse_pipeline = {
         'tables': ['#hh|geo|~val@owner', '#hh|geo|~rent@renter'],
         'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'scope':'tenure'}}}
     
+ratio_pipeline = {
+    'avginc|geo': {
+        'tables': ['#agginc|geo', '#hh|geo'],
+        'parms': {'topdata':'aggincome', 'bottomdata':'households', 'formatting':{'precision':2}}},          
+    'avgval|geo@owner': {
+        'tables': ['#aggval|geo@owner', '#hh|geo'],
+        'parms': {'topdata':'aggvalue', 'bottomdata':'households', 'formatting':{'precision':2}}},   
+    'avgrent|geo@renter': {
+        'tables': ['#aggrent|geo@renter', '#hh|geo'],
+        'parms': {'topdata':'aggrent', 'bottomdata':'households', 'formatting':{'precision':2}}}}    
+
+
 rate_pipeline = {
-    'Δ%agginc|geo': {
-        'tables': '#agginc|geo',
+    'Δ%avginc|geo': {
+        'tables': '#agginc|geo', 
         'parms': {'data':'aggincome', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}},          
-    'Δ%aggval|geo@owner': {
+    'Δ%avgval|geo@owner': {
         'tables': '#aggval|geo@owner',
         'parms': {'data':'aggvalue', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}},   
-    'Δ%aggrent|geo@renter': {
+    'Δ%avgrent|geo@renter': {
         'tables': '#aggrent|geo@renter',
         'parms': {'data':'aggrent', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}}}        
         
@@ -282,6 +294,11 @@ def collapse_pipeline(tableID, table, other, *args, axis, collapse, value, scope
     table = tbls.combinations.append([table, other], *args, axis=axis, noncoreaxes=[collapse, scope], **kwargs)
     return table
 
+@calculations.create(**ratio_pipeline)
+def ratio_pipeline(tableID, toptable, bottomtable, *args, topdata, bottomdata, **kwargs):
+    table = tbls.operations.divide(toptable, bottomtable, *args, **kwargs).fillinf(np.NaN)
+    return table
+    
 @calculations.create(**rate_pipeline)
 def rate_pipeline(tableID, table, *args, data, axis, **kwargs):
     retag = {'delta{data}/{data}'.format(data=data):'{}rate'.format(data)}
