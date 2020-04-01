@@ -71,7 +71,7 @@ if __name__ == '__main__':
     print(repr(mapplotter))
     print(repr(process), '\n')  
     
-    sys.argv.extend(['tableID=#pop|geo|edu@male@age1',
+    sys.argv.extend(['tableID=',
                      'mapplot=False', 
                      'spreadsheet=False',
                      'geography=state|6,county|29,tract|*', 

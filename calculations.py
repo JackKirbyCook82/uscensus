@@ -100,7 +100,7 @@ feed_tables = {
 merge_tables = {
     '#hh|geo': {
         'tables': ['#hh|geo@renter', '#hh|geo@owner'],
-        'parms': {'axis':'tenure'}},        
+        'parms': {'axis':'tenure'}},      
     '#hh|geo|inc|ten': {
         'tables': ['#hh|geo|inc@renter', '#hh|geo|inc@owner'],
         'parms': {'axis':'tenure'}},
@@ -158,11 +158,8 @@ summation_tables = {
         'tables':'#pop|geo|age|lang',
         'parms':{'axis':'age'}},      
     '#hh|geo@owner': {
-        'tables':'#hh|geo|val@owner',
-        'parms':{'axis':'value'}},
-    '#hh|geo@renter': {
-        'tables':'#hh|geo|rent@owner',
-        'parms':{'axis':'rent'}},
+        'tables':'#hh|geo|mort@owner',
+        'parms':{'axis':'mortgage'}},                 
     '#hh|geo|~inc': {
         'tables':'#hh|geo|~inc|ten',
         'parms':{'axis':'tenure'}},
