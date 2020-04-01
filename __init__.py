@@ -15,12 +15,12 @@ from parsers import BoolParser, ListParser, DictParser
 from variables import Geography, Date
 from utilities.inputparsers import InputParser
 
-from uscensus.calculations import calculations, renderer
+from uscensus.calculations import process, renderer
 from uscensus.display import MapPlotter
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['calculations']
+__all__ = ['process']
 __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
@@ -40,7 +40,7 @@ def display(table, tree, *inputArgs, **inputParms): print('\n'.join([str(tree), 
 
 
 def main(*inputArgs, tableID, mapplot=False, spreadsheet=False, **inputParms):   
-    calculations()
+    calculations = process()
     print(str(inputparser), '\n')  
     print(str(calculations), '\n')
     
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     print(repr(inputparser))
     print(repr(renderer))
     print(repr(mapplotter))
-    print(repr(calculations), '\n')  
+    print(repr(process), '\n')  
     
     sys.argv.extend(['tableID=#pop|geo|edu@male@age1',
                      'mapplot=False', 

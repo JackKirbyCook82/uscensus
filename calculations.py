@@ -9,7 +9,7 @@ Created on Thu Dec 5 2019
 import numpy as np
 
 import tables as tbls
-from tables.processors import Calculation, Renderer
+from tables.processors import CalculationProcess, CalculationRenderer
 from tables.transformations import Boundary, Reduction, GroupBy, Scale, Cumulate, Consolidate, Interpolate, Unconsolidate, Uncumulate, Moving
 
 from uscensus.webquery import query
@@ -17,15 +17,15 @@ from uscensus.webtable import acs_webapi, variable_cleaner, variables
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['calculations', 'renderer']
+__all__ = ['process', 'renderer']
 __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
 
 AGGS = {'households':'sum', 'population':'sum', 'structures':'sum'}
 
-calculations = Calculation('uscensus', name='USCensus Calculations')
-renderer = Renderer(style='double', extend=1)
+process = CalculationProcess('uscensus', name='USCensus Calculations')
+renderer = CalculationRenderer(style='double', extend=1)
 
 boundary = Boundary()
 sumcontained = GroupBy(how='contains', agg='sum', ascending=True)
@@ -245,7 +245,7 @@ rate_pipeline = {
         'parms': {'data':'aggrent', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}}}        
         
 
-@calculations.create(**feed_tables)
+@process.create(**feed_tables)
 def feed_pipeline(tableID, *args, **kwargs):
     queryParms = query(tableID)
     universe, index, header, scope = queryParms['universe'], queryParms['index'], queryParms['header'], queryParms['scope']   
@@ -257,7 +257,7 @@ def feed_pipeline(tableID, *args, **kwargs):
     if header: arraytable = sumcontained(arraytable, axis=header)
     return arraytable
 
-@calculations.create(**merge_tables)
+@process.create(**merge_tables)
 def merge_pipeline(tableID, table, other, *args, axis, **kwargs):
     assert isinstance(other, type(table))
     table = tbls.combinations.merge([table, other], *args, axis=axis, **kwargs)
@@ -265,11 +265,11 @@ def merge_pipeline(tableID, table, other, *args, axis, **kwargs):
     for other in others: table = tbls.combinations.append([table, other], *args, axis=axis, **kwargs)
     return table
     
-@calculations.create(**summation_tables)
+@process.create(**summation_tables)
 def sum_pipeline(tableID, table, *args, axis, **kwargs): 
     return summation(table, *args, axis=axis, **kwargs).squeeze(axis)
 
-@calculations.create(**boundary_pipeline)
+@process.create(**boundary_pipeline)
 def boundary_pipeline(tableID, table, *args, axis, bounds, **kwargs): 
     return avgconsolidate(table, *args, axis=axis, bounds=bounds, **kwargs)
 
@@ -280,7 +280,7 @@ def proxyvalues(x):
         yi = 2*xi - yi
         yield yi
         
-@calculations.create(**interpolate_pipeline)
+@process.create(**interpolate_pipeline)
 def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kwargs):
     values = [value for value in proxyvalues(values)]    
     retag = {'{data}/total{data}*total{data}'.format(data=data):data}
@@ -296,19 +296,19 @@ def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kw
     table = tbls.operations.multiply(table, total, *args, noncoreaxis=axis, retag=retag, simplify=True, **kwargs)
     return table
 
-@calculations.create(**collapse_pipeline)
+@process.create(**collapse_pipeline)
 def collapse_pipeline(tableID, table, other, *args, axis, collapse, value, scope, **kwargs):
     other = sumcouple(other, *args, axis=collapse, **kwargs).squeeze(collapse)
     other = other.addscope(axis, value, table.variables[axis])
     table = tbls.combinations.append([table, other], *args, axis=axis, noncoreaxes=[collapse, scope], **kwargs)
     return table
 
-@calculations.create(**ratio_pipeline)
+@process.create(**ratio_pipeline)
 def ratio_pipeline(tableID, toptable, bottomtable, *args, topdata, bottomdata, **kwargs):
     table = tbls.operations.divide(toptable, bottomtable, *args, **kwargs).fillinf(np.NaN)
     return table
     
-@calculations.create(**rate_pipeline)
+@process.create(**rate_pipeline)
 def rate_pipeline(tableID, table, *args, data, axis, **kwargs):
     retag = {'delta{data}/{data}'.format(data=data):'{}rate'.format(data)}
     deltatable = movingdifference(table, *args, axis=axis, retag={data:'delta{}'.format(data)}, **kwargs)
