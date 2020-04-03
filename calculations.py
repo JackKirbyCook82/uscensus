@@ -31,6 +31,7 @@ boundary = Boundary()
 sumcontained = GroupBy(how='contains', agg='sum', ascending=True)
 sumcouple = Reduction(how='summation', by='couple')
 summation = Reduction(how='summation', by='summation')
+average = Reduction(how='wtaverage', by='summation')
 normalize = Scale(how='normalize')
 uppercumulate = Cumulate(how='upper')
 upperconsolidate = Consolidate(how='cumulate', direction='upper')
@@ -184,13 +185,24 @@ summation_tables = {
     '#st|geo|yrocc': {
         'tables':'#st|geo|yrocc|age',
         'parms':{'axis':'age'}}}
-    
-boundary_pipeline = {
+
+average_tables = {
+    'Δ%avginc': {
+        'tables': ['Δ%avginc|geo', '#hh|geo'],
+        'parms': {'data':'avgincome', 'axis':'geography', 'weighted':True}},
+    'Δ%avgval@owner': {
+        'tables': ['Δ%avgval|geo@owner', '#hh|geo@owner'],
+        'parms': {'data':'avgvalue', 'axis':'geography', 'weighted':True}},
+    'Δ%avgrent@renter': {
+        'tables': ['Δ%avgrent|geo@renter', '#hh|geo@renter'],
+        'parms': {'data':'avgrent', 'axis':'geography', 'weighted':True}}}
+ 
+boundary_tables = {
     '#hh|geo|~size|ten': {
         'tables': '#hh|geo|size|ten',
         'parms': {'axis':'size', 'bounds':(0, 7)}}}
 
-interpolate_pipeline = {     
+interpolate_tables = {     
     '#hh|geo|~inc|ten': {
         'tables': '#hh|geo|inc|ten',
         'parms': {'data':'households', 'axis':'income', 'bounds':(0, 200000), 'values':[10000, 25000, 40000, 60000, 80000, 100000, 125000, 150000, 175000, 200000]}},
@@ -213,24 +225,23 @@ interpolate_pipeline = {
         'tables':'#st|geo|yrocc',
         'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 'values':[1985, 1990, 1995, 2000, 2005, 2010, 2015, 2018]}}}
 
-collapse_pipeline = {
+collapse_tables = {
     '#hh|geo|~val': {
         'tables': ['#hh|geo|~val@owner', '#hh|geo|~rent@renter'],
         'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'scope':'tenure'}}}
     
-ratio_pipeline = {
+ratio_tables = {
     'avginc|geo': {
         'tables': ['#agginc|geo', '#hh|geo'],
-        'parms': {'topdata':'aggincome', 'bottomdata':'households', 'formatting':{'precision':2}}},          
+        'parms': {'formatting':{'precision':2}}},          
     'avgval|geo@owner': {
-        'tables': ['#aggval|geo@owner', '#hh|geo'],
-        'parms': {'topdata':'aggvalue', 'bottomdata':'households', 'formatting':{'precision':2}}},   
+        'tables': ['#aggval|geo@owner', '#hh|geo@owner'],
+        'parms': {'formatting':{'precision':2}}},   
     'avgrent|geo@renter': {
-        'tables': ['#aggrent|geo@renter', '#hh|geo'],
-        'parms': {'topdata':'aggrent', 'bottomdata':'households', 'formatting':{'precision':2}}}}    
+        'tables': ['#aggrent|geo@renter', '#hh|geo@renter'],
+        'parms': {'formatting':{'precision':2}}}}    
 
-
-rate_pipeline = {
+rate_tables = {
     'Δ%avginc|geo': {
         'tables': '#agginc|geo', 
         'parms': {'data':'aggincome', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}},          
@@ -240,8 +251,8 @@ rate_pipeline = {
     'Δ%avgrent|geo@renter': {
         'tables': '#aggrent|geo@renter',
         'parms': {'data':'aggrent', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}}}        
-        
 
+       
 @process.create(**feed_tables)
 def feed_pipeline(tableID, *args, **kwargs):
     queryParms = query(tableID)
@@ -263,10 +274,18 @@ def merge_pipeline(tableID, table, other, *args, axis, **kwargs):
     return table
     
 @process.create(**summation_tables)
-def sum_pipeline(tableID, table, *args, axis, **kwargs): 
+def summation_pipeline(tableID, table, *args, axis, **kwargs): 
     return summation(table, *args, axis=axis, **kwargs).squeeze(axis)
 
-@process.create(**boundary_pipeline)
+@process.create(**average_tables)
+def average_pipeline(tableID, table, *args, data, axis, weighted, **kwargs):
+    if not weighted: return summation(table, *args, axis=axis, **kwargs).squeeze(axis)
+    other = args[0] if isinstance(args[0], type(table)) else None
+    weights = other.arrays[data] if other is not None else kwargs.get('weights', np.ones(len(table.headers[axis])))
+    assert len(table.headers[axis]) == len(weights)
+    return average(table, *args, axis=axis, weights=weights, **kwargs).squeeze(axis)
+            
+@process.create(**boundary_tables)
 def boundary_pipeline(tableID, table, *args, axis, bounds, **kwargs): 
     return avgconsolidate(table, *args, axis=axis, bounds=bounds, **kwargs)
 
@@ -277,7 +296,7 @@ def proxyvalues(x):
         yi = 2*xi - yi
         yield yi
         
-@process.create(**interpolate_pipeline)
+@process.create(**interpolate_tables)
 def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kwargs):
     values = [value for value in proxyvalues(values)]    
     retag = {'{data}/total{data}*total{data}'.format(data=data):data}
@@ -293,19 +312,19 @@ def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kw
     table = tbls.operations.multiply(table, total, *args, noncoreaxis=axis, retag=retag, simplify=True, **kwargs)
     return table
 
-@process.create(**collapse_pipeline)
+@process.create(**collapse_tables)
 def collapse_pipeline(tableID, table, other, *args, axis, collapse, value, scope, **kwargs):
     other = sumcouple(other, *args, axis=collapse, **kwargs).squeeze(collapse)
     other = other.addscope(axis, value, table.variables[axis])
     table = tbls.combinations.append([table, other], *args, axis=axis, noncoreaxes=[collapse, scope], **kwargs)
     return table
 
-@process.create(**ratio_pipeline)
-def ratio_pipeline(tableID, toptable, bottomtable, *args, topdata, bottomdata, **kwargs):
+@process.create(**ratio_tables)
+def ratio_pipeline(tableID, toptable, bottomtable, *args, **kwargs):
     table = tbls.operations.divide(toptable, bottomtable, *args, **kwargs).fillinf(np.NaN)
     return table
     
-@process.create(**rate_pipeline)
+@process.create(**rate_tables)
 def rate_pipeline(tableID, table, *args, data, axis, **kwargs):
     retag = {'delta{data}/{data}'.format(data=data):'{}rate'.format(data)}
     deltatable = movingdifference(table, *args, axis=axis, retag={data:'delta{}'.format(data)}, **kwargs)
@@ -313,7 +332,6 @@ def rate_pipeline(tableID, table, *args, data, axis, **kwargs):
     table = tbls.operations.divide(deltatable, basetable, *args, retag=retag, **kwargs).fillinf(np.NaN)
     return table
     
-
 
 
 
