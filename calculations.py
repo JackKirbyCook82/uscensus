@@ -99,23 +99,23 @@ feed_tables = {
     '#st|geo|vac@vacant': {}}
 
 merge_tables = {
-    '#hh|geo': {
-        'tables': ['#hh|geo@renter', '#hh|geo@owner'],
-        'parms': {'axis':'tenure'}},      
+    '#hh|geo|ten': {
+        'tables': ['#hh|geo@owner', '#hh|geo@renter'],
+        'parms': {'axis':'tenure', 'noncoreaxis':'mortgage'}},      
     '#hh|geo|inc|ten': {
-        'tables': ['#hh|geo|inc@renter', '#hh|geo|inc@owner'],
+        'tables': ['#hh|geo|inc@owner', '#hh|geo|inc@renter'],
         'parms': {'axis':'tenure'}},
     '#hh|geo|size|ten': {
-        'tables': ['#hh|geo|size@renter', '#hh|geo|size@owner'],
+        'tables': ['#hh|geo|size@owner', '#hh|geo|size@renter'],
         'parms': {'axis':'tenure'}},  
     '#hh|geo|age|ten': {
-        'tables': ['#hh|geo|age@renter', '#hh|geo|age@owner'],
+        'tables': ['#hh|geo|age@owner', '#hh|geo|age@renter'],
         'parms': {'axis':'tenure'}},    
     '#hh|geo|age|mort@owner': {
         'tables': ['#hh|geo|age@owner@mortgage', '#hh|geo|age@owner@equity'],
         'parms': {'axis':'mortgage'}}, 
     '#hh|geo|child|ten': {
-        'tables': ['#hh|geo|child@renter', '#hh|geo|child@owner'],
+        'tables': ['#hh|geo|child@owner', '#hh|geo|child@renter'],
         'parms': {'axis':'tenure'}},   
     '#pop|geo|age|sex': {
         'tables': ['#pop|geo|age@male', '#pop|geo|age@female'],
@@ -133,7 +133,7 @@ merge_tables = {
         'tables': ['#pop|geo|edu|age@male', '#pop|geo|edu|age@female'],
         'parms': {'axis':'sex'}},
     '#st|geo|yrocc|ten': {
-        'tables': ['#st|geo|yrocc@renter', '#st|geo|yrocc@owner'],
+        'tables': ['#st|geo|yrocc@owner', '#st|geo|yrocc@renter'],
         'parms': {'axis':'tenure'}},
     '#st|geo|yrocc|age@renter': {
         'tables': ['#st|geo|yrocc@renter@age1', '#st|geo|yrocc@renter@age2', '#st|geo|yrocc@renter@age3'],
@@ -142,7 +142,7 @@ merge_tables = {
         'tables': ['#st|geo|yrocc@owner@age1', '#st|geo|yrocc@owner@age2', '#st|geo|yrocc@owner@age3'],
         'parms': {'axis':'age'}},
     '#st|geo|yrocc|age|ten': {
-        'tables': ['#st|geo|yrocc|age@renter', '#st|geo|yrocc|age@owner'],
+        'tables': ['#st|geo|yrocc|age@owner', '#st|geo|yrocc|age@renter'],
         'parms': {'axis':'tenure'}}}
 
 summation_tables = {
@@ -157,7 +157,10 @@ summation_tables = {
         'parms': {'axis':'sex'}},
     '#pop|geo|lang': {
         'tables':'#pop|geo|age|lang',
-        'parms':{'axis':'age'}},      
+        'parms':{'axis':'age'}},    
+    '#hh|geo': {
+        'tables':'#hh|geo|ten',
+        'parms':{'axis':'tenure'}},           
     '#hh|geo@owner': {
         'tables':'#hh|geo|mort@owner',
         'parms':{'axis':'mortgage'}},                 
@@ -233,26 +236,26 @@ collapse_tables = {
 ratio_tables = {
     'avginc|geo': {
         'tables': ['#agginc|geo', '#hh|geo'],
-        'parms': {'formatting':{'precision':2}}},          
+        'parms': {'data':'income', 'topdata':'aggincome', 'bottomdata':'households', 'formatting':{'precision':2}}},          
     'avgval|geo@owner': {
         'tables': ['#aggval|geo@owner', '#hh|geo@owner'],
-        'parms': {'formatting':{'precision':2}}},   
+        'parms': {'data':'value', 'topdata':'aggvalue', 'bottomdata':'households', 'formatting':{'precision':2}}},  
     'avgrent|geo@renter': {
         'tables': ['#aggrent|geo@renter', '#hh|geo@renter'],
-        'parms': {'formatting':{'precision':2}}}}    
+        'parms': {'data':'rent', 'topdata':'aggrent', 'bottomdata':'households', 'formatting':{'precision':2}}}}    
 
 rate_tables = {
     'Δ%avginc|geo': {
-        'tables': '#agginc|geo', 
-        'parms': {'data':'aggincome', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}},          
+        'tables': 'avginc|geo', 
+        'parms': {'data':'avgincome', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}},          
     'Δ%avgval|geo@owner': {
-        'tables': '#aggval|geo@owner',
-        'parms': {'data':'aggvalue', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}},   
+        'tables': 'avgval|geo@owner',
+        'parms': {'data':'avgvalue', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}},   
     'Δ%avgrent|geo@renter': {
-        'tables': '#aggrent|geo@renter',
-        'parms': {'data':'aggrent', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}}}        
+        'tables': 'avgrent|geo@renter',
+        'parms': {'data':'avgrent', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}}}        
 
-       
+      
 @process.create(**feed_tables)
 def feed_pipeline(tableID, *args, **kwargs):
     queryParms = query(tableID)
@@ -266,9 +269,9 @@ def feed_pipeline(tableID, *args, **kwargs):
     return arraytable
 
 @process.create(**merge_tables)
-def merge_pipeline(tableID, table, other, *args, axis, **kwargs):
+def merge_pipeline(tableID, table, other, *args, axis, noncoreaxis=None, **kwargs):
     assert isinstance(other, type(table))
-    table = tbls.combinations.merge([table, other], *args, axis=axis, **kwargs)
+    table = tbls.combinations.merge([table, other], *args, axis=axis, noncoreaxis=noncoreaxis, **kwargs)
     others = [arg for arg in args if isinstance(arg, type(table))]
     for other in others: table = tbls.combinations.append([table, other], *args, axis=axis, **kwargs)
     return table
@@ -320,13 +323,14 @@ def collapse_pipeline(tableID, table, other, *args, axis, collapse, value, scope
     return table
 
 @process.create(**ratio_tables)
-def ratio_pipeline(tableID, toptable, bottomtable, *args, **kwargs):
-    table = tbls.operations.divide(toptable, bottomtable, *args, **kwargs).fillinf(np.NaN)
+def ratio_pipeline(tableID, toptable, bottomtable, *args, data, topdata, bottomdata, **kwargs):
+    retag = {'{}/{}'.format(topdata, bottomdata):'avg{}'.format(data)}
+    table = tbls.operations.divide(toptable, bottomtable, *args, retag=retag, **kwargs).fillinf(np.NaN)
     return table
     
 @process.create(**rate_tables)
 def rate_pipeline(tableID, table, *args, data, axis, **kwargs):
-    retag = {'delta{data}/{data}'.format(data=data):'{}rate'.format(data)}
+    retag = {'delta{data}/{data}'.format(data=data):'{data}rate'.format(data=data)}
     deltatable = movingdifference(table, *args, axis=axis, retag={data:'delta{}'.format(data)}, **kwargs)
     basetable = table[{'date':slice(-1)}]
     table = tbls.operations.divide(deltatable, basetable, *args, retag=retag, **kwargs).fillinf(np.NaN)
