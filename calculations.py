@@ -31,7 +31,7 @@ boundary = Boundary()
 sumcontained = GroupBy(how='contains', agg='sum', ascending=True)
 sumcouple = Reduction(how='summation', by='couple')
 summation = Reduction(how='summation', by='summation')
-average = Reduction(how='wtaverage', by='summation')
+average = Reduction(how='average', by='summation')
 normalize = Scale(how='normalize')
 uppercumulate = Cumulate(how='upper')
 upperconsolidate = Consolidate(how='cumulate', direction='upper')
@@ -188,17 +188,6 @@ summation_tables = {
     '#st|geo|yrocc': {
         'tables':'#st|geo|yrocc|age',
         'parms':{'axis':'age'}}}
-
-average_tables = {
-    'Δ%avginc': {
-        'tables': ['Δ%avginc|geo', '#hh|geo'],
-        'parms': {'data':'avgincome', 'axis':'geography', 'weighted':True}},
-    'Δ%avgval@owner': {
-        'tables': ['Δ%avgval|geo@owner', '#hh|geo@owner'],
-        'parms': {'data':'avgvalue', 'axis':'geography', 'weighted':True}},
-    'Δ%avgrent@renter': {
-        'tables': ['Δ%avgrent|geo@renter', '#hh|geo@renter'],
-        'parms': {'data':'avgrent', 'axis':'geography', 'weighted':True}}}
  
 boundary_tables = {
     '#hh|geo|~size|ten': {
@@ -255,7 +244,18 @@ rate_tables = {
         'tables': 'avgrent|geo@renter',
         'parms': {'data':'avgrent', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}}}        
 
-      
+average_tables = {
+    'Δ%avginc': {
+        'tables': ['Δ%avginc|geo', '#hh|geo'],
+        'parms': {'data':'avgincomerate', 'weightdata':'households', 'axis':'geography'}},
+    'Δ%avgval@owner': {
+        'tables': ['Δ%avgval|geo@owner', '#hh|geo@owner'],
+        'parms': {'data':'avgvaluerate', 'weightdata':'households', 'axis':'geography'}},
+    'Δ%avgrent@renter': {
+        'tables': ['Δ%avgrent|geo@renter', '#hh|geo@renter'],
+        'parms': {'data':'avgrentrate', 'weightdata':'households', 'axis':'geography'}}}
+     
+ 
 @process.create(**feed_tables)
 def feed_pipeline(tableID, *args, **kwargs):
     queryParms = query(tableID)
@@ -280,14 +280,6 @@ def merge_pipeline(tableID, table, other, *args, axis, noncoreaxis=None, **kwarg
 def summation_pipeline(tableID, table, *args, axis, **kwargs): 
     return summation(table, *args, axis=axis, **kwargs).squeeze(axis)
 
-@process.create(**average_tables)
-def average_pipeline(tableID, table, *args, data, axis, weighted, **kwargs):
-    if not weighted: return summation(table, *args, axis=axis, **kwargs).squeeze(axis)
-    other = args[0] if isinstance(args[0], type(table)) else None
-    weights = other.arrays[data] if other is not None else kwargs.get('weights', np.ones(len(table.headers[axis])))
-    assert len(table.headers[axis]) == len(weights)
-    return average(table, *args, axis=axis, weights=weights, **kwargs).squeeze(axis)
-            
 @process.create(**boundary_tables)
 def boundary_pipeline(tableID, table, *args, axis, bounds, **kwargs): 
     return avgconsolidate(table, *args, axis=axis, bounds=bounds, **kwargs)
@@ -336,6 +328,29 @@ def rate_pipeline(tableID, table, *args, data, axis, **kwargs):
     table = tbls.operations.divide(deltatable, basetable, *args, retag=retag, **kwargs).fillinf(np.NaN)
     return table
     
+@process.create(**average_tables)
+def average_pipeline(tableID, table, *args, data, weightdata, axis, **kwargs):
+    if not weightdata: return average(table, *args, axis=axis, **kwargs).squeeze(axis)
+    weights = args[0] if isinstance(args[0], type(table)) else None  
+    weights = normalize(weights, *args, axis=axis, **kwargs)
+    table = tbls.operations.multiply(table, weights, *args, **kwargs)
+    table = summation(table, *args, axis=axis, retag={'{}*{}'.format(data, weightdata):data}, **kwargs).squeeze(axis)
+    return table
+
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
