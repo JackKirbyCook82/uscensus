@@ -88,7 +88,7 @@ class USCensus_WebAPI(WebAPI):
         return dataframe
 
     def generator(self, *args, dates=[], **kwargs):
-        for date in _filterlist([*_aslist(dates), kwargs.get('date', None)]):
+        for date in _filterlist([*_aslist(dates), kwargs.pop('date', None)]):
             date.setformat(_DATEFORMATS[self.series])
             try: dataframe = self.load(*args, date=date, **kwargs)
             except FileNotFoundError: 
