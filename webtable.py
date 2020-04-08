@@ -25,7 +25,7 @@ from uscensus.webquery import query
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['acs_webapi']
+__all__ = ['variables', 'acs_webapi']
 __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 

@@ -17,7 +17,7 @@ from uscensus.webtable import acs_webapi, variable_cleaner, variables
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['process', 'renderer']
+__all__ = ['process', 'renderer', 'variables']
 __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
@@ -192,7 +192,13 @@ summation_tables = {
 boundary_tables = {
     '#hh|geo|~size|ten': {
         'tables': '#hh|geo|size|ten',
-        'parms': {'axis':'size', 'bounds':(0, 7)}}}
+        'parms': {'axis':'size', 'bounds':(0, 7)}},
+    '#st|geo|~rm': {
+        'tables': '#st|geo|rm',
+        'parms': {'axis':'rooms', 'bounds':(0, 9)}},   
+    '#st|geo|~br': {
+        'tables': '#st|geo|br',
+        'parms': {'axis':'bedrooms', 'bounds':(0, 5)}}}
 
 interpolate_tables = {     
     '#hh|geo|~inc|ten': {
@@ -215,7 +221,13 @@ interpolate_tables = {
         'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 'values':[1985, 1990, 1995, 2000, 2005, 2010, 2015, 2018]}},
     '#st|geo|~yrocc': {
         'tables':'#st|geo|yrocc',
-        'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 'values':[1985, 1990, 1995, 2000, 2005, 2010, 2015, 2018]}}}
+        'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 'values':[1985, 1990, 1995, 2000, 2005, 2010, 2015, 2018]}},
+    '#st|geo|~yrblt': {
+        'tables':'#st|geo|yrblt',
+        'parms':{'data':'structures', 'axis':'yearbuilt', 'bounds':(1930, 2020), 'values':[1960, 1970, 1980, 1990, 2000, 2005, 2010, 2015, 2018]}},
+    '#pop|geo|~cmte': {
+        'tables':'#pop|geo|cmte',
+        'parms':{'data':'population', 'axis':'commute', 'bounds':(0, 120), 'values':[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}}}
 
 collapse_tables = {
     '#hh|geo|~val': {

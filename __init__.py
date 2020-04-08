@@ -15,12 +15,12 @@ from parsers import BoolParser, ListParser, DictParser
 from variables import Geography, Date
 from utilities.inputparsers import InputParser
 
-from uscensus.calculations import process, renderer
+from uscensus.calculations import process, renderer, variables
 from uscensus.display import MapPlotter
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['process']
+__all__ = ['process', 'renderer', 'variables']
 __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
