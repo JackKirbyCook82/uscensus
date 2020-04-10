@@ -10,7 +10,7 @@ import numpy as np
 
 import tables as tbls
 from tables.processors import CalculationProcess, CalculationRenderer
-from tables.transformations import Boundary, Reduction, GroupBy, Scale, Cumulate, Consolidate, Interpolate, Unconsolidate, Uncumulate, Moving
+from tables.transformations import Boundary, Reduction, GroupBy, Scale, Cumulate, Consolidate, Interpolate, Unconsolidate, Uncumulate, Moving, Expansion
 
 from uscensus.webquery import query
 from uscensus.webtable import acs_webapi, variable_cleaner, variables
@@ -33,12 +33,13 @@ sumcouple = Reduction(how='summation', by='couple')
 summation = Reduction(how='summation', by='summation')
 average = Reduction(how='average', by='summation')
 normalize = Scale(how='normalize')
+expansion = Expansion(how='equaldivision')
 uppercumulate = Cumulate(how='upper')
 upperconsolidate = Consolidate(how='cumulate', direction='upper')
+avgconsolidate = Consolidate(how='average', weight=0.5)
 interpolate = Interpolate(how='linear', fill='extrapolate')
 upperunconsolidate = Unconsolidate(how='cumulate', direction='upper')
 upperuncumulate = Uncumulate(how='upper')
-avgconsolidate = Consolidate(how='average', weight=0.5)
 movingdifference = Moving(how='difference', by='minimum', period=1)
 
 
@@ -67,6 +68,7 @@ feed_tables = {
     '#hh|geo@renter': {},
     '#pop|geo|age@male': {}, 
     '#pop|geo|age@female': {}, 
+    '#pop|geo|age@child': {},
     '#pop|geo|race': {},
     '#pop|geo|origin': {},
     '#pop|geo|lang@age1': {},
@@ -206,7 +208,7 @@ interpolate_tables = {
         'parms': {'data':'households', 'axis':'income', 'bounds':(0, 200000), 'values':[10000, 25000, 40000, 60000, 80000, 100000, 125000, 150000, 175000, 200000]}},
     '#hh|geo|~age|ten': {
         'tables': '#hh|geo|age|ten',
-        'parms': {'data':'households', 'axis':'age', 'bounds':(15, 95), 'values':[20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}},
+        'parms': {'data':'households', 'axis':'age', 'bounds':(15, 95), 'values':[15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}},
     '#hh|geo|~val@owner': {
         'tables': '#hh|geo|val@owner',
         'parms': {'data':'households', 'axis':'value', 'bounds':(0, 1500000), 'values':[100000, 150000, 200000, 250000, 300000, 350000, 400000, 500000, 750000, 1000000]}},
@@ -215,7 +217,7 @@ interpolate_tables = {
         'parms': {'data':'households', 'axis':'rent', 'bounds':(0, 4000), 'values':[500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000, 3500]}},
     '#st|geo|yrocc|~age|ten': {
         'tables':'#st|geo|yrocc|age|ten',
-        'parms':{'data':'structures', 'axis':'age', 'bounds':(15, 95), 'values':[20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}},
+        'parms':{'data':'structures', 'axis':'age', 'bounds':(15, 95), 'values':[15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}},
     '#st|geo|~yrocc|~age|ten': {
         'tables':'#st|geo|yrocc|~age|ten',
         'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 'values':[1985, 1990, 1995, 2000, 2005, 2010, 2015, 2018]}},
@@ -229,11 +231,21 @@ interpolate_tables = {
         'tables':'#pop|geo|cmte',
         'parms':{'data':'population', 'axis':'commute', 'bounds':(0, 120), 'values':[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}}}
 
+expansion_tables = {
+    '#pop|geo|~age@child': {
+        'tables':'#pop|geo|age@child',
+        'parms':{'axis':'age', 'bounds':(0, 17), 'values':[i for i in range(5, 18)]}}}
+
 collapse_tables = {
     '#hh|geo|~val': {
         'tables': ['#hh|geo|~val@owner', '#hh|geo|~rent@renter'],
         'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'scope':'tenure'}}}
     
+reaxis_tables = {
+    '#pop|geo|grade@child': {
+        'tables':'#pop|geo|~age@child',
+        'parms': {}}}
+
 ratio_tables = {
     'avginc|geo': {
         'tables': ['#agginc|geo', '#hh|geo'],
@@ -296,16 +308,8 @@ def summation_pipeline(tableID, table, *args, axis, **kwargs):
 def boundary_pipeline(tableID, table, *args, axis, bounds, **kwargs): 
     return avgconsolidate(table, *args, axis=axis, bounds=bounds, **kwargs)
 
-def proxyvalues(x):
-    yi = max(x[0] - np.floor(np.diff(x).min()/2), 0)
-    yield yi
-    for xi in x:
-        yi = 2*xi - yi
-        yield yi
-        
 @process.create(**interpolate_tables)
-def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kwargs):
-    values = [value for value in proxyvalues(values)]    
+def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kwargs):  
     retag = {'{data}/total{data}*total{data}'.format(data=data):data}
     table = boundary(table, *args, axis=axis, bounds=(bounds[0], None), **kwargs)
     total = summation(table, *args, axis=axis, retag={data:'total{}'.format(data)}, **kwargs)
@@ -314,9 +318,20 @@ def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kw
     table = upperconsolidate(table, *args, axis=axis, **kwargs)
     table = interpolate(table, *args, axis=axis, values=values[:-1], **kwargs).fillneg(fill=0)  
     table = upperunconsolidate(table, *args, axis=axis, **kwargs)
-    table = upperuncumulate(table, *args, axis=axis, total=1, **kwargs)    
-    table = avgconsolidate(table, *args, axis=axis, bounds=(bounds[0], values[-1]), **kwargs)
+    table = upperuncumulate(table, *args, axis=axis, total=1, **kwargs) 
     table = tbls.operations.multiply(table, total, *args, noncoreaxis=axis, retag=retag, simplify=True, **kwargs)
+    table = boundary(table, *args, axis=axis, bounds=bounds, **kwargs)
+    return table
+
+@process.create(**expansion_tables)
+def expansion_pipeline(tableID, table, *args, axis, bounds, values=[], **kwargs):
+    table = expansion(table, *args, axis=axis, bounds=bounds, **kwargs)
+    if values: table = table[{axis:[table.variables[axis](value) for value in values]}] 
+    return table
+
+@process.create(**reaxis_tables)
+def reaxis_pipeline(tableID, table, *args, **kwargs):
+    
     return table
 
 @process.create(**collapse_tables)

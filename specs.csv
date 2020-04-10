@@ -65,6 +65,11 @@ size,size,range,unit=PPL/HH;precision=0
 children,children,category,W/OChildren;0;W/Children;1
 ,,,
 commute,commute,range,unit=MINS;precision=0
+,,,
+schoollevel,schoollevel,category,Elementary;0;Middle;1;High;2
+gradelevel,gradelevel,category,KG;0;1stGrade;1;2ndGrade;2;3rdGrade;3;4thGrade;4;5thGrade;5;6thGrade;6;7thGrade;7;8thGrade;8;9thGrade;9;10thGrade;10;11thGrade;11;12thGrade;12
+
+
 
 
 
