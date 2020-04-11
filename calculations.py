@@ -13,7 +13,7 @@ from tables.processors import CalculationProcess, CalculationRenderer
 from tables.transformations import Boundary, Reduction, GroupBy, Scale, Cumulate, Consolidate, Interpolate, Unconsolidate, Uncumulate, Moving, Expansion
 
 from uscensus.webquery import query
-from uscensus.webtable import acs_webapi, variable_cleaner, variables
+from uscensus.webtable import acs_webapi, cleaner, variables
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
@@ -208,16 +208,16 @@ interpolate_tables = {
         'parms': {'data':'households', 'axis':'income', 'bounds':(0, 200000), 'values':[10000, 25000, 40000, 60000, 80000, 100000, 125000, 150000, 175000, 200000]}},
     '#hh|geo|~age|ten': {
         'tables': '#hh|geo|age|ten',
-        'parms': {'data':'households', 'axis':'age', 'bounds':(15, 95), 'values':[15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}},
+        'parms': {'data':'households', 'axis':'age', 'bounds':(15, 95), 'values':[i for i in range(15, 90, 5)]}},
     '#hh|geo|~val@owner': {
         'tables': '#hh|geo|val@owner',
         'parms': {'data':'households', 'axis':'value', 'bounds':(0, 1500000), 'values':[100000, 150000, 200000, 250000, 300000, 350000, 400000, 500000, 750000, 1000000]}},
     '#hh|geo|~rent@renter': {
         'tables': '#hh|geo|rent@renter',
-        'parms': {'data':'households', 'axis':'rent', 'bounds':(0, 4000), 'values':[500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 2750, 3000, 3500]}},
+        'parms': {'data':'households', 'axis':'rent', 'bounds':(0, 4000), 'values':[i for i in range(500, 3500, 250)]}},
     '#st|geo|yrocc|~age|ten': {
         'tables':'#st|geo|yrocc|age|ten',
-        'parms':{'data':'structures', 'axis':'age', 'bounds':(15, 95), 'values':[15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 75, 85]}},
+        'parms':{'data':'structures', 'axis':'age', 'bounds':(15, 95), 'values':[i for i in range(10, 110, 10)]}},
     '#st|geo|~yrocc|~age|ten': {
         'tables':'#st|geo|yrocc|~age|ten',
         'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 'values':[1985, 1990, 1995, 2000, 2005, 2010, 2015, 2018]}},
@@ -229,23 +229,18 @@ interpolate_tables = {
         'parms':{'data':'structures', 'axis':'yearbuilt', 'bounds':(1930, 2020), 'values':[1960, 1970, 1980, 1990, 2000, 2005, 2010, 2015, 2018]}},
     '#pop|geo|~cmte': {
         'tables':'#pop|geo|cmte',
-        'parms':{'data':'population', 'axis':'commute', 'bounds':(0, 120), 'values':[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}}}
+        'parms':{'data':'population', 'axis':'commute', 'bounds':(0, 120), 'values':[i for i in range(10, 110, 10)]}}}
 
 expansion_tables = {
     '#pop|geo|~age@child': {
         'tables':'#pop|geo|age@child',
-        'parms':{'axis':'age', 'bounds':(0, 17), 'values':[i for i in range(5, 18)]}}}
+        'parms':{'axis':'age', 'bounds':(0, 17), 'values':[i for i in range(5, 18, 1)]}}}
 
 collapse_tables = {
     '#hh|geo|~val': {
         'tables': ['#hh|geo|~val@owner', '#hh|geo|~rent@renter'],
         'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'scope':'tenure'}}}
     
-reaxis_tables = {
-    '#pop|geo|grade@child': {
-        'tables':'#pop|geo|~age@child',
-        'parms': {}}}
-
 ratio_tables = {
     'avginc|geo': {
         'tables': ['#agginc|geo', '#hh|geo'],
@@ -285,7 +280,7 @@ def feed_pipeline(tableID, *args, **kwargs):
     queryParms = query(tableID)
     universe, index, header, scope = queryParms['universe'], queryParms['index'], queryParms['header'], queryParms['scope']   
     dataframe = acs_webapi(*args, tableID=tableID, **queryParms, **kwargs)
-    dataframe = variable_cleaner(dataframe, *args, **kwargs)   
+    dataframe = cleaner(dataframe, *args, **kwargs)   
     flattable = tbls.FlatTable(dataframe, variables=variables, name=tableID)
     arraytable = flattable[[universe, index, header, 'date', *scope.keys()]].unflatten(universe, aggs=AGGS)
     arraytable = arraytable.squeeze(*scope.keys()).sortall(ascending=True).fillneg(np.nan)   
@@ -327,11 +322,6 @@ def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kw
 def expansion_pipeline(tableID, table, *args, axis, bounds, values=[], **kwargs):
     table = expansion(table, *args, axis=axis, bounds=bounds, **kwargs)
     if values: table = table[{axis:[table.variables[axis](value) for value in values]}] 
-    return table
-
-@process.create(**reaxis_tables)
-def reaxis_pipeline(tableID, table, *args, **kwargs):
-    
     return table
 
 @process.create(**collapse_tables)

@@ -28,8 +28,9 @@ __license__ = ""
 _DIR = os.path.dirname(os.path.realpath(__file__))
 _VARIABLE_DELIMITER = '!!'
 _GEOGRAPHY_DELIMITER = '› '
+_FILE_DELIMITER = ';'
 _ALL = '*'
-
+_NONE = 'X'
 
 _remove_nums = lambda string: re.sub('\d+', '{}', string)
 _unspace_nums = lambda string: re.sub(r'(\d)\s+(\d)', r'\1\2', string)
@@ -40,16 +41,16 @@ _lowercase = lambda string: string.lower()
 
 _variableparser = lambda string: _lowercase(_uncomma(_uncomma_nums(_unspace_nums(string))))
 _labelparser = lambda string: _lowercase(_uncomma(_uncomma_nums(_unspace_nums(string))))
+_conceptparser = lambda string: tuple(string.split(_FILE_DELIMITER)) if _FILE_DELIMITER in string else (string, 1)
 
 _isnull = lambda value: pd.isnull(value) if not isinstance(value, (list, tuple, dict)) else False
 _aslist = lambda items: [items] if not isinstance(items, (list, tuple)) else list(items)
 _filterempty = lambda items: [item for item in _aslist(items) if item]
 
-
 _GEOGRAPHY = dataframe_fromfile(os.path.join(_DIR, 'geography.csv'), index='geography', header=0, forceframe=True).transpose().to_dict()
 _GEOGRAPHY = {geography:{key:(value if not _isnull(value) else None) for key, value in items.items() } for geography, items in _GEOGRAPHY.items()}
 _VARIABLES = dataframe_fromfile(os.path.join(_DIR, 'variables.csv'), index=None, header=0, forceframe=True)
-_VARIABLES = dataframe_parser(_VARIABLES, parsers={'variable':_variableparser}).set_index('variable', drop=True).to_dict()['concept']
+_VARIABLES = dataframe_parser(_VARIABLES, parsers={'variable':_variableparser, 'concept':_conceptparser}).set_index('variable', drop=True).to_dict()['concept']
 
 def geographies(): return list(set(_GEOGRAPHY.keys()))
 def variables(): return list(set(_VARIABLES.values()))
@@ -61,7 +62,7 @@ class USCensus_APIGeography(ntuple('USCensus_APIGeography', 'geography apigeogra
         return super().__new__(cls, geography=geokey, **geosgmts, value=geovalue)  
     
 
-class USCensus_APIVariable(ntuple('USCensus_APIVariable', 'tag, group, label variable')): 
+class USCensus_APIVariable(ntuple('USCensus_APIVariable', 'tag group label variable')): 
     def __str__(self): 
         namestr = self.__class__.__name__
         jsonstr = json.dumps(self._asdict(), sort_keys=False, indent=3, separators=(',', ' : '), default=str)      
@@ -76,12 +77,17 @@ class USCensus_APIVariable(ntuple('USCensus_APIVariable', 'tag, group, label var
         variable = self.format_variable(self.variable)
         variablekey = variable
         if variablekey not in _VARIABLES.keys(): variablekey = _remove_nums(variablekey)
-        if variablekey not in _VARIABLES.keys(): return self.tag
-        unformated = parse(variablekey, variable)        
-        if unformated is None: concept = _VARIABLES[variablekey]
-        else: concept = _VARIABLES[variablekey].format(*unformated.fixed)  
-        return concept
-
+        if variablekey not in _VARIABLES.keys(): return self.tag    
+  
+        concept, multiplier = _VARIABLES[variablekey]
+        content = parse(variablekey, variable)
+        content = tuple(parse.fixed) if content is not None else tuple()      
+        if not content: return concept
+        
+        content = tuple([item * multiplier for item in content])
+        if concept.startswith(_NONE): content = (content[0] - multiplier,)
+        return concept.format(*content)
+        
     def format_label(self, *label): return [_labelparser(item) for item in label]
     def format_variable(self, variable): return _variableparser(variable)
     

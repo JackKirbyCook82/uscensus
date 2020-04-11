@@ -32,7 +32,7 @@ _filterlist = lambda items: [item for item in _aslist(items) if item]
 def dataparser(item):
     if pd.isnull(item): return item
     try: return int(float(item)) if not bool(float(item) % 1) else float(item)
-    except ValueError: return str(item)
+    except ValueError: return item
 
 
 class USCensus_WebAPI(WebAPI):
@@ -82,8 +82,8 @@ class USCensus_WebAPI(WebAPI):
     def parser(self, dataframe, *args, universe, header, scope, date, **kwargs):
         dataframe = dataframe.rename({'universe':universe}, axis='columns')
         if header: dataframe = dataframe.rename({'header':header}, axis='columns')
-        for key, value in scope.items(): dataframe[key] = str(value)
-        dataframe['date'] = str(date)
+        for key, value in scope.items(): dataframe[key] = value
+        dataframe['date'] = date
         dataframe[universe] = dataframe[universe].apply(dataparser)
         return dataframe
 

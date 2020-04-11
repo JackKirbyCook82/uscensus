@@ -1,24 +1,24 @@
 variable,concept
 ,
-${} or more,>${} USD
-${} to ${},${} USD|${} USD
-Less than ${},<${} USD
-No cash rent,$0 USD
+${} or more,{}|X
+${} to ${},{}|{}
+Less than ${},X|{}
+No cash rent,0|0
 ,
-{} percent or more,>{}%
-{} to {} percent,{}%|{}%
-Less than {} percent,<{}%
-Not computed,0%
+{} percent or more,{}|X;0.01
+{} to {} percent,{}|{};0.01
+Less than {} percent,X|{};0.01
+Not computed,0|0;0.01
 ,
-{} years and over,>{} YRS
-{} to {} years,{} YRS|{} YRS
-{} and {} years,{} YRS|{} YRS
-Under {} years,<{} YRS
-{} years,{} YRS
+{} years and over,{}|X
+{} to {} years,{}|{}
+{} and {} years,{}|{}
+Under {} years,X|{}
+{} years,{}
 ,
-Householder {} and under,<{} YRS
-Householder {} to {} years,{} YRS|{} YRS
-Householder {} years and over,>{} YRS
+Householder {} and under,{}|X
+Householder {} to {} years,{}|{}
+Householder {} years and over,X|{}
 ,
 Male,Male
 Female,Female
@@ -66,22 +66,22 @@ For seasonal recreational or occasional use,Recreational
 For migrant workers,Other
 Other vacant,Other
 ,
-Built {} or later,>{}
+Built {} or later,{}|X
 Built {} to {},{}|{}
-Built {} or earlier,<{}
+Built {} or earlier,X|{}
 ,
-Moved in {} or later,>{}
+Moved in {} or later,{}|X
 Moved in {} to {},{}|{}
-Moved in {} or earlier,<{}
+Moved in {} or earlier,X|{}
 ,
-{} room,{} RMS
-{} rooms,{} RMS
-{} or more rooms,>{} RMS
+{} room,{}
+{} rooms,{}
+{} or more rooms,{}|X
 ,
-No bedroom,0 BEDRMS
-{} bedroom,{} BEDRMS
-{} bedrooms,{} BEDRMS
-{} or more bedrooms,>{} BEDRMS
+No bedroom,0
+{} bedroom,{}
+{} bedrooms,{}
+{} or more bedrooms,{}|X
 ,
 1 detached,House
 1 attached,House
@@ -193,15 +193,12 @@ With cash public assistance or Food Stamps/SNAP,Welfare
 With retirement income,Retirement
 With other types of income,Other
 ,
-{}-person household,{} PPL/HH
-{}-or-more person household,>{} PPL/HH
+{}-person household,{}
+{}-or-more person household,{}|X
 ,
 With related children of the householder under 18,W/Children
 No related children of the householder under 18,W/OChildren
 ,
-Less than {} minutes,<{} MINS
-{} to {} minutes,{} MINS|{} MINS
-{} or more minutes,>{} MINS
-
-
-
+Less than {} minutes,X|{}
+{} to {} minutes,{}|{}
+{} or more minutes,{}|X

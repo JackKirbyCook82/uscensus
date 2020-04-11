@@ -19,13 +19,13 @@ from webscraping.webreaders import WebReader
 
 from uscensus.urlapi import USCensus_ACS_URLAPI
 from uscensus.webapi import USCensus_WebAPI
+from uscensus.cleaners import USCensus_Cleaner
 from uscensus.website import USCensus_Variable_WebQuery
-from uscensus.cleaners import USCensus_Variable_Cleaner
 from uscensus.webquery import query
 
 __version__ = "1.0.0"
 __author__ = "Jack Kirby Cook"
-__all__ = ['variables', 'acs_webapi']
+__all__ = ['acs_webapi', 'cleaner', 'variables']
 __copyright__ = "Copyright 2019, Jack Kirby Cook"
 __license__ = ""
 
@@ -41,11 +41,11 @@ specs = specs_fromfile(SPECS_FILE, specsparsers)
 custom_variables = Variables.create(**specs, name='USCensus')
 noncustom_variables = Variables.load('date', 'geography', name='USCensus')
 variables = custom_variables.update(noncustom_variables)
-variable_cleaner = USCensus_Variable_Cleaner(variables)
 
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'}
 retry = {'retries':3, 'backoff':0.3, 'httpcodes':(500, 502, 504)}
 webreader = WebReader(delay=3, headers=headers, retry=retry)
+cleaner = USCensus_Cleaner(variables)
 acs_urlapi = USCensus_ACS_URLAPI(APIKEY)
 acs_variable_webquery = USCensus_Variable_WebQuery(acs_urlapi, webreader, tolerance=0)
 acs_webapi = USCensus_WebAPI(SAVE_DIR, acs_urlapi, webreader, variable_webquery=acs_variable_webquery, saving=True)
@@ -55,7 +55,7 @@ AGGS = {'households':'sum', 'population':'sum', 'structures':'sum'}
 
 def acsfeed(*args, tableID, universe, index, header, scope, **kwargs):
     dataframe = acs_webapi(*args, tableID=tableID, universe=universe, index=index, header=header, scope=scope, **kwargs)
-    dataframe = variable_cleaner(dataframe, *args, **kwargs)
+    dataframe = cleaner(dataframe, *args, **kwargs)
     flattable = tbls.FlatTable(dataframe, variables=variables, name=tableID)
     arraytable = flattable[[universe, index, header, 'date', *scope.keys()]].unflatten(universe, aggs=AGGS)
     arraytable = arraytable.squeeze(*scope.keys()).sortall(ascending=True)   
