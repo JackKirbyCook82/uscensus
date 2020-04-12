@@ -205,36 +205,46 @@ boundary_tables = {
 interpolate_tables = {     
     '#hh|geo|~inc|ten': {
         'tables': '#hh|geo|inc|ten',
-        'parms': {'data':'households', 'axis':'income', 'bounds':(0, 200000), 'values':[10000, 25000, 40000, 60000, 80000, 100000, 125000, 150000, 175000, 200000]}},
+        'parms': {'data':'households', 'axis':'income', 'bounds':(0, 200000), 
+                  'values':[10000, 25000, 40000, 60000, 80000, 100000, 125000, 150000, 175000]}},
     '#hh|geo|~age|ten': {
         'tables': '#hh|geo|age|ten',
-        'parms': {'data':'households', 'axis':'age', 'bounds':(15, 95), 'values':[i for i in range(15, 90, 5)]}},
+        'parms': {'data':'households', 'axis':'age', 'bounds':(15, 95), 
+                  'values':[i for i in range(20, 95, 5)]}},
     '#hh|geo|~val@owner': {
         'tables': '#hh|geo|val@owner',
-        'parms': {'data':'households', 'axis':'value', 'bounds':(0, 1500000), 'values':[100000, 150000, 200000, 250000, 300000, 350000, 400000, 500000, 750000, 1000000]}},
+        'parms': {'data':'households', 'axis':'value', 'bounds':(1, 1500000), 
+                  'values':[100000, 150000, 200000, 250000, 300000, 350000, 400000, 500000, 750000, 1000000]}},
     '#hh|geo|~rent@renter': {
         'tables': '#hh|geo|rent@renter',
-        'parms': {'data':'households', 'axis':'rent', 'bounds':(0, 4000), 'values':[i for i in range(500, 3500, 250)]}},
+        'parms': {'data':'households', 'axis':'rent', 'bounds':(1, 4000), 
+                  'values':[i for i in range(500, 4000, 250)]}},
     '#st|geo|yrocc|~age|ten': {
         'tables':'#st|geo|yrocc|age|ten',
-        'parms':{'data':'structures', 'axis':'age', 'bounds':(15, 95), 'values':[i for i in range(10, 110, 10)]}},
+        'parms':{'data':'structures', 'axis':'age', 'bounds':(15, 95), 
+                 'values':[i for i in range(20, 95, 5)]}},
     '#st|geo|~yrocc|~age|ten': {
         'tables':'#st|geo|yrocc|~age|ten',
-        'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 'values':[1985, 1990, 1995, 2000, 2005, 2010, 2015, 2018]}},
+        'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 
+                 'values':[1985, 1990, 1995, 2000, 2005, 2010, 2015, 2018]}},
     '#st|geo|~yrocc': {
         'tables':'#st|geo|yrocc',
-        'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 'values':[1985, 1990, 1995, 2000, 2005, 2010, 2015, 2018]}},
+        'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 
+                 'values':[1985, 1990, 1995, 2000, 2005, 2010, 2015, 2018]}},
     '#st|geo|~yrblt': {
         'tables':'#st|geo|yrblt',
-        'parms':{'data':'structures', 'axis':'yearbuilt', 'bounds':(1930, 2020), 'values':[1960, 1970, 1980, 1990, 2000, 2005, 2010, 2015, 2018]}},
+        'parms':{'data':'structures', 'axis':'yearbuilt', 'bounds':(1930, 2020), 
+                 'values':[1960, 1970, 1980, 1990, 2000, 2005, 2010, 2015, 2018]}},
     '#pop|geo|~cmte': {
         'tables':'#pop|geo|cmte',
-        'parms':{'data':'population', 'axis':'commute', 'bounds':(0, 120), 'values':[i for i in range(10, 110, 10)]}}}
+        'parms':{'data':'population', 'axis':'commute', 'bounds':(0, 120), 
+                 'values':[i for i in range(10, 120, 10)]}}}
 
 expansion_tables = {
     '#pop|geo|~age@child': {
         'tables':'#pop|geo|age@child',
-        'parms':{'axis':'age', 'bounds':(0, 17), 'values':[i for i in range(5, 18, 1)]}}}
+        'parms':{'axis':'age', 'bounds':(5, 17), 
+                 'values':[i for i in range(6, 17, 1)]}}}
 
 collapse_tables = {
     '#hh|geo|~val': {
@@ -263,7 +273,7 @@ rate_tables = {
         'tables': 'avgrent|geo@renter',
         'parms': {'data':'avgrent', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}}}        
 
-average_tables = {
+wtaverage_tables = {
     'Δ%avginc': {
         'tables': ['Δ%avginc|geo', '#hh|geo'],
         'parms': {'data':'avgincomerate', 'weightdata':'households', 'axis':'geography'}},
@@ -284,7 +294,7 @@ def feed_pipeline(tableID, *args, **kwargs):
     flattable = tbls.FlatTable(dataframe, variables=variables, name=tableID)
     arraytable = flattable[[universe, index, header, 'date', *scope.keys()]].unflatten(universe, aggs=AGGS)
     arraytable = arraytable.squeeze(*scope.keys()).sortall(ascending=True).fillneg(np.nan)   
-    if header: arraytable = sumcontained(arraytable, axis=header)
+    if header: arraytable = sumcontained(arraytable, axis=header)    
     return arraytable
 
 @process.create(**merge_tables)
@@ -311,7 +321,7 @@ def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kw
     table = tbls.operations.divide(table, total, *args, axis=axis, **kwargs)
     table = uppercumulate(table, *args, axis=axis, **kwargs)
     table = upperconsolidate(table, *args, axis=axis, **kwargs)
-    table = interpolate(table, *args, axis=axis, values=values[:-1], **kwargs).fillneg(fill=0)  
+    table = interpolate(table, *args, axis=axis, values=[bounds[0], *values], **kwargs).fillneg(fill=0)  
     table = upperunconsolidate(table, *args, axis=axis, **kwargs)
     table = upperuncumulate(table, *args, axis=axis, total=1, **kwargs) 
     table = tbls.operations.multiply(table, total, *args, noncoreaxis=axis, retag=retag, simplify=True, **kwargs)
@@ -345,8 +355,8 @@ def rate_pipeline(tableID, table, *args, data, axis, **kwargs):
     table = tbls.operations.divide(deltatable, basetable, *args, retag=retag, **kwargs).fillinf(np.NaN)
     return table
     
-@process.create(**average_tables)
-def average_pipeline(tableID, table, *args, data, weightdata, axis, **kwargs):
+@process.create(**wtaverage_tables)
+def wtaverage_pipeline(tableID, table, *args, data, weightdata, axis, **kwargs):
     if not weightdata: return average(table, *args, axis=axis, **kwargs).squeeze(axis)
     weights = args[0] if isinstance(args[0], type(table)) else None  
     weights = normalize(weights, *args, axis=axis, **kwargs)

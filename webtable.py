@@ -39,7 +39,7 @@ SAVE_DIR = os.path.join(ROOT_DIR, 'save')
 specsparsers = {'databasis': DictorListParser(pattern=';=')}
 specs = specs_fromfile(SPECS_FILE, specsparsers)
 custom_variables = Variables.create(**specs, name='USCensus')
-noncustom_variables = Variables.load('date', 'geography', name='USCensus')
+noncustom_variables = Variables.load('date', 'geography', 'geopath', name='USCensus')
 variables = custom_variables.update(noncustom_variables)
 
 headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36'}
