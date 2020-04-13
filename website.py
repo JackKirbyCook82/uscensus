@@ -43,11 +43,14 @@ _labelparser = lambda string: _lowercase(_uncomma(_uncomma_nums(_unspace_nums(st
 _isnull = lambda value: pd.isnull(value) if not isinstance(value, (list, tuple, dict)) else False
 _aslist = lambda items: [items] if not isinstance(items, (list, tuple)) else list(items)
 _filterempty = lambda items: [item for item in _aslist(items) if item]
+_tonumber = lambda num: int(float(num)) if not bool(float(num) % 1) else float(num)
 
 _GEOGRAPHY = dataframe_fromfile(os.path.join(_DIR, 'geography.csv'), index='geography', header=0, forceframe=True).transpose().to_dict()
 _GEOGRAPHY = {geography:{key:(value if not _isnull(value) else None) for key, value in items.items() } for geography, items in _GEOGRAPHY.items()}
 _VARIABLES = dataframe_fromfile(os.path.join(_DIR, 'variables.csv'), index=None, header=0, forceframe=True)
-_VARIABLES = dataframe_parser(_VARIABLES, parsers={'variable':_variableparser}).set_index('variable', drop=True).to_dict()['concept']
+_VARIABLES = dataframe_parser(_VARIABLES, parsers={'variable':_variableparser}).set_index('variable', drop=True)
+_CONCEPTS = _VARIABLES['concept'].to_dict()
+_ADJUSTS = {key:float(value) for key, value in _VARIABLES['adjust'].to_dict().items() if not _isnull(value)}
 
 def geographies(): return list(set(_GEOGRAPHY.keys()))
 def variables(): return list(set(_VARIABLES.values()))
@@ -69,20 +72,19 @@ class USCensus_APIVariable(ntuple('USCensus_APIVariable', 'tag group label varia
         label = tuple(label.format(date=str(date)).split(_VARIABLE_DELIMITER))  
         return super().__new__(cls, tag, group, label[:-1], label[-1])
     
-#    @property
-#    def concept(self):
-#        variable = self.format_variable(self.variable)
-#        variablekey = variable
-#        if variablekey not in _VARIABLES.keys(): variablekey = _remove_nums(variablekey)
-#        if variablekey not in _VARIABLES.keys(): return self.tag    
-#  
-#        concept = _VARIABLES[variablekey]
-#        content = parse(variablekey, variable)
-#        content = tuple(content.fixed) if content is not None else tuple()      
-#        if not content: return concept
-#
-#        if concept.startswith('<'): content = (int(content[0]) - 1,)
-#        return concept.format(*content)
+    @property
+    def concept(self):
+        variable = self.format_variable(self.variable)
+        variablekey = variable
+        if variablekey not in _CONCEPTS.keys(): variablekey = _remove_nums(variablekey)
+        if variablekey not in _CONCEPTS.keys(): return self.tag    
+  
+        concept = _CONCEPTS[variablekey]
+        adjust = _tonumber(_ADJUSTS.get(variablekey, 0))
+        content = parse(variablekey, variable)
+        content = tuple(content.fixed) if content is not None else tuple()      
+        if not content: return concept
+        else: return concept.format(*[_tonumber(i) - adjust for i in content])
         
     def format_label(self, *label): return [_labelparser(item) for item in label]
     def format_variable(self, variable): return _variableparser(variable)
