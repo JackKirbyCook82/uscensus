@@ -210,7 +210,7 @@ interpolate_tables = {
     '#hh|geo|~age|ten': {
         'tables': '#hh|geo|age|ten',
         'parms': {'data':'households', 'axis':'age', 'bounds':(15, 95), 
-                  'values':[i for i in range(20, 95, 5)]}},
+                  'values':[20, 25, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]}},
     '#hh|geo|~val@owner': {
         'tables': '#hh|geo|val@owner',
         'parms': {'data':'households', 'axis':'value', 'bounds':(1, 1500000), 
@@ -218,11 +218,11 @@ interpolate_tables = {
     '#hh|geo|~rent@renter': {
         'tables': '#hh|geo|rent@renter',
         'parms': {'data':'households', 'axis':'rent', 'bounds':(1, 4000), 
-                  'values':[i for i in range(500, 4000, 250)]}},
+                  'values':[500, 750, 1000, 1250, 1500, 1750, 2000, 2500, 3000]}},
     '#st|geo|yrocc|~age|ten': {
         'tables':'#st|geo|yrocc|age|ten',
         'parms':{'data':'structures', 'axis':'age', 'bounds':(15, 95), 
-                 'values':[i for i in range(20, 95, 5)]}},
+                 'values':[20, 25, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]}},
     '#st|geo|~yrocc|~age|ten': {
         'tables':'#st|geo|yrocc|~age|ten',
         'parms':{'data':'structures', 'axis':'yearoccupied', 'bounds':(1980, 2020), 
@@ -238,13 +238,13 @@ interpolate_tables = {
     '#pop|geo|~cmte': {
         'tables':'#pop|geo|cmte',
         'parms':{'data':'population', 'axis':'commute', 'bounds':(0, 120), 
-                 'values':[i for i in range(10, 120, 10)]}}}
+                 'values':[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}}}
 
 expansion_tables = {
     '#pop|geo|~age@child': {
         'tables':'#pop|geo|age@child',
         'parms':{'axis':'age', 'bounds':(5, 17), 
-                 'values':[i for i in range(6, 17, 1)]}}}
+                 'values':[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]}}}
 
 collapse_tables = {
     '#hh|geo|~val': {
