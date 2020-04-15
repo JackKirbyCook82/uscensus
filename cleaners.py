@@ -21,9 +21,8 @@ class USCensus_Cleaner(object):
     def __call__(self, dataframe, *args, **kwargs):
         for column in dataframe.columns:
             if column in self.variables.keys(): 
-                try: dataframe[column] = dataframe[column].apply(lambda x: self.variables[column].fromstr(str(x)).value)
+                try: dataframe[column] = dataframe[column].apply(lambda x: self.variables[column](x).value)   
                 except: 
                     try: dataframe[column] = dataframe[column].apply(lambda x: self.variables[column].fromstr(x).value)
-                    except: dataframe[column] = dataframe[column].apply(lambda x: self.variables[column](x).value)
-            else: pass 
+                    except: dataframe[column] = dataframe[column].apply(lambda x: self.variables[column].fromstr(str(x)).value) 
         return dataframe

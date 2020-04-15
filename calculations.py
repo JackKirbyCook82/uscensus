@@ -251,38 +251,38 @@ collapse_tables = {
         'tables': ['#hh|geo|~val@owner', '#hh|geo|~rent@renter'],
         'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'scope':'tenure'}}}
     
-#ratio_tables = {
-#    'avginc|geo': {
-#        'tables': ['#agginc|geo', '#hh|geo'],
-#        'parms': {'data':'income', 'topdata':'aggincome', 'bottomdata':'households', 'formatting':{'precision':2}}},          
-#    'avgval|geo@owner': {
-#        'tables': ['#aggval|geo@owner', '#hh|geo@owner'],
-#        'parms': {'data':'value', 'topdata':'aggvalue', 'bottomdata':'households', 'formatting':{'precision':2}}},  
-#    'avgrent|geo@renter': {
-#        'tables': ['#aggrent|geo@renter', '#hh|geo@renter'],
-#        'parms': {'data':'rent', 'topdata':'aggrent', 'bottomdata':'households', 'formatting':{'precision':2}}}}    
+ratio_tables = {
+    'avginc|geo': {
+        'tables': ['#agginc|geo', '#hh|geo'],
+        'parms': {'data':'avgincome', 'topdata':'aggincome', 'bottomdata':'households'}},          
+    'avgval|geo@owner': {
+        'tables': ['#aggval|geo@owner', '#hh|geo@owner'],
+        'parms': {'data':'avgvalue', 'topdata':'aggvalue', 'bottomdata':'households'}},  
+    'avgrent|geo@renter': {
+        'tables': ['#aggrent|geo@renter', '#hh|geo@renter'],
+        'parms': {'data':'avgrent', 'topdata':'aggrent', 'bottomdata':'households'}}}    
 
-#rate_tables = {
-#    'Δ%avginc|geo': {
-#        'tables': 'avginc|geo', 
-#        'parms': {'data':'avgincome', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}},          
-#    'Δ%avgval|geo@owner': {
-#        'tables': 'avgval|geo@owner',
-#        'parms': {'data':'avgvalue', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}},   
-#    'Δ%avgrent|geo@renter': {
-#        'tables': 'avgrent|geo@renter',
-#        'parms': {'data':'avgrent', 'axis':'date', 'formatting':{'precision':2, 'multiplier':'%'}}}}        
+rate_tables = {
+    'Δ%avginc|geo': {
+        'tables': 'avginc|geo', 
+        'parms': {'data':'avgincome', 'axis':'date', 'formatting':{'precision':3, 'multiplier':'%'}}},          
+    'Δ%avgval|geo@owner': {
+        'tables': 'avgval|geo@owner',
+        'parms': {'data':'avgvalue', 'axis':'date', 'formatting':{'precision':3, 'multiplier':'%'}}},   
+    'Δ%avgrent|geo@renter': {
+        'tables': 'avgrent|geo@renter',
+        'parms': {'data':'avgrent', 'axis':'date', 'formatting':{'precision':3, 'multiplier':'%'}}}}        
 
-#wtaverage_tables = {
-#    'Δ%avginc': {
-#        'tables': ['Δ%avginc|geo', '#hh|geo'],
-#        'parms': {'data':'avgincomerate', 'weightdata':'households', 'axis':'geography'}},
-#    'Δ%avgval@owner': {
-#        'tables': ['Δ%avgval|geo@owner', '#hh|geo@owner'],
-#        'parms': {'data':'avgvaluerate', 'weightdata':'households', 'axis':'geography'}},
-#    'Δ%avgrent@renter': {
-#        'tables': ['Δ%avgrent|geo@renter', '#hh|geo@renter'],
-#        'parms': {'data':'avgrentrate', 'weightdata':'households', 'axis':'geography'}}}
+average_tables = {
+    'Δ%avginc': {
+        'tables': ['Δ%avginc|geo', '#hh|geo'],
+        'parms': {'data':'avgincomerate', 'weightdata':'households', 'axis':'geography'}},
+    'Δ%avgval@owner': {
+        'tables': ['Δ%avgval|geo@owner', '#hh|geo@owner'],
+        'parms': {'data':'avgvaluerate', 'weightdata':'households', 'axis':'geography'}},
+    'Δ%avgrent@renter': {
+        'tables': ['Δ%avgrent|geo@renter', '#hh|geo@renter'],
+        'parms': {'data':'avgrentrate', 'weightdata':'households', 'axis':'geography'}}}
      
  
 @process.create(**feed_tables)
@@ -341,29 +341,28 @@ def collapse_pipeline(tableID, table, other, *args, axis, collapse, value, scope
     table = tbls.combinations.append([table, other], *args, axis=axis, noncoreaxes=[collapse, scope], **kwargs)
     return table
 
-#@process.create(**ratio_tables)
-#def ratio_pipeline(tableID, toptable, bottomtable, *args, data, topdata, bottomdata, **kwargs):
-#    retag = {'{}/{}'.format(topdata, bottomdata):'avg{}'.format(data)}
-#    table = tbls.operations.divide(toptable, bottomtable, *args, retag=retag, **kwargs).fillinf(np.NaN)
-#    return table
+@process.create(**ratio_tables)
+def ratio_pipeline(tableID, toptable, bottomtable, *args, data, topdata, bottomdata, **kwargs):
+    retag = {'{}/{}'.format(topdata, bottomdata):'{}'.format(data)}
+    table = tbls.operations.divide(toptable, bottomtable, *args, retag=retag, **kwargs).fillinf(np.NaN)
+    return table
     
-#@process.create(**rate_tables)
-#def rate_pipeline(tableID, table, *args, data, axis, **kwargs):
-#    retag = {'delta{data}/{data}'.format(data=data):'{data}rate'.format(data=data)}
-#    deltatable = movingdifference(table, *args, axis=axis, retag={data:'delta{}'.format(data)}, **kwargs)
-#    basetable = table[{'date':slice(-1)}]
-#    table = tbls.operations.divide(deltatable, basetable, *args, retag=retag, **kwargs).fillinf(np.NaN)
-#    return table
+@process.create(**rate_tables)
+def rate_pipeline(tableID, table, *args, data, axis, **kwargs):
+    retag = {'delta{data}/{data}'.format(data=data):'{data}rate'.format(data=data)}
+    deltatable = movingdifference(table, *args, axis=axis, retag={data:'delta{}'.format(data)}, **kwargs)
+    basetable = table.isel(date=slice(-1))
+    table = tbls.operations.divide(deltatable, basetable, *args, retag=retag, **kwargs).fillinf(np.NaN)
+    return table
     
-#@process.create(**wtaverage_tables)
-#def wtaverage_pipeline(tableID, table, *args, data, weightdata, axis, **kwargs):
-#    if not weightdata: return average(table, *args, axis=axis, **kwargs).squeeze(axis)
-#    weights = args[0] if isinstance(args[0], type(table)) else None  
-#    weights = weights[{key:list(values) for key, values in table.headers.items()}]
-#    weights = normalize(weights, *args, axis=axis, **kwargs)
-#    table = tbls.operations.multiply(table, weights, *args, **kwargs)
-#    table = summation(table, *args, axis=axis, retag={'{}*{}'.format(data, weightdata):data}, **kwargs).squeeze(axis)
-#    return table
+@process.create(**average_tables)
+def average_pipeline(tableID, table, *args, data, weightdata, axis, **kwargs):
+    if not weightdata: return average(table, *args, axis=axis, **kwargs).squeeze(axis)
+    weights = args[0] if isinstance(args[0], type(table)) else None  
+    weights = normalize(weights.sel(**table.headers), *args, axis=axis, **kwargs)
+    table = tbls.operations.multiply(table, weights, *args, **kwargs)
+    table = summation(table, *args, axis=axis, retag={'{}*{}'.format(data, weightdata):data}, **kwargs).squeeze(axis)
+    return table
 
             
 
