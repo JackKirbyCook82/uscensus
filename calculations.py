@@ -29,6 +29,7 @@ renderer = CalculationRenderer(style='double', extend=1)
 
 boundary = Boundary()
 sumcontained = GroupBy(how='contains', agg='sum', ascending=True)
+sumgroup = GroupBy(how='groups', agg='sum', ascending=True)
 sumcouple = Reduction(how='summation', by='couple')
 summation = Reduction(how='summation', by='summation')
 average = Reduction(how='average', by='summation')
@@ -37,8 +38,8 @@ expansion = Expansion(how='equaldivision')
 uppercumulate = Cumulate(how='upper')
 upperconsolidate = Consolidate(how='cumulate', direction='upper')
 avgconsolidate = Consolidate(how='average', weight=0.5)
-interpolate = Interpolate(how='linear', fill='extrapolate')
 upperunconsolidate = Unconsolidate(how='cumulate', direction='upper')
+interpolate = Interpolate(how='linear', fill='extrapolate')
 upperuncumulate = Uncumulate(how='upper')
 movingdifference = Moving(how='difference', by='minimum', period=1)
 
@@ -243,14 +244,28 @@ interpolate_tables = {
 expansion_tables = {
     '#pop|geo|~age@child': {
         'tables':'#pop|geo|age@child',
-        'parms':{'axis':'age', 'bounds':(5, 17), 
-                 'values':[6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]}}}
+        'parms':{'axis':'age', 'bounds':(0, 17), 'consolidate':True}}}
 
 collapse_tables = {
     '#hh|geo|~val': {
         'tables': ['#hh|geo|~val@owner', '#hh|geo|~rent@renter'],
         'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'scope':'tenure'}}}
-    
+
+mapping_tables = {
+    '#pop|geo|gradelvl': {
+        'tables': '#pop|geo|~age@child',
+        'parms' : {'fromaxis':'age', 'toaxis':'gradelevel', 'index':True, 'string':False,
+                   'values':{i:i-5 for i in range(5, 18)}}},
+    '#pop|geo|schlvl': {
+        'tables': '#pop|geo|~gradelvl',
+        'parms' : {'fromaxis':'gradelevel', 'toaxis':'schoollevel', 'index':False, 'string':True,
+                   'values':{'KG|1st|2nd|3rd|4th|5th':'Elementary', '6th|7th|8th':'Middle', '9th|10th|11th|12th':'High'}}}}
+
+grouping_tables = {
+    '#pop|geo|~gradelvl': {
+        'tables': '#pop|geo|gradelvl',
+        'parms': {'axis':'gradelevel', 'values':[(0, 1, 2, 3, 4, 5), (6, 7, 8), (9, 10, 11, 12)]}}}
+
 ratio_tables = {
     'avginc|geo': {
         'tables': ['#agginc|geo', '#hh|geo'],
@@ -313,6 +328,14 @@ def summation_pipeline(tableID, table, *args, axis, **kwargs):
 def boundary_pipeline(tableID, table, *args, axis, bounds, **kwargs): 
     return avgconsolidate(table, *args, axis=axis, bounds=bounds, **kwargs)
 
+@process.create(**mapping_tables)
+def mapping_pipeline(tableID, table, *args, fromaxis, toaxis, values, index=False, string=False, **kwargs):
+    return table.reaxis(fromaxis, toaxis, values, variables, *args, index=index, string=string, **kwargs)
+
+@process.create(**grouping_tables)
+def grouping_pipeline(tableID, table, *args, axis, values, index=False, **kwargs):
+    return sumgroup(table, *args, axis=axis, values=values, **kwargs)
+
 @process.create(**interpolate_tables)
 def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kwargs):  
     retag = {'{data}/total{data}*total{data}'.format(data=data):data}
@@ -329,9 +352,8 @@ def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kw
     return table
 
 @process.create(**expansion_tables)
-def expansion_pipeline(tableID, table, *args, axis, bounds, values=[], **kwargs):
+def expansion_pipeline(tableID, table, *args, axis, bounds, consolidate=True, **kwargs):
     table = expansion(table, *args, axis=axis, bounds=bounds, **kwargs)
-    if values: table = table[{axis:[table.variables[axis](value) for value in values]}] 
     return table
 
 @process.create(**collapse_tables)
