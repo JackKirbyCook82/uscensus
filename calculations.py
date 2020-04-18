@@ -254,17 +254,18 @@ collapse_tables = {
 mapping_tables = {
     '#pop|geo|gradelvl': {
         'tables': '#pop|geo|~age@child',
-        'parms' : {'fromaxis':'age', 'toaxis':'gradelevel', 'index':True, 'string':False,
+        'parms' : {'fromaxis':'age', 'toaxis':'gradelevel', 
                    'values':{i:i-5 for i in range(5, 18)}}},
     '#pop|geo|schlvl': {
         'tables': '#pop|geo|~gradelvl',
-        'parms' : {'fromaxis':'gradelevel', 'toaxis':'schoollevel', 'index':False, 'string':True,
+        'parms' : {'fromaxis':'gradelevel', 'toaxis':'schoollevel', 
                    'values':{'KG|1st|2nd|3rd|4th|5th':'Elementary', '6th|7th|8th':'Middle', '9th|10th|11th|12th':'High'}}}}
 
 grouping_tables = {
     '#pop|geo|~gradelvl': {
         'tables': '#pop|geo|gradelvl',
-        'parms': {'axis':'gradelevel', 'values':[(0, 1, 2, 3, 4, 5), (6, 7, 8), (9, 10, 11, 12)]}}}
+        'parms': {'axis':'gradelevel', 
+                  'values':[(0, 1, 2, 3, 4, 5), (6, 7, 8), (9, 10, 11, 12)]}}}
 
 ratio_tables = {
     'avginc|geo': {
@@ -329,11 +330,11 @@ def boundary_pipeline(tableID, table, *args, axis, bounds, **kwargs):
     return avgconsolidate(table, *args, axis=axis, bounds=bounds, **kwargs)
 
 @process.create(**mapping_tables)
-def mapping_pipeline(tableID, table, *args, fromaxis, toaxis, values, index=False, string=False, **kwargs):
-    return table.reaxis(fromaxis, toaxis, values, variables, *args, index=index, string=string, **kwargs)
+def mapping_pipeline(tableID, table, *args, fromaxis, toaxis, values, **kwargs):
+    return table.reaxis(fromaxis, toaxis, values, variables, *args, **kwargs)
 
 @process.create(**grouping_tables)
-def grouping_pipeline(tableID, table, *args, axis, values, index=False, **kwargs):
+def grouping_pipeline(tableID, table, *args, axis, values, **kwargs):
     return sumgroup(table, *args, axis=axis, values=values, **kwargs)
 
 @process.create(**interpolate_tables)
