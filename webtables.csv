@@ -4,6 +4,17 @@ tableID,dataset,preds,group,labels,universe,index,header,scope
 #hh|geo|inc@renter,series=geoseries;survey=acs;estimate=5,,B25118,Estimate|Total|Renter occupied|*,households,geography,income,tenure=Renter
 #hh|geo|inc@owner,series=geoseries;survey=acs;estimate=5,,B25118,Estimate|Total|Owner occupied|*,households,geography,income,tenure=Owner
 ,,,,,,,,
+#pop|geo|pi@age1,series=geoseries;survey=acs;estimate=5,,B17024,Estimate|Total|Under 6 years|*,population,geography,%poverty,age=<5
+#pop|geo|pi@age2,series=geoseries;survey=acs;estimate=5,,B17024,Estimate|Total|6 to 11 years|*,population,geography,%poverty,age=6|11
+#pop|geo|pi@age3,series=geoseries;survey=acs;estimate=5,,B17024,Estimate|Total|12 to 17 years|*,population,geography,%poverty,age=12|17
+#pop|geo|pi@age4,series=geoseries;survey=acs;estimate=5,,B17024,Estimate|Total|18 to 24 years|*,population,geography,%poverty,age=18|24
+#pop|geo|pi@age5,series=geoseries;survey=acs;estimate=5,,B17024,Estimate|Total|25 to 34 years|*,population,geography,%poverty,age=25|34
+#pop|geo|pi@age6,series=geoseries;survey=acs;estimate=5,,B17024,Estimate|Total|35 to 44 years|*,population,geography,%poverty,age=35|44
+#pop|geo|pi@age7,series=geoseries;survey=acs;estimate=5,,B17024,Estimate|Total|45 to 54 years|*,population,geography,%poverty,age=45|54
+#pop|geo|pi@age8,series=geoseries;survey=acs;estimate=5,,B17024,Estimate|Total|55 to 64 years|*,population,geography,%poverty,age=55|64
+#pop|geo|pi@age9,series=geoseries;survey=acs;estimate=5,,B17024,Estimate|Total|65 to 74 years|*,population,geography,%poverty,age=65|74
+#pop|geo|pi@age10,series=geoseries;survey=acs;estimate=5,,B17024,Estimate|Total|75 years and over|*,population,geography,%poverty,age=>75
+,,,,,,,,
 #agginc|geo,series=geoseries;survey=acs;estimate=5,,B19313,Estimate|Aggregate income in the past 12 months (in {date} Inflation-adjusted dollars),aggincome,geography,,
 #agginc|geo@renter,series=geoseries;survey=acs;estimate=5,,B25120,Estimate|Aggregate household income in the past 12 months (in {date} Inflation-adjusted dollars)|Renter occupied,aggincome,geography,,tenure=Renter
 #agginc|geo|mort@owner,series=geoseries;survey=acs;estimate=5,,B25120,Estimate|Aggregate household income in the past 12 months (in {date} Inflation-adjusted dollars)|Owner occupied|*,aggincome,geography,mortgage,tenure=Owner

@@ -10,6 +10,8 @@ population,population,num,unit=PPL;precision=0
 ,,,
 incometype,incometype,category,Earnings;0;Dividends;1;Retirement;2;Welfare;3;Other;4
 ,,,
+%poverty,income/povertyincome,range,unit=USD/USD;multiplier=%;precision=0 
+,,,
 income,income,range,heading=$;unit=USD;multiplier=K;precision=0
 rent,rent,range,heading=$;unit=USD;precision=0
 value,value,range,heading=$;unit=USD;multiplier=K;precision=0
@@ -48,7 +50,7 @@ vacancy,vacancy,category,ForRent;0;ForSale;1;Recreational;2;Other;3
 yearbuilt,yearbuilt,range,precision=0
 rooms,rooms,range,unit=RMS;precision=0
 bedrooms,bedrooms,range,unit=BEDRMS;precision=0
-unit,unit,category,House;0;Apartment;1;Split;2;Mobile;3
+unit,unit,category,House;0;Apartment;1;Mobile;2;Vehicle;3
 ,,,
 laborstatus,laborstatus,category,Domestic;0;Working;1
 laborforce,laborforce,category,Soldier;0;Civilian;1

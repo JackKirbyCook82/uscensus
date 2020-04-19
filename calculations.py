@@ -67,6 +67,16 @@ feed_tables = {
     '#hh|geo|val@owner': {}, 
     '#hh|geo|mort@owner': {},
     '#hh|geo@renter': {},
+    '#pop|geo|pi@age1': {},
+    '#pop|geo|pi@age2': {},
+    '#pop|geo|pi@age3': {},
+    '#pop|geo|pi@age4': {},
+    '#pop|geo|pi@age5': {},
+    '#pop|geo|pi@age6': {},
+    '#pop|geo|pi@age7': {},
+    '#pop|geo|pi@age8': {},
+    '#pop|geo|pi@age9': {},
+    '#pop|geo|pi@age10': {},
     '#pop|geo|age@male': {}, 
     '#pop|geo|age@female': {}, 
     '#pop|geo|age@child': {},
@@ -85,7 +95,7 @@ feed_tables = {
     '#pop|geo|edu@female@age3': {},
     '#pop|geo|edu@female@age4': {},
     '#pop|geo|edu@female@age5': {},
-    '#pop|geo|cmte': {},           
+    '#pop|geo|cmte': {},        
     '#st|geo|yrblt':{},
     '#st|geo|rm': {},
     '#st|geo|br': {},
@@ -120,6 +130,9 @@ merge_tables = {
     '#hh|geo|child|ten': {
         'tables': ['#hh|geo|child@owner', '#hh|geo|child@renter'],
         'parms': {'axis':'tenure'}},   
+    '#pop|geo|pi|age': {
+        'tables': ['#pop|geo|pi@age1', '#pop|geo|pi@age2', '#pop|geo|pi@age3', '#pop|geo|pi@age4', '#pop|geo|pi@age5', '#pop|geo|pi@age6', '#pop|geo|pi@age7', '#pop|geo|pi@age8', '#pop|geo|pi@age9', '#pop|geo|pi@age10'],
+        'parms': {'axis':'age'}},    
     '#pop|geo|age|sex': {
         'tables': ['#pop|geo|age@male', '#pop|geo|age@female'],
         'parms': {'axis':'sex'}},     
@@ -163,7 +176,13 @@ summation_tables = {
         'parms':{'axis':'age'}},    
     '#hh|geo': {
         'tables':'#hh|geo|ten',
-        'parms':{'axis':'tenure'}},           
+        'parms':{'axis':'tenure'}},  
+    '#pop|geo': {
+        'tables':'#pop|geo|race',
+        'parms':{'axis':'race'}},   
+    '#st|geo': {
+        'tables':'#st|geo|unit',
+        'parms':{'axis':'unit'}},         
     '#hh|geo@owner': {
         'tables':'#hh|geo|mort@owner',
         'parms':{'axis':'mortgage'}},                 
@@ -239,12 +258,19 @@ interpolate_tables = {
     '#pop|geo|~cmte': {
         'tables':'#pop|geo|cmte',
         'parms':{'data':'population', 'axis':'commute', 'bounds':(0, 120), 
-                 'values':[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}}}
+                 'values':[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}},
+     '#pop|geo|pi|~age': {
+        'tables': '#pop|geo|pi|age',
+        'parms': {'data':'population', 'axis':'age', 'bounds':(0, 95), 
+                  'values':[13, 17, 25, 35, 45, 55, 65]}}}
 
 expansion_tables = {
     '#pop|geo|~age@child': {
         'tables':'#pop|geo|age@child',
-        'parms':{'axis':'age', 'bounds':(0, 17), 'consolidate':True}}}
+        'parms':{'axis':'age', 'bounds':(0, 17)}},
+    '#pop|geo|~age': {
+        'tables':'#pop|geo|age',
+        'parms':{'axis':'age', 'bounds':(0, 95)}}}
 
 collapse_tables = {
     '#hh|geo|~val': {
@@ -276,7 +302,13 @@ ratio_tables = {
         'parms': {'data':'avgvalue', 'topdata':'aggvalue', 'bottomdata':'households'}},  
     'avgrent|geo@renter': {
         'tables': ['#aggrent|geo@renter', '#hh|geo@renter'],
-        'parms': {'data':'avgrent', 'topdata':'aggrent', 'bottomdata':'households'}}}    
+        'parms': {'data':'avgrent', 'topdata':'aggrent', 'bottomdata':'households'}},
+    'pop/hh|geo': {
+        'tables': ['#pop|geo', '#hh|geo'],
+        'parms': {'topdata':'population', 'bottomdata':'households'}},
+    'pop/str|geo': {
+        'tables': ['#pop|geo', '#st|geo'],
+        'parms': {'topdata':'population', 'bottomdata':'structures'}}}    
 
 rate_tables = {
     'Δ%avginc|geo': {
@@ -353,7 +385,7 @@ def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kw
     return table
 
 @process.create(**expansion_tables)
-def expansion_pipeline(tableID, table, *args, axis, bounds, consolidate=True, **kwargs):
+def expansion_pipeline(tableID, table, *args, axis, bounds, **kwargs):
     table = expansion(table, *args, axis=axis, bounds=bounds, **kwargs)
     return table
 
@@ -365,8 +397,8 @@ def collapse_pipeline(tableID, table, other, *args, axis, collapse, value, scope
     return table
 
 @process.create(**ratio_tables)
-def ratio_pipeline(tableID, toptable, bottomtable, *args, data, topdata, bottomdata, **kwargs):
-    retag = {'{}/{}'.format(topdata, bottomdata):'{}'.format(data)}
+def ratio_pipeline(tableID, toptable, bottomtable, *args, data=None, topdata, bottomdata, **kwargs):
+    retag = {'{}/{}'.format(topdata, bottomdata):'{}'.format(data)} if data else {}
     table = tbls.operations.divide(toptable, bottomtable, *args, retag=retag, **kwargs).fillinf(np.NaN)
     return table
     

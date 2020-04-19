@@ -85,14 +85,14 @@ No bedroom,0,
 ,,
 1 detached,House,
 1 attached,House,
-2,Split,
+2,Apartment,
 3 or 4,Apartment,
 5 to 9,Apartment,
 10 to 19,Apartment,
 20 to 49,Apartment,
 50 or more,Apartment,
 Mobile home,Mobile,
-Boat RV van etc.,Mobile,
+Boat RV van etc.,Vehicle,
 ,,
 In labor force,Working,
 Not in labor force,Domestic,
@@ -202,3 +202,24 @@ No related children of the householder under 18,W/OChildren,
 Less than {} minutes,<{},-1
 {} to {} minutes,{}|{},
 {} or more minutes,>{},
+,,
+Under .{},<0.{},-1
+.{} to .{},0.{}|0.{}
+{}.{} to {}.{},{}.{}|{}.{}
+{}.{} and over,>{}.{}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

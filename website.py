@@ -32,7 +32,7 @@ _ALL = '*'
 
 _remove_nums = lambda string: re.sub('\d+', '{}', string)
 _unspace_nums = lambda string: re.sub(r'(\d)\s+(\d)', r'\1\2', string)
-_uncomma_nums =lambda string: re.sub('(?<=\d),(?=\d)', '', string)
+_uncomma_nums = lambda string: re.sub('(?<=\d),(?=\d)', '', string)
 _unspace = lambda string: re.sub(' ', '', string)
 _uncomma = lambda string: re.sub(',', '', string)
 _lowercase = lambda string: string.lower()
@@ -76,8 +76,8 @@ class USCensus_APIVariable(ntuple('USCensus_APIVariable', 'tag group label varia
     def concept(self):
         variable = self.format_variable(self.variable)
         variablekey = variable
-        if variablekey not in _CONCEPTS.keys(): variablekey = _remove_nums(variablekey)
-        if variablekey not in _CONCEPTS.keys(): return self.tag    
+        if variablekey not in _CONCEPTS.keys(): variablekey = _remove_nums(variablekey)       
+        if variablekey not in _CONCEPTS.keys(): raise ValueError(self.tag, variablekey) 
   
         concept = _CONCEPTS[variablekey]
         adjust = _tonumber(_ADJUSTS.get(variablekey, 0))
