@@ -11,6 +11,7 @@ population,population,num,unit=PPL;precision=0
 incometype,incometype,category,Earnings;0;Dividends;1;Retirement;2;Welfare;3;Other;4
 ,,,
 %poverty,income/povertyincome,range,unit=USD/USD;multiplier=%;precision=0 
+incomelevel,incomelevel,category,Poverty;0;NonLiving;1;Living;2;Thriving;3;Wealthy;4
 ,,,
 income,income,range,heading=$;unit=USD;multiplier=K;precision=0
 rent,rent,range,heading=$;unit=USD;precision=0

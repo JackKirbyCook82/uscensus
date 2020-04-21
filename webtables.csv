@@ -75,7 +75,7 @@ tableID,dataset,preds,group,labels,universe,index,header,scope
 ,,,,,,,,
 #pop|geo|age@male,series=geoseries;survey=acs;estimate=5,,B01001,Estimate|Total|Male|*,population,geography,age,sex=Male
 #pop|geo|age@female,series=geoseries;survey=acs;estimate=5,,B01001,Estimate|Total|Female|*,population,geography,age,sex=Female
-#pop|geo|age@child,series=geoseries;survey=acs;estimate=5,,B09001,Estimate|Total|In households|*,population,geography,age,
+#pop|geo|age@youth,series=geoseries;survey=acs;estimate=5,,B09001,Estimate|Total|In households|*,population,geography,age,
 ,,,,,,,,
 #pop|geo|edu@male@age1,series=geoseries;survey=acs;estimate=5,,B15001,Estimate|Total|Male|18 to 24 years|*,population,geography,education,sex=Male;age=18|24
 #pop|geo|edu@male@age2,series=geoseries;survey=acs;estimate=5,,B15001,Estimate|Total|Male|25 to 34 years|*,population,geography,education,sex=Male;age=25|34

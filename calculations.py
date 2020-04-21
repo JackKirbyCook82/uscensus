@@ -79,7 +79,7 @@ feed_tables = {
     '#pop|geo|pi@age10': {},
     '#pop|geo|age@male': {}, 
     '#pop|geo|age@female': {}, 
-    '#pop|geo|age@child': {},
+    '#pop|geo|age@youth': {},
     '#pop|geo|race': {},
     '#pop|geo|origin': {},
     '#pop|geo|lang@age1': {},
@@ -209,6 +209,9 @@ summation_tables = {
         'parms':{'axis':'age'}},
     '#st|geo|yrocc': {
         'tables':'#st|geo|yrocc|age',
+        'parms':{'axis':'age'}},
+    '#pop|geo|pi': {
+        'tables':'#pop|geo|pi|~age',
         'parms':{'axis':'age'}}}
  
 boundary_tables = {
@@ -259,14 +262,14 @@ interpolate_tables = {
         'tables':'#pop|geo|cmte',
         'parms':{'data':'population', 'axis':'commute', 'bounds':(0, 120), 
                  'values':[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]}},
-     '#pop|geo|pi|~age': {
-        'tables': '#pop|geo|pi|age',
-        'parms': {'data':'population', 'axis':'age', 'bounds':(0, 95), 
-                  'values':[13, 17, 25, 35, 45, 55, 65]}}}
+    '#pop|geo|pi|~age': {
+        'tables':'#pop|geo|pi|age',
+        'parms':{'data':'population', 'axis':'age', 'bounds':(0, 95), 
+                 'values':[20, 25, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90]}},}
 
 expansion_tables = {
-    '#pop|geo|~age@child': {
-        'tables':'#pop|geo|age@child',
+    '#pop|geo|~age@youth': {
+        'tables':'#pop|geo|age@youth',
         'parms':{'axis':'age', 'bounds':(0, 17)}},
     '#pop|geo|~age': {
         'tables':'#pop|geo|age',
@@ -279,19 +282,25 @@ collapse_tables = {
 
 mapping_tables = {
     '#pop|geo|gradelvl': {
-        'tables': '#pop|geo|~age@child',
+        'tables': '#pop|geo|~age@youth',
         'parms' : {'fromaxis':'age', 'toaxis':'gradelevel', 
                    'values':{i:i-5 for i in range(5, 18)}}},
     '#pop|geo|schlvl': {
         'tables': '#pop|geo|~gradelvl',
         'parms' : {'fromaxis':'gradelevel', 'toaxis':'schoollevel', 
-                   'values':{'KG|1st|2nd|3rd|4th|5th':'Elementary', '6th|7th|8th':'Middle', '9th|10th|11th|12th':'High'}}}}
+                   'values':{'KG|1st|2nd|3rd|4th|5th':'Elementary', '6th|7th|8th':'Middle', '9th|10th|11th|12th':'High'}}},
+    '#pop|geo|inclvl': {
+        'tables': '#pop|geo|~pi',
+        'parms' : {'fromaxis':'%poverty', 'toaxis':'incomelevel', 
+                   'values':{'<100%':'Poverty', '100%|200%':'NonLiving', '200%|300%':'Living', '300%|400%':'Thriving', '>500%':'Wealthy'}}}}
 
 grouping_tables = {
     '#pop|geo|~gradelvl': {
         'tables': '#pop|geo|gradelvl',
-        'parms': {'axis':'gradelevel', 
-                  'values':[(0, 1, 2, 3, 4, 5), (6, 7, 8), (9, 10, 11, 12)]}}}
+        'parms': {'axis':'gradelevel', 'values':[(0, 1, 2, 3, 4, 5), (6, 7, 8), (9, 10, 11, 12)]}},
+    '#pop|geo|~pi' : {
+        'tables': '#pop|geo|pi',
+        'parms': {'axis':'%poverty', 'values':[1, 2, 3, 4, 5]}}}
 
 ratio_tables = {
     'avginc|geo': {
