@@ -55,7 +55,6 @@ _ADJUSTS = {key:float(value) for key, value in _VARIABLES['adjust'].to_dict().it
 def geographies(): return list(set(_GEOGRAPHY.keys()))
 def variables(): return list(set(_VARIABLES.values()))
 
-
 class USCensus_APIGeography(ntuple('USCensus_APIGeography', 'geography apigeography shapegeography shapedir shapefile value')):
     def __new__(cls, geokey, geovalue=None):
         geosgmts = {key:(value if not _isnull(value) else None) for key, value in _GEOGRAPHY[geokey].items()}
@@ -77,14 +76,14 @@ class USCensus_APIVariable(ntuple('USCensus_APIVariable', 'tag group label varia
         variable = self.format_variable(self.variable)
         variablekey = variable
         if variablekey not in _CONCEPTS.keys(): variablekey = _remove_nums(variablekey)       
-        if variablekey not in _CONCEPTS.keys(): raise ValueError(self.tag, variablekey) 
+        if variablekey not in _CONCEPTS.keys(): return self.tag
   
         concept = _CONCEPTS[variablekey]
         adjust = _tonumber(_ADJUSTS.get(variablekey, 0))
         content = parse(variablekey, variable)
         content = tuple(content.fixed) if content is not None else tuple()      
         if not content: return concept
-        else: return concept.format(*[_tonumber(i) - adjust for i in content])
+        else: return concept.format(*[_tonumber(i) + adjust for i in content])
         
     def format_label(self, *label): return [_labelparser(item) for item in label]
     def format_variable(self, variable): return _variableparser(variable)

@@ -11,7 +11,7 @@ from scipy import stats
 
 import tables as tbls
 from tables.processors import CalculationProcess, CalculationRenderer
-from tables.transformations import Scale, Boundary, Moving, Reduction, GroupBy, Expansion, Cumulate, Uncumulate, Consolidate, Unconsolidate, Interpolate
+from tables.transformations import Scale, Boundary, Moving, Reduction, GroupBy, Expansion, Extension, Cumulate, Uncumulate, Consolidate, Unconsolidate, Interpolate
 
 from uscensus.webquery import query
 from uscensus.webtable import acs_webapi, cleaner, variables
@@ -41,8 +41,8 @@ average = Reduction(how='average', by='summation')
 sumcontained = GroupBy(how='contains', agg='sum', ascending=True)
 sumgroup = GroupBy(how='groups', agg='sum', ascending=True)
 movingdifference = Moving(how='difference', by='minimum', period=1)
-expansion = Expansion(how='equaldivision')
-extension = Expansion(how='distribution')
+expansion = Expansion(how='division')
+extension = Extension(how='distribution')
 interpolate = Interpolate(how='linear', fill='extrapolate')
 
 
@@ -282,12 +282,13 @@ expansion_tables = {
 
 extension_tables = {
     '#st|geo|unit|sqft': {
-        'tables':'#st|geo|unit',
-        'parms':{'axis':'sqft', 'basis':'unit', 'values':[300, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 3000],   
-                 'functions': {'House':lambda size: np.round(stats.beta(2, 2, loc=1000, scale=4000-1000).rvs(size) / 25) * 25,
-                               'Apartment':lambda size: np.round(stats.beta(2, 2, loc=200, scale=1500-200).rvs(size) / 25) * 25, 
-                               'Mobile':lambda size: np.round(stats.beta(2, 2, loc=100, scale=800-100).rvs(size) / 25) * 25, 
-                               'Vehicle':lambda size: np.round(stats.beta(2, 2, loc=0, scale=100-0).rvs(size) / 25) * 25}}}}
+        'tables':'#st|geo|unit', 'bounds':(0, None),
+        'parms':{'axis':'sqft', 'basis':'unit', 
+                 'values':[300, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 3000],   
+                 'functions': {'House':lambda size: np.round(stats.beta(2, 2, loc=1000, scale=4000-1000).rvs(int(size)) / 25) * 25,
+                               'Apartment':lambda size: np.round(stats.beta(2, 2, loc=200, scale=1500-200).rvs(int(size)) / 25) * 25, 
+                               'Mobile':lambda size: np.round(stats.beta(2, 2, loc=100, scale=800-100).rvs(int(size)) / 25) * 25, 
+                               'Vehicle':lambda size: np.round(stats.beta(2, 2, loc=0, scale=100-0).rvs(int(size)) / 25) * 25}}}}
 
 collapse_tables = {
     '#hh|geo|~val': {
@@ -414,8 +415,9 @@ def expansion_pipeline(tableID, table, *args, axis, bounds, **kwargs):
 
 @process.create(**extension_tables)
 def extension_pipeline(tableID, table, *args, axis, basis, functions, **kwargs):
+    functions = {(key if isinstance(key, (tuple)) else (key,)):value for key, value in functions.items()}
     table = table.addscope(axis, variables[axis].fromall(), variables[axis])
-    tables = [extension(table.sel(**{basis:item}), *args, axis=axis, basis=basis, function=functions[item], **kwargs) for item in table.headers[basis]]
+    tables = [extension(table.sel(**{basis:item}), *args, axis=axis, basis=basis, function=functions[item.value], **kwargs) for item in table.headers[basis]]
     table = tables.pop(0)
     if not tables: return table
     else: table = tbls.combinations.merge([table, tables.pop(0)], *args, axis=basis, **kwargs)
@@ -425,7 +427,7 @@ def extension_pipeline(tableID, table, *args, axis, basis, functions, **kwargs):
 @process.create(**collapse_tables)
 def collapse_pipeline(tableID, table, other, *args, axis, collapse, value, scope, **kwargs):
     other = sumcouple(other, *args, axis=collapse, **kwargs).squeeze(collapse)
-    other = other.addscope(axis, value, table.variables[axis])
+    other = other.addscope(axis, table.variables[axis](value), table.variables[axis])
     table = tbls.combinations.append([table, other], *args, axis=axis, noncoreaxes=[collapse, scope], **kwargs)
     return table
 
