@@ -7,10 +7,11 @@ Created on Thu Dec 5 2019
 """
 
 import numpy as np
+from scipy import stats
 
 import tables as tbls
 from tables.processors import CalculationProcess, CalculationRenderer
-from tables.transformations import Boundary, Reduction, GroupBy, Scale, Cumulate, Consolidate, Interpolate, Unconsolidate, Uncumulate, Moving, Expansion
+from tables.transformations import Scale, Boundary, Moving, Reduction, GroupBy, Expansion, Cumulate, Uncumulate, Consolidate, Unconsolidate, Interpolate
 
 from uscensus.webquery import query
 from uscensus.webtable import acs_webapi, cleaner, variables
@@ -28,20 +29,21 @@ process = CalculationProcess('uscensus', name='USCensus Calculations')
 renderer = CalculationRenderer(style='double', extend=1)
 
 boundary = Boundary()
-sumcontained = GroupBy(how='contains', agg='sum', ascending=True)
-sumgroup = GroupBy(how='groups', agg='sum', ascending=True)
-sumcouple = Reduction(how='summation', by='couple')
-summation = Reduction(how='summation', by='summation')
-average = Reduction(how='average', by='summation')
 normalize = Scale(how='normalize')
-expansion = Expansion(how='equaldivision')
-uppercumulate = Cumulate(how='upper')
 upperconsolidate = Consolidate(how='cumulate', direction='upper')
 avgconsolidate = Consolidate(how='average', weight=0.5)
 upperunconsolidate = Unconsolidate(how='cumulate', direction='upper')
-interpolate = Interpolate(how='linear', fill='extrapolate')
+uppercumulate = Cumulate(how='upper')
 upperuncumulate = Uncumulate(how='upper')
+sumcouple = Reduction(how='summation', by='couple')
+summation = Reduction(how='summation', by='summation')
+average = Reduction(how='average', by='summation')
+sumcontained = GroupBy(how='contains', agg='sum', ascending=True)
+sumgroup = GroupBy(how='groups', agg='sum', ascending=True)
 movingdifference = Moving(how='difference', by='minimum', period=1)
+expansion = Expansion(how='equaldivision')
+extension = Expansion(how='distribution')
+interpolate = Interpolate(how='linear', fill='extrapolate')
 
 
 feed_tables = {
@@ -212,8 +214,11 @@ summation_tables = {
         'parms':{'axis':'age'}},
     '#pop|geo|pi': {
         'tables':'#pop|geo|pi|~age',
-        'parms':{'axis':'age'}}}
- 
+        'parms':{'axis':'age'}},
+    '#st|geo|sqft': {
+        'tables':'#st|geo|unit|sqft',
+        'parms':{'axis':'unit'}}}
+
 boundary_tables = {
     '#hh|geo|~size|ten': {
         'tables': '#hh|geo|size|ten',
@@ -274,6 +279,15 @@ expansion_tables = {
     '#pop|geo|~age': {
         'tables':'#pop|geo|age',
         'parms':{'axis':'age', 'bounds':(0, 95)}}}
+
+extension_tables = {
+    '#st|geo|unit|sqft': {
+        'tables':'#st|geo|unit',
+        'parms':{'axis':'sqft', 'basis':'unit', 'values':[300, 500, 750, 1000, 1250, 1500, 1750, 2000, 2250, 2500, 3000],   
+                 'functions': {'House':lambda size: np.round(stats.beta(2, 2, loc=1000, scale=4000-1000).rvs(size) / 25) * 25,
+                               'Apartment':lambda size: np.round(stats.beta(2, 2, loc=200, scale=1500-200).rvs(size) / 25) * 25, 
+                               'Mobile':lambda size: np.round(stats.beta(2, 2, loc=100, scale=800-100).rvs(size) / 25) * 25, 
+                               'Vehicle':lambda size: np.round(stats.beta(2, 2, loc=0, scale=100-0).rvs(size) / 25) * 25}}}}
 
 collapse_tables = {
     '#hh|geo|~val': {
@@ -396,6 +410,16 @@ def interpolate_pipeline(tableID, table, *args, data, axis, bounds, values, **kw
 @process.create(**expansion_tables)
 def expansion_pipeline(tableID, table, *args, axis, bounds, **kwargs):
     table = expansion(table, *args, axis=axis, bounds=bounds, **kwargs)
+    return table
+
+@process.create(**extension_tables)
+def extension_pipeline(tableID, table, *args, axis, basis, functions, **kwargs):
+    table = table.addscope(axis, variables[axis].fromall(), variables[axis])
+    tables = [extension(table.sel(**{basis:item}), *args, axis=axis, basis=basis, function=functions[item], **kwargs) for item in table.headers[basis]]
+    table = tables.pop(0)
+    if not tables: return table
+    else: table = tbls.combinations.merge([table, tables.pop(0)], *args, axis=basis, **kwargs)
+    for other in tables: table = tbls.combinations.append([table, other], *args, axis=basis, **kwargs)
     return table
 
 @process.create(**collapse_tables)

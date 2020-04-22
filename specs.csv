@@ -52,6 +52,7 @@ yearbuilt,yearbuilt,range,precision=0
 rooms,rooms,range,unit=RMS;precision=0
 bedrooms,bedrooms,range,unit=BEDRMS;precision=0
 unit,unit,category,House;0;Apartment;1;Mobile;2;Vehicle;3
+sqft,sqft,range,unit=SQFT;precision=0
 ,,,
 laborstatus,laborstatus,category,Domestic;0;Working;1
 laborforce,laborforce,category,Soldier;0;Civilian;1
