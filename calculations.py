@@ -83,18 +83,18 @@ feed_tables = {
     '#pop|geo|age@female': {}, 
     '#pop|geo|age@youth': {},
     '#pop|geo|race': {},
-    '#pop|geo|origin': {},
-    '#pop|geo|lang@age1': {},
-    '#pop|geo|lang@age2': {},
-    '#pop|geo|lang@age3': {},
+    '#pop|geo|origin': {}, 
+    '#pop|geo@age1@lang': {},    
     '#pop|geo|eng@age1@lang1': {},
     '#pop|geo|eng@age1@lang2': {},
     '#pop|geo|eng@age1@lang3': {},
     '#pop|geo|eng@age1@lang4': {},
+    '#pop|geo@age2@lang': {},    
     '#pop|geo|eng@age2@lang1': {},
     '#pop|geo|eng@age2@lang2': {},
     '#pop|geo|eng@age2@lang3': {},
     '#pop|geo|eng@age2@lang4': {},
+    '#pop|geo@age3@lang': {},    
     '#pop|geo|eng@age3@lang1': {},
     '#pop|geo|eng@age3@lang2': {},
     '#pop|geo|eng@age3@lang3': {},
@@ -150,9 +150,6 @@ merge_tables = {
     '#pop|geo|age|sex': {
         'tables': ['#pop|geo|age@male', '#pop|geo|age@female'],
         'parms': {'axis':'sex'}},     
-    '#pop|geo|age|lang': {
-        'tables': ['#pop|geo|lang@age1', '#pop|geo|lang@age2', '#pop|geo|lang@age3'],
-        'parms': {'axis':'age'}}, 
     '#pop|geo|edu|age@male': {
         'tables': ['#pop|geo|edu@male@age1', '#pop|geo|edu@male@age2', '#pop|geo|edu@male@age3', '#pop|geo|edu@male@age4', '#pop|geo|edu@male@age5'],
         'parms': {'axis':'age'}},
@@ -174,6 +171,9 @@ merge_tables = {
     '#st|geo|yrocc|age|ten': {
         'tables': ['#st|geo|yrocc|age@owner', '#st|geo|yrocc|age@renter'],
         'parms': {'axis':'tenure'}},
+    '#pop|geo|age@lang': {
+        'tables': ['#pop|geo@age1@lang', '#pop|geo@age2@lang' , '#pop|geo@age3@lang'],
+        'parms': {'axis':'age'}},        
     '#pop|geo|eng|age|@lang1': {
         'tables': ['#pop|geo|eng@age1@lang1', '#pop|geo|eng@age2@lang1' , '#pop|geo|eng@age3@lang1'],
         'parms': {'axis':'age'}},
@@ -187,8 +187,8 @@ merge_tables = {
         'tables': ['#pop|geo|eng@age1@lang4', '#pop|geo|eng@age2@lang4' , '#pop|geo|eng@age3@lang4'],
         'parms': {'axis':'age'}},
     '#pop|geo|eng|age|lang': {
-        'tables':['#pop|geo|eng|age|@lang1', '#pop|geo|eng|age|@lang2', '#pop|geo|eng|age|@lang3', '#pop|geo|eng|age|@lang4'],
-        'parms': {'axis':'lang'}}}
+        'tables': ['#pop|geo|age@lang', '#pop|geo|eng|age|@lang1' , '#pop|geo|eng|age|@lang2', '#pop|geo|eng|age|@lang3', '#pop|geo|eng|age|@lang4'],
+        'parms': {'axis':'language', 'coreaxis':'english', 'fill':0}}}
 
 summation_tables = {
     '#aggval|geo@owner': {
@@ -199,10 +199,7 @@ summation_tables = {
         'parms': {'axis':'sex'}},  
     '#pop|geo|age|edu': {
         'tables': '#pop|geo|edu|age|sex',
-        'parms': {'axis':'sex'}},
-    '#pop|geo|lang': {
-        'tables':'#pop|geo|age|lang',
-        'parms':{'axis':'age'}},    
+        'parms': {'axis':'sex'}}, 
     '#hh|geo': {
         'tables':'#hh|geo|ten',
         'parms':{'axis':'tenure'}},  
@@ -244,7 +241,16 @@ summation_tables = {
         'parms':{'axis':'age'}},
     '#st|geo|sqft': {
         'tables':'#st|geo|unit|sqft',
-        'parms':{'axis':'unit'}}}
+        'parms':{'axis':'unit'}},
+    '#pop|geo|eng|lang': {
+        'tables':'#pop|geo|eng|age|lang',
+        'parms':{'axis':'age'}},     
+    '#pop|geo|lang': {
+        'tables':'#pop|geo|eng|lang',
+        'parms':{'axis':'english'}}, 
+    '#pop|geo|eng': {
+        'tables':'#pop|geo|eng|lang',
+        'parms':{'axis':'language'}}}
 
 boundary_tables = {
     '#hh|geo|~size|ten': {
@@ -347,19 +353,19 @@ grouping_tables = {
 ratio_tables = {
     'avginc|geo': {
         'tables': ['#agginc|geo', '#hh|geo'],
-        'parms': {'data':'avgincome', 'topdata':'aggincome', 'bottomdata':'households'}},          
+        'parms': {'data':'avgincome', 'topdata':'aggincome', 'bottomdata':'households', 'fill':np.nan}},          
     'avgval|geo@owner': {
         'tables': ['#aggval|geo@owner', '#hh|geo@owner'],
-        'parms': {'data':'avgvalue', 'topdata':'aggvalue', 'bottomdata':'households'}},  
+        'parms': {'data':'avgvalue', 'topdata':'aggvalue', 'bottomdata':'households', 'fill':np.nan}},  
     'avgrent|geo@renter': {
         'tables': ['#aggrent|geo@renter', '#hh|geo@renter'],
-        'parms': {'data':'avgrent', 'topdata':'aggrent', 'bottomdata':'households'}},
+        'parms': {'data':'avgrent', 'topdata':'aggrent', 'bottomdata':'households', 'fill':np.nan}},
     'pop/hh|geo': {
         'tables': ['#pop|geo', '#hh|geo'],
-        'parms': {'topdata':'population', 'bottomdata':'households'}},
+        'parms': {'topdata':'population', 'bottomdata':'households', 'fill':np.nan}},
     'pop/str|geo': {
         'tables': ['#pop|geo', '#st|geo'],
-        'parms': {'topdata':'population', 'bottomdata':'structures'}}}    
+        'parms': {'topdata':'population', 'bottomdata':'structures', 'fill':np.nan}}}    
 
 rate_tables = {
     'Δ%avginc|geo': {
@@ -392,16 +398,16 @@ def feed_pipeline(tableID, *args, **kwargs):
     dataframe = cleaner(dataframe, *args, **kwargs)   
     flattable = tbls.FlatTable(dataframe, variables=variables, name=tableID)
     arraytable = flattable[[universe, index, header, 'date', *scope.keys()]].unflatten(universe, aggs=AGGS)
-    arraytable = arraytable.squeeze(*scope.keys()).sortall(ascending=True).fillneg(np.nan)   
+    for axis in scope.keys(): arraytable = arraytable.squeeze(axis).sortall(ascending=True).fillneg(np.nan)   
     if header: arraytable = sumcontained(arraytable, axis=header)    
     return arraytable
 
 @process.create(**merge_tables)
-def merge_pipeline(tableID, table, other, *args, axis, noncoreaxis=None, **kwargs):
-    assert isinstance(other, type(table))
-    table = tbls.combinations.merge([table, other], *args, axis=axis, noncoreaxis=noncoreaxis, **kwargs)
+def merge_pipeline(tableID, table, other, *args, axis, noncoreaxis=None, coreaxis=None, fill=None, **kwargs):
+    table = tbls.combinations.merge([table, other], *args, axis=axis, noncoreaxis=noncoreaxis, coreaxis=coreaxis, **kwargs)
     others = [arg for arg in args if isinstance(arg, type(table))]
-    for other in others: table = tbls.combinations.append([table, other], *args, axis=axis, **kwargs)
+    for other in others: table = tbls.combinations.append([table, other], *args, axis=axis, noncoreaxis=noncoreaxis, coreaxis=coreaxis, **kwargs)
+    if fill is not None: table = table.fillna(fill)
     return table
     
 @process.create(**summation_tables)
@@ -459,9 +465,10 @@ def collapse_pipeline(tableID, table, other, *args, axis, collapse, value, scope
     return table
 
 @process.create(**ratio_tables)
-def ratio_pipeline(tableID, toptable, bottomtable, *args, data=None, topdata, bottomdata, **kwargs):
+def ratio_pipeline(tableID, toptable, bottomtable, *args, data=None, topdata, bottomdata, fill=None, **kwargs):
     retag = {'{}/{}'.format(topdata, bottomdata):'{}'.format(data)} if data else {}
-    table = tbls.operations.divide(toptable, bottomtable, *args, retag=retag, **kwargs).fillinf(np.NaN)
+    table = tbls.operations.divide(toptable, bottomtable, *args, retag=retag, **kwargs)
+    if fill is not None: table = table.fillinf(np.NaN)
     return table
     
 @process.create(**rate_tables)
