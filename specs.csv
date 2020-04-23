@@ -38,7 +38,7 @@ aggownercost,agg|ownercost,num,heading=$;unit=USD;multiplier=M;precision=6
 age,age,range,unit=YRS;precision=0
 sex,sex,category,Female;0;Male;1
 origin,origin,category,NonHispanic;0;Hispanic;1
-race,race,category,White;0;Asian;1;Other;2;Black;3
+race,race,category,Asian;0;White;1;Other;2;Black;3
 ,,,
 midage,mid|age,num,unit=YRS;precision=0
 ,,,

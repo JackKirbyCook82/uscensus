@@ -73,6 +73,19 @@ tableID,dataset,preds,group,labels,universe,index,header,scope
 #pop|geo|lang@age2,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|18 to 64 years|*,population,geography,language,age=18|64
 #pop|geo|lang@age3,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|65 years and over|*,population,geography,language,age=>65
 ,,,,,,,,
+#pop|geo|eng@age1@lang1,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|5 to 17 years|Speak other Indo-European languages|*,population,geography,english,age=5|17;language=IndoEuro
+#pop|geo|eng@age1@lang2,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|5 to 17 years|Speak Asian and Pacific Island languages|*,population,geography,english,age=5|17;language=Asian
+#pop|geo|eng@age1@lang3,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|5 to 17 years|Speak Spanish|*,population,geography,english,age=5|17;language=Spanish
+#pop|geo|eng@age1@lang4,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|5 to 17 years|Speak other languages|*,population,geography,english,age=5|17;language=Other
+#pop|geo|eng@age2@lang1,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|18 to 64 years|Speak other Indo-European languages|*,population,geography,english,age=18|64;language=IndoEuro
+#pop|geo|eng@age2@lang2,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|18 to 64 years|Speak Asian and Pacific Island languages|*,population,geography,english,age=18|64;language=Asian
+#pop|geo|eng@age2@lang3,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|18 to 64 years|Speak Spanish|*,population,geography,english,age=18|64;language=Spanish
+#pop|geo|eng@age2@lang4,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|18 to 64 years|Speak other languages|*,population,geography,english,age=18|64;language=Other
+#pop|geo|eng@age3@lang1,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|65 years and over|Speak other Indo-European languages|*,population,geography,english,age=>65;language=IndoEuro
+#pop|geo|eng@age3@lang2,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|65 years and over|Speak Asian and Pacific Island languages|*,population,geography,english,age=>65;language=Asian
+#pop|geo|eng@age3@lang3,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|65 years and over|Speak Spanish|*,population,geography,english,age=>65;language=Spanish
+#pop|geo|eng@age3@lang4,series=geoseries;survey=acs;estimate=5,,B16004,Estimate|Total|65 years and over|Speak other languages|*,population,geography,english,age=>65;language=Other
+,,,,,,,,
 #pop|geo|age@male,series=geoseries;survey=acs;estimate=5,,B01001,Estimate|Total|Male|*,population,geography,age,sex=Male
 #pop|geo|age@female,series=geoseries;survey=acs;estimate=5,,B01001,Estimate|Total|Female|*,population,geography,age,sex=Female
 #pop|geo|age@youth,series=geoseries;survey=acs;estimate=5,,B09001,Estimate|Total|In households|*,population,geography,age,

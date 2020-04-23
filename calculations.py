@@ -87,6 +87,18 @@ feed_tables = {
     '#pop|geo|lang@age1': {},
     '#pop|geo|lang@age2': {},
     '#pop|geo|lang@age3': {},
+    '#pop|geo|eng@age1@lang1': {},
+    '#pop|geo|eng@age1@lang2': {},
+    '#pop|geo|eng@age1@lang3': {},
+    '#pop|geo|eng@age1@lang4': {},
+    '#pop|geo|eng@age2@lang1': {},
+    '#pop|geo|eng@age2@lang2': {},
+    '#pop|geo|eng@age2@lang3': {},
+    '#pop|geo|eng@age2@lang4': {},
+    '#pop|geo|eng@age3@lang1': {},
+    '#pop|geo|eng@age3@lang2': {},
+    '#pop|geo|eng@age3@lang3': {},
+    '#pop|geo|eng@age3@lang4': {},
     '#pop|geo|edu@male@age1': {},
     '#pop|geo|edu@male@age2': {},
     '#pop|geo|edu@male@age3': {},
@@ -161,7 +173,22 @@ merge_tables = {
         'parms': {'axis':'age'}},
     '#st|geo|yrocc|age|ten': {
         'tables': ['#st|geo|yrocc|age@owner', '#st|geo|yrocc|age@renter'],
-        'parms': {'axis':'tenure'}}}
+        'parms': {'axis':'tenure'}},
+    '#pop|geo|eng|age|@lang1': {
+        'tables': ['#pop|geo|eng@age1@lang1', '#pop|geo|eng@age2@lang1' , '#pop|geo|eng@age3@lang1'],
+        'parms': {'axis':'age'}},
+    '#pop|geo|eng|age|@lang2': {
+        'tables': ['#pop|geo|eng@age1@lang2', '#pop|geo|eng@age2@lang2' , '#pop|geo|eng@age3@lang2'],
+        'parms': {'axis':'age'}},
+    '#pop|geo|eng|age|@lang3': {
+        'tables': ['#pop|geo|eng@age1@lang3', '#pop|geo|eng@age2@lang3' , '#pop|geo|eng@age3@lang3'],
+        'parms': {'axis':'age'}},
+    '#pop|geo|eng|age|@lang4': {
+        'tables': ['#pop|geo|eng@age1@lang4', '#pop|geo|eng@age2@lang4' , '#pop|geo|eng@age3@lang4'],
+        'parms': {'axis':'age'}},
+    '#pop|geo|eng|age|lang': {
+        'tables':['#pop|geo|eng|age|@lang1', '#pop|geo|eng|age|@lang2', '#pop|geo|eng|age|@lang3', '#pop|geo|eng|age|@lang4'],
+        'parms': {'axis':'lang'}}}
 
 summation_tables = {
     '#aggval|geo@owner': {
