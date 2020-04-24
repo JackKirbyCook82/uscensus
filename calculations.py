@@ -326,7 +326,10 @@ extension_tables = {
 collapse_tables = {
     '#hh|geo|~val': {
         'tables': ['#hh|geo|~val@owner', '#hh|geo|~rent@renter'],
-        'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'scope':'tenure'}}}
+        'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'scope':'tenure'}},
+    '#hh|geo|~rent': {
+        'tables': ['#hh|geo|~rent@renter', '#hh|geo|~val@owner'],
+        'parms': {'axis':'rent', 'collapse':'value', 'rent':0, 'scope':'tenure'}}}
 
 mapping_tables = {
     '#pop|geo|gradelvl': {
@@ -377,18 +380,9 @@ rate_tables = {
     'Δ%avgrent|geo@renter': {
         'tables': 'avgrent|geo@renter',
         'parms': {'data':'avgrent', 'axis':'date', 'formatting':{'precision':3, 'multiplier':'%'}}}}        
+   
+average_tables = {}    
 
-average_tables = {
-    'Δ%avginc': {
-        'tables': ['Δ%avginc|geo', '#hh|geo'],
-        'parms': {'data':'avgincomerate', 'weightdata':'households', 'axis':'geography'}},
-    'Δ%avgval@owner': {
-        'tables': ['Δ%avgval|geo@owner', '#hh|geo@owner'],
-        'parms': {'data':'avgvaluerate', 'weightdata':'households', 'axis':'geography'}},
-    'Δ%avgrent@renter': {
-        'tables': ['Δ%avgrent|geo@renter', '#hh|geo@renter'],
-        'parms': {'data':'avgrentrate', 'weightdata':'households', 'axis':'geography'}}}
-     
  
 @process.create(**feed_tables)
 def feed_pipeline(tableID, *args, **kwargs):
