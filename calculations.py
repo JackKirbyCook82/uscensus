@@ -324,12 +324,12 @@ extension_tables = {
                                'Vehicle':lambda size: np.round(stats.beta(2, 2, loc=0, scale=100-0).rvs(int(size)) / 25) * 25}}}}
 
 collapse_tables = {
-    '#hh|geo|~val': {
+    '#hh|geo|equity': {
         'tables': ['#hh|geo|~val@owner', '#hh|geo|~rent@renter'],
-        'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'scope':'tenure'}},
-    '#hh|geo|~rent': {
+        'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'tag':'equity', 'scope':'tenure'}},
+    '#hh|geo|lease': {
         'tables': ['#hh|geo|~rent@renter', '#hh|geo|~val@owner'],
-        'parms': {'axis':'rent', 'collapse':'value', 'rent':0, 'scope':'tenure'}}}
+        'parms': {'axis':'rent', 'collapse':'value', 'rent':0, 'tag':'lease', 'scope':'tenure'}}}
 
 mapping_tables = {
     '#pop|geo|gradelvl': {
@@ -452,10 +452,11 @@ def extension_pipeline(tableID, table, *args, axis, basis, functions, **kwargs):
     return table
 
 @process.create(**collapse_tables)
-def collapse_pipeline(tableID, table, other, *args, axis, collapse, value, scope, **kwargs):
+def collapse_pipeline(tableID, table, other, *args, axis, collapse, tag, value, scope, **kwargs):
     other = sumcouple(other, *args, axis=collapse, **kwargs).squeeze(collapse)
     other = other.addscope(axis, table.variables[axis](value), table.variables[axis])
     table = tbls.combinations.append([table, other], *args, axis=axis, noncoreaxes=[collapse, scope], **kwargs)
+    table = table.retag(**{axis:tag})
     return table
 
 @process.create(**ratio_tables)
