@@ -35,10 +35,11 @@ _unspace_nums = lambda string: re.sub(r'(\d)\s+(\d)', r'\1\2', string)
 _uncomma_nums = lambda string: re.sub('(?<=\d),(?=\d)', '', string)
 _unspace = lambda string: re.sub(' ', '', string)
 _uncomma = lambda string: re.sub(',', '', string)
+_unquote = lambda string: re.sub(r'"', '', string)
 _lowercase = lambda string: string.lower()
 
-_variableparser = lambda string: _lowercase(_uncomma(_uncomma_nums(_unspace_nums(string))))
-_labelparser = lambda string: _lowercase(_uncomma(_uncomma_nums(_unspace_nums(string))))
+_variableparser = lambda string: _lowercase(_unquote(_uncomma(_uncomma_nums(_unspace_nums(string)))))
+_labelparser = lambda string: _lowercase(_unquote(_uncomma(_uncomma_nums(_unspace_nums(string)))))
 
 _isnull = lambda value: pd.isnull(value) if not isinstance(value, (list, tuple, dict)) else False
 _aslist = lambda items: [items] if not isinstance(items, (list, tuple)) else list(items)
