@@ -332,7 +332,7 @@ collapse_tables = {
         'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'tag':'equity', 'scope':'tenure'}},
     '#hh|geo|lease': {
         'tables': ['#hh|geo|~rent@renter', '#hh|geo|~val@owner'],
-        'parms': {'axis':'rent', 'collapse':'value', 'rent':0, 'tag':'lease', 'scope':'tenure'}}}
+        'parms': {'axis':'rent', 'collapse':'value', 'value':0, 'tag':'lease', 'scope':'tenure'}}}
 
 mapping_tables = {
     '#pop|geo|gradelvl': {
