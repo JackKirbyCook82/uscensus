@@ -261,7 +261,10 @@ boundary_tables = {
         'parms': {'axis':'rooms', 'bounds':(0, 9)}},   
     '#st|geo|~br': {
         'tables': '#st|geo|br',
-        'parms': {'axis':'bedrooms', 'bounds':(0, 5)}}}
+        'parms': {'axis':'bedrooms', 'bounds':(0, 5)}},
+    '#st|geo|~sqft': {
+        'tables': '#st|geo|sqft',
+        'parms': {'axis':'sqft', 'bounds':(0, 4000)}}}
 
 interpolate_tables = {     
     '#hh|geo|~inc|ten': {
