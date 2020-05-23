@@ -329,10 +329,10 @@ extension_tables = {
 collapse_tables = {
     '#hh|geo|equity': {
         'tables': ['#hh|geo|~val@owner', '#hh|geo|~rent@renter'],
-        'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'tag':'equity', 'scope':'tenure'}},
+        'parms': {'axis':'value', 'collapse':'rent', 'value':0, 'tag':'value', 'scope':'tenure'}},
     '#hh|geo|lease': {
         'tables': ['#hh|geo|~rent@renter', '#hh|geo|~val@owner'],
-        'parms': {'axis':'rent', 'collapse':'value', 'value':0, 'tag':'lease', 'scope':'tenure'}}}
+        'parms': {'axis':'rent', 'collapse':'value', 'value':0, 'tag':'rent', 'scope':'tenure'}}}
 
 mapping_tables = {
     '#pop|geo|gradelvl': {
