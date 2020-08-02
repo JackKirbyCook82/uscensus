@@ -6,11 +6,11 @@ Created on Weds Sept 11 2019
 
 """
 
+import os.path
 import pandas as pd
 import numpy as np
 
-from utilities.dataframes import dataframe_fromjson
-from webscraping.webapi import WebAPI
+from utilities.dataframes import dataframe_fromjson, dataframe_tofile, dataframe_fromfile
 
 from uscensus.website import USCensus_APIGeography
 
@@ -35,16 +35,35 @@ def dataparser(item):
     except ValueError: return item
 
 
-class USCensus_WebAPI(WebAPI):
-    def __init__(self, *args, variable_webquery, **kwargs):
+class USCensus_WebAPI(object):
+    def __repr__(self): return "{}(repository='{}', saving='{}')".format(self.__class__.__name__, self.__repository, self.__saving)   
+    def __init__(self, repository, urlapi, webreader, *args, variable_webquery, saving=True, **kwargs):
         self.__variablewebquery = variable_webquery
-        super().__init__(*args, **kwargs)
+        self.__urlapi = urlapi
+        self.__webreader = webreader
+        self.__repository = repository
+        self.__saving = saving
              
     @property
     def series(self): return self.urlapi.series
     @property
-    def survey(self): return self.urlapi.survey    
+    def survey(self): return self.urlapi.survey 
+    
+    @property
+    def saving(self): return self.__saving        
+    @property
+    def urlapi(self): return self.__urlapi
+    @property
+    def webreader(self): return self.__webreader
 
+    def load(self, *args, **kwargs): 
+        file = self.file(*args, **kwargs)
+        return dataframe_fromfile(file, index=None, header=0, forceframe=True)            
+    def save(self, webtable, *args, **kwargs): 
+        file = self.file(*args, **kwargs)
+        dataframe_tofile(file, webtable, index=False, header=True)   
+
+    def file(self, *args, **kwargs): return os.path.join(self.repository, self.filename(*args, **kwargs))
     def filename(self, *args, tableID, geography, date, **kwargs):
         filename = _FILENAMES[self.series].format(tableID=tableID, date=date, geoID=geography.geoID)
         filename = filename.replace('|', '_')
