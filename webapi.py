@@ -21,7 +21,7 @@ __copyright__ = "Copyright 2018, Jack Kirby Cook"
 __license__ = ""
  
 
-_FILENAMES = {'geoseries':'{tableID}_{date}_{geoID}.csv'}
+_FILENAMES = {'geoseries':'uscensus_{tableID}_{date}_{geoID}.csv'}
 _DATEFORMATS = {'geoseries':'%Y', 'yearseries':'%Y', 'timeseries':'%Y-%m'}
 _AGGREGATIONS = {'sum':np.sum, 'avg':np.mean, 'max':np.max, 'min':np.min}
 
