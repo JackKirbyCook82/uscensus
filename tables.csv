@@ -19,8 +19,8 @@ table,group,label,universe,index,header,scope
 #agginc|geo|ten,B25120,owner|renter(?![.]+mortgage[.]+),aggincome,geography,tenure,
 #agginc|geo|mort@owner,B25120,(?<=[.]+owner[.]+)(with a mortgage|without a mortgage),aggincome,geography,mortgage,tenure=Owner
 ,,,,,,
-#aggcost|geo@renter,B25065,,aggrentercost,geography,,tenure=Renter
-#aggcost|geo|mort@owner,B25089,with a mortgage|without a mortgage,aggownercost,geography,mortgage,tenure=Owner
+#aggrentcost|geo@renter,B25065,,aggrentercost,geography,,tenure=Renter
+#aggowncost|geo|mort@owner,B25089,with a mortgage|without a mortgage,aggownercost,geography,mortgage,tenure=Owner
 ,,,,,,
 #aggrent|geo@renter,B25060,,aggrent,geography,,tenure=Renter
 #aggval|geo|mort@owner,B25082,with a mortgage|without a mortgage,aggvalue,geography,mortgage,tenure=Owner
