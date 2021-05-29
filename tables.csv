@@ -6,15 +6,15 @@ table,group,label,universe,index,header,scope
 ,,,,,,
 #hh|geo|cost@renter,B25063,"less than \$[\,\d]+$|\$[\,\d]+ to \$[\,\d]+$|\$[\,\d]+ or more$|no cash rent$",households,geography,cost,tenure=Renter
 #hh|geo|cost@owner,B25094,"less than \$[\,\d]+$|\$[\,\d]+ to \$[\,\d]+$|\$[\,\d]+ or more$",households,geography,cost,tenure=Owner
-#hh|geo|cost@owner@mortgage,B25087,"(?<=[.]+with a mortgage[.]+)(less than \$[\,\d]+$|\$[\,\d]+ to \$[\,\d]+$|\$[\,\d]+ or more$)",households,geography,cost,tenure=Owner;mortgage=Mortgage
-#hh|geo|cost@owner@equity,B25087,"(?<=[.]+without a mortgage[.]+)(less than \$[\,\d]+$|\$[\,\d]+ to \$[\,\d]+$|\$[\,\d]+ or more$)",households,geography,cost,tenure=Owner;mortgage=Equity
+#hh|geo|cost@owner@mortgage,B25087,"(?<=[.]+with a mortgage[.]+)(less than \$[\,\d]+$|\$[\,\d]+ to \$[\,\d]+$|\$[\,\d]+ or more$)",households,geography,cost,tenure=Owner|mortgage=Mortgage
+#hh|geo|cost@owner@equity,B25087,"(?<=[.]+without a mortgage[.]+)(less than \$[\,\d]+$|\$[\,\d]+ to \$[\,\d]+$|\$[\,\d]+ or more$)",households,geography,cost,tenure=Owner|mortgage=Equity
 ,,,,,,
 #hh|geo|rent@renter,B25056,"less than \$[\,\d]+$|\$[\,\d]+ to \$[\,\d]+$|\$[\,\d]+ or more$|no cash rent$",households,geography,rent,tenure=Renter
 #hh|geo|val@owner,B25075,"less than \$[\,\d]+$|\$[\,\d]+ to \$[\,\d]+$|\$[\,\d]+ or more$",households,geography,value,tenure=Owner
 ,,,,,,
-#hh|geo|ci@renter,B25070,less than \$[\.\d]+ percent$|\$[\.\d]+ to \$[\.\d]+ percent$|\$[\.\d]+ percent or more$|not computed$,households,geography,%costincome,tenure=Renter
-#hh|geo|ci@owner@mortgage,B25091,(?<=[.]+with a mortgage[.]+)(less than \$[\.\d]+ percent$|\$[\.\d]+ to \$[\.\d]+ percent$|\$[\.\d]+ percent or more$|not computed$),households,geography,%costincome,tenure=Owner;mortgage=Mortgage
-#hh|geo|ci@owner@equity,B25091,(?<=[.]+without a mortgage[.]+)(less than \$[\.\d]+ percent$|\$[\.\d]+ to \$[\.\d]+ percent$|\$[\.\d]+ percent or more$|not computed$),households,geography,%costincome,tenure=Owner;mortgage=Equity
+#hh|geo|ci@renter,B25070,less than \$[\.\d]+ percent$|\$[\.\d]+ to \$[\.\d]+ percent$|\$[\.\d]+ percent or more$|not computed$,households,geography,costincome,tenure=Renter
+#hh|geo|ci@owner@mortgage,B25091,(?<=[.]+with a mortgage[.]+)(less than \$[\.\d]+ percent$|\$[\.\d]+ to \$[\.\d]+ percent$|\$[\.\d]+ percent or more$|not computed$),households,geography,costincome,tenure=Owner|mortgage=Mortgage
+#hh|geo|ci@owner@equity,B25091,(?<=[.]+without a mortgage[.]+)(less than \$[\.\d]+ percent$|\$[\.\d]+ to \$[\.\d]+ percent$|\$[\.\d]+ percent or more$|not computed$),households,geography,costincome,tenure=Owner|mortgage=Equity
 ,,,,,,
 #agginc|geo|ten,B25120,owner|renter(?![.]+mortgage[.]+),aggincome,geography,tenure,
 #agginc|geo|mort@owner,B25120,(?<=[.]+owner[.]+)(with a mortgage|without a mortgage),aggincome,geography,mortgage,tenure=Owner
@@ -30,10 +30,10 @@ table,group,label,universe,index,header,scope
 ,,,,,,
 #hh|geo|age@renter,B25007,(?<=[.]+renter[.])(under \d+ years|\d+ to \d+ years$|\d+ years and over$),households,geography,age,tenure=Renter
 #hh|geo|age@owner,B25007,(?<=[.]+owner[.])(under \d+ years|\d+ to \d+ years$|\d+ years and over$),households,geography,age,tenure=Owner
-#hh|geo|age@owner@mortgage,B25027,(?<=[.]+with a mortgage[.])(under \d+ years|\d+ to \d+ years$|\d+ years and over$),households,geography,age,tenure=Owner;mortgage=Mortgage
-#hh|geo|age@owner@equity,B25027,(?<=[.]+without a mortgage[.])(under \d+ years|\d+ to \d+ years$|\d+ years and over$),households,geography,age,tenure=Owner;mortgage=Equity
+#hh|geo|age@owner@mortgage,B25027,(?<=[.]+with a mortgage[.])(under \d+ years|\d+ to \d+ years$|\d+ years and over$),households,geography,age,tenure=Owner|mortgage=Mortgage
+#hh|geo|age@owner@equity,B25027,(?<=[.]+without a mortgage[.])(under \d+ years|\d+ to \d+ years$|\d+ years and over$),households,geography,age,tenure=Owner|mortgage=Equity
 ,,,,,,
 #pop|geo|race,B02001,white|black|native|asian|islander|other race|more races,population,geography,race,
 #pop|geo|origin,B03003,(?<!not )hispanic|not hispanic,population,geography,origin,
 #pop|geo|edu,B15003,no schooling|nursery|kindergarden|grade|high school|ged|some college|associate|bachelor|master|professional|doctorate,population,geography,education,age=>25
-#pop|geo|cmte,B08303,less than \d+ minutes$|\d+ to \d+ minutes$|\d+ or more minutes$,population,geography,commute,age=>16;laborstatus=Working;laborforce=Civilian;employstatus=Employed;employlocation=OnSite
+#pop|geo|cmte,B08303,less than \d+ minutes$|\d+ to \d+ minutes$|\d+ or more minutes$,population,geography,commute,age=>16|laborstatus=Working|laborforce=Civilian|employstatus=Employed|employlocation=OnSite
