@@ -45,7 +45,7 @@ warnings.filterwarnings("ignore")
 with open(APIKEYS_FILE) as file: APIKEYS = {line.split(',')[0]:line.split(',')[1] for line in file.readlines()}
 
 GEOGRAPHYS = {'state':'state', 'county':'county', 'subdivision':'county subdivision'}
-TAGS = ['MOVEDNET', 'MOVEDIN', 'FULL2_NAME', 'STATE2', 'COUNTY2', 'MOVEDOUT', 'FULL1_NAME']
+TAGS = {'growth':'MOVEDNET', 'entering':'MOVEDIN', 'exiting':'MOVEDOUT', 'targetname':'FULL2_NAME', 'targetstate':'STATE2', 'targetcounty':'COUNTY2', 'name':'FULL1_NAME'}
 STATES = {
     'Alabama':'AL', 'Alaska':'AK', 'Arizona':'AZ', 'Arkansas':'AR', 'California':'CA', 'Colorado':'CO', 'Connecticut':'CT', 'Delaware':'DE', 'Florida':'FL', 'Georgia':'GA', 'Hawaii':'HI',
     'Idaho':'ID', 'Illinois':'IL', 'Indiana':'IN', 'Iowa':'IA', 'Kansas':'KS', 'Kentucky':'KY', 'Louisiana':'LA', 'Maine':'ME', 'Maryland':'MD', 'Massachusetts':'MA', 'Michigan':'MI',
@@ -98,12 +98,21 @@ class USCensus_MIT_WebPage(WebJsonPage, contents=contents):
         self.loadAllContents()
         return self
     
-    def execute(self, *args, date, **kwargs): 
-        query = {}
-        dataset = ''.format()
+    def execute(self, *args, date, state, county, **kwargs): 
+        query = {'date':date, 'state':state, 'county':county}
+        dataset = '{}_{}_{}'.format('household', 'geography', 'mitgration')
         dataframe = self['data'].data
+        dataframe.rename({**_inverted(GEOGRAPHYS), **_inverted(TAGS)}, axis=1, inplace=True)
+        dataframe = self.geography
+        dataframe = dataframe[['growth', 'entering', 'exiting', 'geography', 'target']](dataframe, *args, **kwargs)
         dataframe['date'] = date
         yield query, dataset, dataframe
+
+    def geography(self, dataframe, *args, **kwargs):
+        function = lambda x, keys, names, values: str(Geography(keys=keys, names=x.to_dict()[names].split(', ')[::-1], values=[x.to_dict()[value] for value in values]))
+        dataframe['geography'] = dataframe.apply(function, result_type='reduce', axis=1, args=(['state', 'county', 'subdivision'], 'name', ['state', 'county', 'subdivision']))
+        dataframe['target'] = dataframe.apply(function, result_type='reduce', axis=1, args=(['state', 'county'], 'targetname', ['targestate', 'targetcounty']))
+        return dataframe
 
 
 class USCensus_MIT_WebCache(WebCache, querys=[], dataset=None): pass
@@ -120,7 +129,7 @@ class USCensus_MIT_WebDownloader(WebDownloader, delay=25, attempts=10):
             for feedquery in iter(queue):
                 geography = self.geography(webpage, **feedquery)
                 geography[list(GEOGRAPHYS.keys())[-1]] = {'name':None, 'value': None}
-                url = USCensus_ACS_WebURL(tags=TAGS, geography=geography, date=feedquery['date'], apikey=APIKEYS['uscensus'])
+                url = USCensus_ACS_WebURL(tags=list(TAGS.values()), geography=geography, date=feedquery['date'], apikey=APIKEYS['uscensus'])
                 webpage.load(url, referer=None).setup()
                 for query, dataset, dataframe in webpage(**feedquery): 
                     yield USCensus_MIT_WebCache(query, {dataset:dataframe})
