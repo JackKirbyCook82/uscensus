@@ -70,6 +70,7 @@ STATES = {
 
 
 _inverted = lambda x: {v:k for k, v in x.items()}
+_filter = lambda x: [i for i in x if i is not None]
 _range = lambda x: [str(i) for i in range(int(x.split('-')[0]), int(x.split('-')[1])+1)]
 _list = lambda x: [str(i) for i in str(x).split('|')]
 _state = lambda x: str(x) if str(x) in STATES.values() else STATES[str(x)]
@@ -107,33 +108,33 @@ def _geodata(json):
     return {(keys[-1], names[-1]):values[-1] for names, values in zip(namesdata, valuesdata)}
 
 
-class USCensus_ACS_WebGeography(WebJson.customize(dataparser=_geography)): pass
-class USCensus_ACS_WebVariables(WebJson.customize(dataparser=_variables)): pass
-class USCensus_ACS_WebGroups(WebJson.customize(dataparser=_variables)): pass
-class USCensus_ACS_WebGeoData(WebJson.customize(dataparser=_geodata)): pass
-class USCensus_ACS_WebVarData(WebJson.customize(dataparser=_vardata)): pass
+class USCensus_WebGeography(WebJson.customize(dataparser=_geography)): pass
+class USCensus_WebVariables(WebJson.customize(dataparser=_variables)): pass
+class USCensus_WebGroups(WebJson.customize(dataparser=_variables)): pass
+class USCensus_WebGeoData(WebJson.customize(dataparser=_geodata)): pass
+class USCensus_WebVarData(WebJson.customize(dataparser=_vardata)): pass
 
 class USCensus_ACS_WebDelayer(WebDelayer): pass
 class USCensus_ACS_WebReader(WebReader, retrys=Retrys(retries=3, backoff=0.3, httpcodes=(500, 502, 504)), authenticate=None): pass
 
 
-class USCensus_ACSGeography_WebURL(WebURL, protocol='https', domain='api.census.gov', path=['data', '{date}', 'acs', 'acs5', 'geography', '.json']): pass
-class USCensus_ACSVariable_WebURL(WebURL, protocol='https', domain='api.census.gov', path=['data', '{date}', 'acs', 'acs5', 'variables', '.json']): pass  
-class USCensus_ACSGroup_WebURL(WebURL, protocol='https', domain='api.census.gov', path=['data', '{date}', 'acs', 'acs5', 'groups', '{group}', '.json']): pass  
-class USCensus_ACS_WebURL(WebURL, protocol='https', domain='api.census.gov', spaceproxy='%20'): 
-    def path(self, *args, date, **kwargs): return ['data', str(date), 'acs', 'acs5']
+class USCensus_ACSQuery_WebURL(WebURL, protocol='https', domain='api.census.gov'): 
+    def path(*args, dataset, date, query, group=None, **kwargs): return _filter(['data', str(date), 'acs', str(dataset), str(query), str(group), '.json'])
+
+class USCensus_ACSData_WebURL(WebURL, protocol='https', domain='api.census.gov', spaceproxy='%20'): 
+    def path(self, *args, dataset, date, **kwargs): return ['data', str(date), 'acs', str(dataset)]
     def parms(self, *args, tags, geography, apikey, **kwargs): 
         assert isinstance(geography, Geography)
-        forgeo = {GEOGRAPHYS[key]:(value if value is not None else '*') for key, name, value in geography[-1].items()} 
-        ingeo = {GEOGRAPHYS[key]:(value if value is not None else '*') for key, name, value in geography[:-1].items()}
+        forgeo = {GEOGRAPHYS[key].replace(" ", self.spaceproxy):(value.replace(" ", self.spaceproxy) if value is not None else '*') for key, name, value in geography[-1].items()} 
+        ingeo = {GEOGRAPHYS[key].replace(" ", self.spaceproxy):(value.replace(" ", self.spaceproxy) if value is not None else '*') for key, name, value in geography[:-1].items()}
         return {**_tag(*tags), **_forgeo(**forgeo), **_ingeo(**ingeo), **_apikey(apikey)}
 
-pd.set_option('max_columns', 50)
-contents = {'geography':USCensus_ACS_WebGeography, 
-            'variables':USCensus_ACS_WebVariables, 
-            'groups':USCensus_ACS_WebGroups, 
-            'geodata':USCensus_ACS_WebGeoData, 
-            'vardata':USCensus_ACS_WebVarData}
+
+contents = {'geography':USCensus_WebGeography, 
+            'variables':USCensus_WebVariables, 
+            'groups':USCensus_WebGroups, 
+            'geodata':USCensus_WebGeoData, 
+            'vardata':USCensus_WebVarData}
 class USCensus_ACS_WebPage(WebJsonPage, contents=contents):
     def setup(self, *args, **kwargs):
         self.loadAllContents()
@@ -191,26 +192,25 @@ class USCensus_ACS_WebDownloader(WebDownloader, delay=25, attempts=10):
                 geography = self.geography(webpage, **feedquery)
                 geography[feedquery['geography']] = {'name':None, 'value': None}
                 variables = self.variables(webpage, **tablequery, **feedquery)
-                url = USCensus_ACS_WebURL(tags=['NAME', *list(variables.keys())], geography=geography, date=feedquery['date'], apikey=APIKEYS['uscensus'])
+                url = USCensus_ACSData_WebURL(dataset='acs5', tags=['NAME', *list(variables.keys())], geography=geography, date=feedquery['date'], apikey=APIKEYS['uscensus'])
                 webpage.load(url, referer=None).setup()
-                for query, dataset, dataframe in webpage(variables=variables, **feedquery, **tablequery): 
-                    yield USCensus_ACS_WebCache(query, {dataset:dataframe})
+                for query, dataset, dataframe in webpage(variables=variables, **feedquery, **tablequery): yield USCensus_ACS_WebCache(query, {dataset:dataframe})
 
     def geography(self, webpage, *args, date, **kwargs):
-        url = USCensus_ACSGeography_WebURL(date=date)
+        url = USCensus_ACSQuery_WebURL(dataset='acs5', date=date, query='geography')
         orders = webpage.load(url, referer=None).setup()['geography'].data
         orders = {_inverted(GEOGRAPHYS)[key]:[_inverted(GEOGRAPHYS)[value] for value in values if value in GEOGRAPHYS.values()] for key, values in orders.items() if key in GEOGRAPHYS.values()}
         orders = [[value for value in values if value in kwargs.keys()] + [key] for key, values in orders.items() if key in kwargs.keys()]
         order = max(orders, key=lambda x: len(x))
         geography = Geography(keys=order)
         for index, key in enumerate(order, start=1):
-            url = USCensus_ACS_WebURL(tags=['NAME'], geography=geography[0:index], date=date, apikey=APIKEYS['uscensus'])   
+            url = USCensus_ACSData_WebURL(dataset='acs5', tags=['NAME'], geography=geography[0:index], date=date, apikey=APIKEYS['uscensus'])   
             geovalues = webpage.load(url, referer=None).setup()['geodata'].data 
             geography[key] = dict(name=kwargs[key], value=geovalues[(key, kwargs[key])])            
         return geography
 
     def variables(self, webpage, *args, date, group, label, **kwargs):
-        url = USCensus_ACSGroup_WebURL(date=date, group=group)
+        url = USCensus_ACSQuery_WebURL(dataset='acs5', date=date, query='group', group=group)
         variables = webpage.load(url, referer=None).setup()['groups'].data
         variables = {key:value for key, value in variables.items() if re.findall(label, value)} 
         return variables
@@ -231,7 +231,6 @@ def main(*args, **kwargs):
 
 
 if __name__ == '__main__':    
-    sys.argv += ['table=#hh|geo|inc', 'dates=2015-2019', 'geography=tract', 'state=CA', 'county=Kern']
     logging.basicConfig(level='INFO', format="[%(levelname)s, %(threadName)s]:  %(message)s")
     inputparser = InputParser(proxys={'assign':'=', 'space':'_'}, parsers={'dates':_range, 'countys':_list}, default=str)   
     inputparser(*sys.argv[1:])
