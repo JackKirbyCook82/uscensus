@@ -27,7 +27,7 @@ from utilities.input import InputParser
 from webscraping.webapi import WebURL, WebCache, WebQueue, WebDownloader
 from webscraping.webreaders import WebReader, Retrys
 from webscraping.webtimers import WebDelayer
-from webscraping.webpages import WebJsonPage
+from webscraping.webpages import WebJsonPage, WebContents
 from webscraping.webdata import WebJson
 from webscraping.webvariables import Geography
 
@@ -66,11 +66,15 @@ _ingeo = lambda **kwargs: {'in':'{}'.format('%20'.join([':'.join([key, value]) f
 _apikey = lambda apikey: {'key':'{}'.format(str(apikey))}
     
 
-def _vardata(json): return pd.DataFrame(data=json[1:], columns=json[0])    
-def _geodata(json): return {x[0].split(', ')[0]:x[-1] for x in json[1:]}
+geodata_xpath = lambda x: x
+vardata_xpath = lambda x: x
 
-class USCensus_WebGeoData(WebJson.customize(dataparser=_geodata)): pass
-class USCensus_WebVarData(WebJson.customize(dataparser=_vardata)): pass
+
+def geodata_parser(x): return {i[0].split(', ')[0]:i[-1] for i in list(x)[1:]}
+def vardata_parser(x): return pd.DataFrame(data=list(x)[1:], columns=list(x)[0])    
+
+class USCensus_WebGeoData(WebJson.customize(dataparser=geodata_parser), xpath=geodata_xpath): pass
+class USCensus_WebVarData(WebJson.customize(dataparser=vardata_parser), xpath=vardata_xpath): pass
 
 class USCensus_ACS_WebDelayer(WebDelayer): pass
 class USCensus_ACS_WebReader(WebReader, retrys=Retrys(retries=3, backoff=0.3, httpcodes=(500, 502, 504)), authenticate=None): pass
@@ -85,17 +89,20 @@ class USCensus_ACS_WebURL(WebURL, protocol='https', domain='api.census.gov', spa
         return {**_tag(*tags), **_forgeo(**forgeo), **_ingeo(**ingeo), **_apikey(apikey)}
 
 
-contents = {'geodata':USCensus_WebGeoData, 
-            'vardata':USCensus_WebVarData}
-class USCensus_ACS_WebPage(WebJsonPage, contents=contents):
-    def setup(self, *args, **kwargs):
-        self.loadAllContents()
-        return self
+class USCensus_ACS_WebContents(WebContents): 
+    GEODATA = USCensus_WebGeoData
+    VARDATA = USCensus_WebVarData
+
+
+class USCensus_ACS_WebPage(WebJsonPage, contents=USCensus_ACS_WebContents):
+    def setup(self, *args, **kwargs): 
+        for content in iter(self.load): content(*args, **kwargs)
+        if self.empty: self.show()
     
     def execute(self, *args, date, state, county, **kwargs): 
         query = {'date':date, 'state':state, 'county':county}
         dataset = '{}_{}_{}'.format('household', 'geography', 'mitgration')
-        dataframe = self['data'].data
+        dataframe = self[USCensus_ACS_WebContents.VARDATA].data()
         dataframe = self.geography(*args, **kwargs)
         dataframe = self.variables(*args, **kwargs)
         dataframe['date'] = date
@@ -134,13 +141,13 @@ class USCensus_ACS_WebDownloader(WebDownloader, delay=25, attempts=10):
     def geographys(self, webpage, *args, date, state, county, **kwargs):
         geography = Geography(keys=['state'], names=[None], values=[None])
         url = USCensus_ACS_WebURL(dataset='acs5', tags=['NAME'], geography=geography, date=date, apikey=APIKEYS['uscensus'])
-        states = webpage.load(url, referer=None).setup()['geodata'].data
+        states = webpage.load(url, referer=None).setup()[USCensus_ACS_WebContents.GEODATA].data()
         geography = Geography(keys=['state', 'county'], names=[state, None], values=[states[state], None])
         url = USCensus_ACS_WebURL(dataset='acs5', tags=['NAME'], geography=geography, date=date, apikey=APIKEYS['uscensus'])
-        countys = webpage.load(url, referer=None).setup()['geodata'].data
+        countys = webpage.load(url, referer=None).setup()[USCensus_ACS_WebContents.GEODATA].data()
         geography = Geography(keys=['state', 'county', 'subdivision'], names=[state, county, None], values=[states[state], countys[county], None])
         url = USCensus_ACS_WebURL(dataset='acs5', tags=['NAME'], geography=geography, date=date, apikey=APIKEYS['uscensus'])
-        subdivisions = webpage.load(url, referer=None).setup()['geodata'].data
+        subdivisions = webpage.load(url, referer=None).setup()[USCensus_ACS_WebContents.GEODATA].data()
         geographys = [Geography(keys=['state', 'county', 'subdivision'], names=[state, county, name], values=[states[state], countys[county], value]) for name, value in subdivisions.items()]
         for geography in geographys: yield geography
 
@@ -160,7 +167,6 @@ def main(*args, **kwargs):
 
 
 if __name__ == '__main__':    
-    sys.argv += ['dates=2017-2019', 'state=CA', 'county=Kern']
     logging.basicConfig(level='INFO', format="[%(levelname)s, %(threadName)s]:  %(message)s")
     inputparser = InputParser(proxys={'assign':'=', 'space':'_'}, parsers={'dates':_range, 'countys':_list}, default=str)   
     inputparser(*sys.argv[1:])

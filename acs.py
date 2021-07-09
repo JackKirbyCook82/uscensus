@@ -30,7 +30,7 @@ from utilities.dataframes import dataframe_fromfile, dataframe_parser
 from webscraping.webapi import WebURL, WebCache, WebQueue, WebDownloader
 from webscraping.webreaders import WebReader, Retrys
 from webscraping.webtimers import WebDelayer
-from webscraping.webpages import WebJsonPage
+from webscraping.webpages import WebJsonPage, WebContents
 from webscraping.webdata import WebJson
 from webscraping.webvariables import Geography
 
@@ -80,7 +80,6 @@ _forgeo = lambda **kwargs: {'for':'{}'.format('%20'.join([':'.join([key, value])
 _ingeo = lambda **kwargs: {'in':'{}'.format('%20'.join([':'.join([key, value]) for key, value in kwargs.items()]))} if kwargs else {}
 _apikey = lambda apikey: {'key':'{}'.format(str(apikey))}
     
-
 def _labels(string):
     for key, value in VARIABLES.items():
         if key == string: return value
@@ -91,28 +90,36 @@ def _labels(string):
 def _tables(querys):
     for query in querys: yield query, TABLES.loc[query['table'], :].squeeze().to_dict()
 
-def _variables(json): return {key:value['label'] for key, value in json['variables'].items() if str(key).endswith('E')}    
-def _geography(json): 
-    items = [(items['name'], items.get('requires', [])) for items in json['fips']]
+
+geography_xpath = lambda x: x['fips']
+variables_xpath = lambda x: x['variables']
+groups_xpath = lambda x: x['groups']
+geodata_xpath = lambda x: x
+vardata_xpath = lambda x: x
+
+
+def variable_parser(x): return {key:value['label'] for key, value in dict(x).items() if str(key).endswith('E')}    
+def geography_parser(x): 
+    items = [(items['name'], items.get('requires', [])) for items in list(x)]
     required = {}
     for (key, values) in items:
         try: required[key] = list({*required[key], *values})
         except KeyError: required[key] = list(values)
     return required
     
-def _vardata(json): return pd.DataFrame(data=json[1:], columns=json[0])    
-def _geodata(json):
-    keys = tuple(json[0][1:])
-    namesdata = [tuple(str(i[0]).split(', ')[::-1]) for i in json[1:]]
-    valuesdata = [tuple(i[1:]) for i in json[1:]]
+def vardata_parser(x): return pd.DataFrame(data=list(x)[1:], columns=list(x)[0])    
+def geodata_parser(x):
+    keys = tuple(list(x)[0][1:])
+    namesdata = [tuple(str(i[0]).split(', ')[::-1]) for i in list(x)[1:]]
+    valuesdata = [tuple(i[1:]) for i in list(x)[1:]]
     return {(keys[-1], names[-1]):values[-1] for names, values in zip(namesdata, valuesdata)}
 
 
-class USCensus_WebGeography(WebJson.customize(dataparser=_geography)): pass
-class USCensus_WebVariables(WebJson.customize(dataparser=_variables)): pass
-class USCensus_WebGroups(WebJson.customize(dataparser=_variables)): pass
-class USCensus_WebGeoData(WebJson.customize(dataparser=_geodata)): pass
-class USCensus_WebVarData(WebJson.customize(dataparser=_vardata)): pass
+class USCensus_WebGeography(WebJson.customize(dataparser=geography_parser), xpath=geography_xpath): pass
+class USCensus_WebVariables(WebJson.customize(dataparser=variable_parser), xpath=variables_xpath): pass
+class USCensus_WebGroups(WebJson.customize(dataparser=variable_parser), xpath=groups_xpath): pass
+class USCensus_WebGeoData(WebJson.customize(dataparser=geodata_parser), xpath=geodata_xpath): pass
+class USCensus_WebVarData(WebJson.customize(dataparser=vardata_parser), xpath=vardata_xpath): pass
 
 class USCensus_ACS_WebDelayer(WebDelayer): pass
 class USCensus_ACS_WebReader(WebReader, retrys=Retrys(retries=3, backoff=0.3, httpcodes=(500, 502, 504)), authenticate=None): pass
@@ -130,21 +137,24 @@ class USCensus_ACSData_WebURL(WebURL, protocol='https', domain='api.census.gov',
         return {**_tag(*tags), **_forgeo(**forgeo), **_ingeo(**ingeo), **_apikey(apikey)}
 
 
-contents = {'geography':USCensus_WebGeography, 
-            'variables':USCensus_WebVariables, 
-            'groups':USCensus_WebGroups, 
-            'geodata':USCensus_WebGeoData, 
-            'vardata':USCensus_WebVarData}
-class USCensus_ACS_WebPage(WebJsonPage, contents=contents):
-    def setup(self, *args, **kwargs):
-        self.loadAllContents()
-        return self
+class USCensus_ACS_WebContents(WebContents): 
+    GEOGRAPHY = USCensus_WebGeography
+    VARIABLES = USCensus_WebVariables
+    GROUPS = USCensus_WebGroups
+    GEODATA = USCensus_WebGeoData
+    VARDATA = USCensus_WebVarData
+
+
+class USCensus_ACS_WebPage(WebJsonPage, contents=USCensus_ACS_WebContents):
+    def setup(self, *args, **kwargs): 
+        for content in iter(self.load): content(*args, **kwargs)
+        if self.empty: self.show()
     
     def execute(self, *args, table, universe, index, header, scope, date, geography, **kwargs): 
         query = {'table':table, 'date':date, 'geography':geography, **{key:value for key, value in kwargs.items() if key in GEOGRAPHYS.keys()}}
         dataset = '{}_{}_{}'.format(universe, index, header)
         dataset = dataset if not str(dataset).endswith('_') else dataset[:-1]
-        dataframe = self['vardata'].data
+        dataframe = self[USCensus_ACS_WebContents.VARDATA].data()
         dataframe = self.variables(dataframe, *args, universe=universe, index=index, header=header, **kwargs)
         dataframe = self.geography(dataframe, *args, **kwargs)
         dataframe['date'] = date
@@ -153,13 +163,15 @@ class USCensus_ACS_WebPage(WebJsonPage, contents=contents):
         else: dataframe = dataframe[[universe, index, 'scope', 'date']]
         yield query, dataset, dataframe
 
-    def geography(self, dataframe, *args, **kwargs):
+    @staticmethod
+    def geography(dataframe, *args, **kwargs):
         geokeys = [column for column in dataframe.columns if column in GEOGRAPHYS.values()]
         function = lambda x: str(Geography(keys=list(geokeys), names=x.to_dict()['NAME'].split(', ')[::-1], values=[x.to_dict()[geokey] for geokey in geokeys]))
         dataframe['geography'] = dataframe.apply(function, result_type='reduce', axis=1)
         return dataframe
     
-    def variables(self, dataframe, *args, variables, label, universe, index, header, **kwargs):
+    @staticmethod
+    def variables(dataframe, *args, variables, label, universe, index, header, **kwargs):
         idVars = [column for column in dataframe.columns if column not in variables.keys()]
         valVars = list(variables.keys())
         if pd.isnull(header): 
@@ -198,20 +210,20 @@ class USCensus_ACS_WebDownloader(WebDownloader, delay=25, attempts=10):
 
     def geography(self, webpage, *args, date, **kwargs):
         url = USCensus_ACSQuery_WebURL(dataset='acs5', date=date, query='geography')
-        orders = webpage.load(url, referer=None).setup()['geography'].data
+        orders = webpage.load(url, referer=None).setup()[USCensus_ACS_WebContents.GEOGRAPHY].data()
         orders = {_inverted(GEOGRAPHYS)[key]:[_inverted(GEOGRAPHYS)[value] for value in values if value in GEOGRAPHYS.values()] for key, values in orders.items() if key in GEOGRAPHYS.values()}
         orders = [[value for value in values if value in kwargs.keys()] + [key] for key, values in orders.items() if key in kwargs.keys()]
         order = max(orders, key=lambda x: len(x))
         geography = Geography(keys=order)
         for index, key in enumerate(order, start=1):
             url = USCensus_ACSData_WebURL(dataset='acs5', tags=['NAME'], geography=geography[0:index], date=date, apikey=APIKEYS['uscensus'])   
-            geovalues = webpage.load(url, referer=None).setup()['geodata'].data 
+            geovalues = webpage.load(url, referer=None).setup()[USCensus_ACS_WebContents.GEODATA].data() 
             geography[key] = dict(name=kwargs[key], value=geovalues[(key, kwargs[key])])            
         return geography
 
     def variables(self, webpage, *args, date, group, label, **kwargs):
         url = USCensus_ACSQuery_WebURL(dataset='acs5', date=date, query='group', group=group)
-        variables = webpage.load(url, referer=None).setup()['groups'].data
+        variables = webpage.load(url, referer=None).setup()[USCensus_ACS_WebContents.GROUPS].data()
         variables = {key:value for key, value in variables.items() if re.findall(label, value)} 
         return variables
                                
