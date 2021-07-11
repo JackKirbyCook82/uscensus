@@ -115,11 +115,11 @@ def geodata_parser(x):
     return {(keys[-1], names[-1]):values[-1] for names, values in zip(namesdata, valuesdata)}
 
 
-class USCensus_WebGeography(WebJson.customize(dataparser=geography_parser), xpath=geography_xpath): pass
-class USCensus_WebVariables(WebJson.customize(dataparser=variable_parser), xpath=variables_xpath): pass
-class USCensus_WebGroups(WebJson.customize(dataparser=variable_parser), xpath=groups_xpath): pass
-class USCensus_WebGeoData(WebJson.customize(dataparser=geodata_parser), xpath=geodata_xpath): pass
-class USCensus_WebVarData(WebJson.customize(dataparser=vardata_parser), xpath=vardata_xpath): pass
+class USCensus_WebGeography(WebJson.update(dataparser=geography_parser), xpath=geography_xpath): pass
+class USCensus_WebVariables(WebJson.update(dataparser=variable_parser), xpath=variables_xpath): pass
+class USCensus_WebGroups(WebJson.update(dataparser=variable_parser), xpath=groups_xpath): pass
+class USCensus_WebGeoData(WebJson.update(dataparser=geodata_parser), xpath=geodata_xpath): pass
+class USCensus_WebVarData(WebJson.update(dataparser=vardata_parser), xpath=vardata_xpath): pass
 
 class USCensus_ACS_WebDelayer(WebDelayer): pass
 class USCensus_ACS_WebReader(WebReader, retrys=Retrys(retries=3, backoff=0.3, httpcodes=(500, 502, 504)), authenticate=None): pass

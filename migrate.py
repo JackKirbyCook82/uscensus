@@ -73,8 +73,8 @@ vardata_xpath = lambda x: x
 def geodata_parser(x): return {i[0].split(', ')[0]:i[-1] for i in list(x)[1:]}
 def vardata_parser(x): return pd.DataFrame(data=list(x)[1:], columns=list(x)[0])    
 
-class USCensus_WebGeoData(WebJson.customize(dataparser=geodata_parser), xpath=geodata_xpath): pass
-class USCensus_WebVarData(WebJson.customize(dataparser=vardata_parser), xpath=vardata_xpath): pass
+class USCensus_WebGeoData(WebJson.update(dataparser=geodata_parser), xpath=geodata_xpath): pass
+class USCensus_WebVarData(WebJson.update(dataparser=vardata_parser), xpath=vardata_xpath): pass
 
 class USCensus_ACS_WebDelayer(WebDelayer): pass
 class USCensus_ACS_WebReader(WebReader, retrys=Retrys(retries=3, backoff=0.3, httpcodes=(500, 502, 504)), authenticate=None): pass
